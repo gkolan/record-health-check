@@ -1,7 +1,7 @@
 # Formula Check examples
 
 > [!NOTE]
-> On this page, choose a Formula example when the answer comes from fields on the record being
+> Choose a Formula example when the answer comes from fields on the record being
 > checked or one of its parent records.
 
 Use **Verify with a formula** when a Salesforce formula can return `TRUE` for a passing record and

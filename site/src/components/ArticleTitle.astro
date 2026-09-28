@@ -1,0 +1,55 @@
+---
+const { entry } = Astro.locals.starlightRoute;
+
+const sectionLabels = {
+  architecture: 'Architecture',
+  'build-checks': 'Build Checks',
+  contributing: 'Contributing',
+  'developer-guides': 'Developer guides',
+  diagnostics: 'Diagnostics',
+  examples: 'Examples',
+  faqs: 'FAQs',
+  'flow-guides': 'Flow guides',
+  install: 'Install',
+  'lightning-record-page': 'Lightning record page',
+  'production-operations': 'Production operations',
+  'quality-gates': 'Quality gates',
+  reference: 'Reference',
+  'save-results': 'Save results',
+  'start-here': 'Start here',
+  'step-by-step-guide': 'Step-by-step guide',
+};
+
+const section = entry.id.split('/')[0];
+const sectionLabel = sectionLabels[section] || 'Documentation';
+---
+
+<header class="article-title">
+  <p class="section-label">{sectionLabel}</p>
+  <h1 id="_top">{entry.data.title}</h1>
+</header>
+
+<style>
+  @layer starlight.core {
+    .article-title {
+      margin-top: 0.75rem;
+    }
+
+    .section-label {
+      margin: 0;
+      color: var(--sl-color-text-accent);
+      font-size: var(--sl-text-xs);
+      font-weight: 750;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0.5rem 0 0;
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-h1);
+      font-weight: 650;
+      line-height: var(--sl-line-height-headings);
+    }
+  }
+</style>

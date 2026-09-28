@@ -95,6 +95,10 @@ function topLevelTitleCount(markdown) {
 }
 
 function classify(relative) {
+  if (relative === "docs/VERSION.md") return "Version index";
+  if (relative === "docs/reference/source-inventory.md")
+    return "Source inventory";
+  if (relative === "docs/start-here/see-it-in-action.md") return "Visual guide";
   if (relative === "docs/README.md") return "Documentation home";
   if (relative === "docs/examples/README.md") return "Examples home";
   if (relative === "docs/examples/account-check-builder-guide.md")
@@ -226,6 +230,34 @@ function structureMatches(type, markdown) {
     row.replace(/[ \t]*\|[ \t]*/g, " | ").trim()
   );
   switch (type) {
+    case "Version index":
+      return hasAll(markdown, [
+        /^## Source of truth$/m,
+        /\| Documentation \| Location \| Product boundary \| Maintenance state \|/,
+        /^## Related$/m
+      ]);
+    case "Source inventory":
+      return hasAll(markdown, [
+        /^## Package identity$/m,
+        /^## Permission Sets \(\d+\)$/m,
+        /^## Custom Permissions \(\d+\)$/m,
+        /^## Lightning Web Components \(\d+\)$/m,
+        /^## Invocable actions \(\d+\)$/m,
+        /^## Packaged data definitions \(\d+\)$/m,
+        /^## Installed example Check Sets \(\d+\)$/m,
+        /^## Installed example Checks \(\d+\)$/m,
+        /^## Public Apex request and execution options$/m,
+        /^## Global Apex types \(\d+\)$/m,
+        /^## Related$/m
+      ]);
+    case "Visual guide":
+      return hasAll(markdown, [
+        /^## Read the card from top to bottom$/m,
+        /^## What the statuses mean$/m,
+        /^## What administrators control$/m,
+        /^## Next steps$/m,
+        /!\[[^\]]+\]\([^)]+\)/
+      ]);
     case "Documentation home":
       return hasAll(markdown, [
         /^## New here\? Follow these steps$/m,
@@ -305,18 +337,30 @@ function structureMatches(type, markdown) {
         (/^\d+\.\s+/m.test(markdown) || /^\|.*\|$/m.test(markdown))
       );
     case "Worked example":
-      return hasAll(markdown, [
-        /^> On this page,/m,
-        /^## Scenario$/m,
-        /^## (?:Why use|Why this Evaluation Type)/m,
-        /^## (?:Step \d+: )?Configure the Check$/m,
-        /^## What the user sees$/m,
-        /^## Security and access$/m,
-        /^## (?:Step \d+: )?Test the Check$/m
-      ]);
+      return (
+        hasAll(markdown, [
+          /^> (?:On this page,|(?:Build|Choose|Configure|Create|Find|Review|Run|Test|Use|Validate|Verify)\b)/m,
+          /^## Scenario$/m,
+          /^## (?:Why use|Why this Evaluation Type)/m,
+          /^## (?:Step \d+: )?Configure the Check$/m,
+          /^## What the user sees$/m,
+          /^## Security and access$/m,
+          /^## (?:Step \d+: )?Test the Check$/m
+        ]) ||
+        hasAll(markdown, [
+          /^## Why this pattern fits$/m,
+          /^## Before you configure it$/m,
+          /^## Step 1: Create or choose the Check Set$/m,
+          /^## Step 2: Create the Check$/m,
+          /^## Step 3: Validate and activate$/m,
+          /^## Step 4: Test the result$/m,
+          /^## If it does not work$/m,
+          /^## Technical reference$/m
+        ])
+      );
     case "Evaluation reference":
       return hasAll(markdown, [
-        /^> On this page,/m,
+        /^> (?:On this page,|(?:Choose|Compare|Configure|Create|Find|Review|Run|Use|Validate|Verify)\b)/m,
         /security|access/i,
         /Outcome|Reason code|Failure/,
         /Compatibility|deprecation|Version/i,
@@ -411,7 +455,7 @@ const results = files.sort().map((file) => {
     ],
     [
       "opening contains a task or reference verb",
-      /\b(use|learn|start|look up|configure|create|install|run|integrate|reference|describes?|explains?|shows?)\b/i.test(
+      /\b(use|learn|start|follow|find|identify|select|choose|decide|plan|apply|review|schedule|diagnose|look up|configure|create|install|run|integrate|reference|describes?|explains?|shows?)\b/i.test(
         opening
       )
     ],
@@ -450,7 +494,7 @@ const failing = results.filter(({ checks }) =>
 const report = [
   "# Documentation structure checks",
   "",
-  `Checked **${results.length}** Markdown pages under \`docs/\`.`,
+  `Checked **${results.length}** Markdown pages in the canonical \`docs/\` tree.`,
   "",
   "These automated checks inspect document structure, links, and formatting conventions. They do not establish technical accuracy, reader usefulness, completeness, or rendered layout. Editorial review and applicable walkthroughs remain separate requirements.",
   "",

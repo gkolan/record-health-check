@@ -132,7 +132,7 @@ Package labels such as Status text, comparison wording, and Yes/No can use Sales
 Workbench. Text entered by an administrator, such as Card Title, Check Title, and Failure Message,
 is not translated automatically. See [Localization](./languages-and-locales.md) for the supported choices.
 
-## Features not tested by this project
+## Project test coverage
 
 The project has not completed compatibility testing for:
 

@@ -1,0 +1,150 @@
+---
+const stages = [
+  {
+    stage: '01',
+    title: 'Understand',
+    description: 'Learn what the card communicates before changing anything in Salesforce.',
+    links: [
+      { label: 'Understand what it does', href: '/start-here/what-it-does/' },
+      { label: 'See the card in action', href: '/start-here/see-it-in-action/' },
+    ],
+  },
+  {
+    stage: '02',
+    title: 'Try it safely',
+    description: 'Install in a sandbox and explore working Checks across every evaluation type.',
+    links: [
+      { label: 'Install in a sandbox', href: '/install/install-in-a-sandbox/' },
+      { label: 'Explore packaged examples', href: '/install/explore-installed-examples/' },
+    ],
+  },
+  {
+    stage: '03',
+    title: 'Build your own',
+    description: 'Create a useful Check, then place the experience where users already work.',
+    links: [
+      { label: 'Create your first Check', href: '/step-by-step-guide/create-your-first-check/' },
+      { label: 'Add it to a record page', href: '/lightning-record-page/' },
+    ],
+  },
+];
+---
+
+<div class="guided-path not-content">
+  {
+    stages.map((item) => (
+      <article class="path-stage">
+        <p class="stage-number" aria-hidden="true">{item.stage}</p>
+        <h3>{item.title}</h3>
+        <p class="stage-description">{item.description}</p>
+        <ul>
+          {item.links.map((link) => (
+            <li>
+              <a href={link.href}>
+                <span>{link.label}</span>
+                <span aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </article>
+    ))
+  }
+</div>
+
+<style>
+  @layer starlight.components {
+    .guided-path {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .path-stage {
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      gap: 0.75rem;
+      min-height: 19rem;
+      margin: 0;
+      padding: 1.5rem;
+      border-radius: 0.8rem;
+      background: var(--sl-color-bg);
+    }
+
+    .stage-number,
+    .path-stage h3,
+    .stage-description,
+    .path-stage ul {
+      margin: 0;
+    }
+
+    .stage-number {
+      color: var(--sl-color-text-accent);
+      font-size: clamp(2.75rem, 5vw, 4rem);
+      font-weight: 750;
+      letter-spacing: -0.06em;
+      line-height: 0.9;
+    }
+
+    .path-stage h3 {
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-xl);
+      line-height: 1.2;
+    }
+
+    .stage-description {
+      color: var(--sl-color-gray-2);
+      font-size: var(--sl-text-sm);
+      line-height: 1.55;
+    }
+
+    .path-stage ul {
+      display: grid;
+      gap: 0.35rem;
+      align-content: end;
+      padding: 0;
+      list-style: none;
+    }
+
+    .path-stage a {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-block: 0.55rem;
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-sm);
+      font-weight: 650;
+      text-decoration: none;
+    }
+
+    .path-stage a:hover {
+      color: var(--sl-color-text-accent);
+    }
+
+    @media (max-width: 54rem) {
+      .guided-path {
+        grid-template-columns: 1fr;
+      }
+
+      .path-stage {
+        grid-template-columns: 5rem minmax(0, 1fr);
+        grid-template-rows: auto auto 1fr;
+        min-height: 0;
+      }
+
+      .stage-number {
+        grid-row: 1 / -1;
+      }
+    }
+
+    @media (max-width: 32rem) {
+      .path-stage {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-number {
+        grid-row: auto;
+      }
+    }
+  }
+</style>

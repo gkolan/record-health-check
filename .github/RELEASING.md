@@ -265,7 +265,7 @@ stay there and stay byte-identical to their `integration-tests` copies.
 
 Do not move them to an unpackaged directory and do not add `unpackagedMetadata` to
 `sfdx-project.json`; that flag deploys metadata to the build org for testing and then deliberately
-excludes it from the package, which is how `2.0.0.6` came to install with zero Example records.
+excludes it from the package, which is how `package candidate` came to install with zero Example records.
 
 Demo _data_ is different. The Acme Accounts and related records the demo org uses are subscriber
 owned, come from `scripts/subscriber/data`, and must never be packaged.

@@ -76,6 +76,12 @@ Redact screenshots and console output before attaching them.
    `npm run ci:gates -- --only lint,check:docs`. The full run is still the authority
    before you push.
 
+   Documentation and site-renderer changes must also follow
+   [Static-site rendering and visual verification](../docs/quality-gates/static-site-rendering-and-visual-verification.md).
+   `npm run check:docs:site` inspects every built page. Run `npm run audit:docs:render` and review
+   every desktop and mobile screenshot when conversion, navigation, global presentation, responsive
+   layout, Astro, or Starlight can affect multiple pages.
+
    These `npm` commands work the same on Windows, macOS, and Linux. Pass Dev Hub aliases with
    `--dev-hub` rather than a `VAR=value` prefix. On Windows, use PowerShell, cmd, or Git Bash; do
    not call the Windows `sf` CLI from WSL bash. See

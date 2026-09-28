@@ -1,178 +1,150 @@
 # Create your first Check
 
-> [!NOTE]
-> On this page, create an Account Check for Billing City, place it on a Lightning record page, and
-> verify both its passing and attention states.
-
-Use this guide to turn one familiar business question into a working health check: does this Account
-have a Billing City? You will create the configuration in Salesforce Setup, place it on an Account
-page, and prove that the guidance makes sense when the field is blank and when it is populated.
+Create an Account health check that answers one question: **Does this Account have a Billing
+City?** You will save the configuration inactive, validate it, add the card to an Account record
+page, and test both results.
 
 ## Before you start
 
-The administrator completing this guide needs:
+You need:
 
-- the installed **Record Health Check Admin** Permission Set;
-- Salesforce **Customize Application** (or equivalent Custom Metadata management access) to create
-  and save Check Set and Check records; **Record Health Check Admin does not grant this Salesforce
-  system permission**;
-- access to edit Lightning record pages; **Record Health Check Admin** already includes the App Builder picker access needed by this guide; and
-- Read access to Account and `BillingCity`.
+- Record Health Check installed in a sandbox;
+- **Record Health Check Admin**;
+- **Customize Application**, or equivalent access to manage Custom Metadata;
+- access to edit Lightning record pages; and
+- Read access to Account and Billing City.
 
-People who only run the completed card need **Record Health Check Card User** plus access to the Account
-records and fields being checked.
+The person testing the finished card needs **Record Health Check Card User** plus access to the
+Account and Billing City. You do not need Apex or command-line tools.
 
-**You do not need:** Apex or command-line tools. The validation step uses the packaged Flow action
-once in Flow Builder so invalid metadata is caught before users see it.
+## What you will create
 
-If Record Health Check is not installed yet, complete [Install and verify in your
-org](../install/install-in-a-sandbox.md) first.
+| Record    | Name                      | What it does                                             |
+| --------- | ------------------------- | -------------------------------------------------------- |
+| Check Set | Account Readiness         | Controls the card on the Account page                    |
+| Check     | Billing City Is Populated | Reviews Billing City and shows guidance when it is blank |
 
-## What you will build
-
-| Configuration | Name used in this guide     | Purpose                                     |
-| ------------- | --------------------------- | ------------------------------------------- |
-| **Check Set** | `Account_Readiness`         | Controls the card and groups related Checks |
-| **Check**     | `Billing_City_Is_Populated` | Asks one health question                    |
-
-The Check passes when `BillingCity` contains a value and fails when it is blank. It reports the
-result without blocking record save or changing Account data.
+Keep both records inactive until validation succeeds.
 
 ## Step 1: Create the Check Set
 
-1. In Salesforce Setup, enter **Custom Metadata Types** in Quick Find and open it.
-2. Next to **Record Health Check Set**, select **Manage Records**.
-3. Select **New**.
-4. Enter these values:
+1. From **Setup**, enter `Custom Metadata Types` in **Quick Find**.
+2. Open **Custom Metadata Types**.
+3. Next to **Record Health Check Set**, select **Manage Records**.
+4. Select **New**.
+5. Enter these values.
 
-| Setup field            | Value                        | Why this value is useful now                                            |
-| ---------------------- | ---------------------------- | ----------------------------------------------------------------------- |
-| **Label**              | Account Readiness            | Gives the configuration a recognizable name                             |
-| **Developer Name**     | `Account_Readiness`          | Gives Salesforce a stable API name for the Check Set                    |
-| **Object**             | `Account`                    | Makes the Check Set available on Account pages                          |
-| **Card Title**         | Account Readiness            | Tells users what the card is reviewing                                  |
-| **When Checks Run**    | **When the user clicks Run** | Lets you control the first test and see exactly when the result changes |
-| **Summary Display**    | **Show below checks**        | Places the completed result summary after the Check rows                |
-| **Run Button Display** | **Show label and icon**      | Keeps the standard, discoverable Run and Rerun action                   |
-| **Run Button Label**   | Run                          | Names the initial action                                                |
-| **Rerun Button Label** | Rerun                        | Names the action after results appear                                   |
-| **Run Button Icon**    | `utility:play`               | Uses a standard Lightning icon                                          |
-| **Active**             | Checked                      | Makes the Check Set available to the Lightning component                |
+| Salesforce field             | Value                    |
+| ---------------------------- | ------------------------ |
+| Label                        | Account Readiness        |
+| Record Health Check Set Name | `Account_Readiness`      |
+| Object                       | `Account`                |
+| Card Title                   | Account Readiness        |
+| When Checks Run              | When the user clicks Run |
+| Summary Display              | Show below checks        |
+| Run Button Display           | Show label and icon      |
+| Run Button Label             | Run                      |
+| Rerun Button Label           | Rerun                    |
+| Run Button Icon              | `utility:play`           |
+| Active                       | Unchecked                |
 
-5. Select **Save**.
+6. Select **Save**.
 
-Manual execution makes the first test easier to follow because the card waits for you to select
-**Run**.
-
-`utility:play` is the name of a standard Salesforce Lightning icon. Paste the name as written; it
-is not a file to upload. **Developer Name** is the stable API identity that other configuration
-references. Some Salesforce screens describe the same identity as a record name.
+`utility:play` is the name of a standard Salesforce icon. It is not a file upload.
 
 ## Step 2: Create the Check
 
 1. Return to **Custom Metadata Types**.
 2. Next to **Record Health Check**, select **Manage Records**.
 3. Select **New**.
-4. Enter these values:
+4. Enter these values.
 
-| Setup field             | Value                                                                                               | What it means to the user                                                                           |
-| ----------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **Label**               | Billing City Is Populated                                                                           | Gives administrators a recognizable Check name                                                      |
-| **Developer Name**      | `Billing_City_Is_Populated`                                                                         | Gives Salesforce a stable identity for the Check                                                    |
-| **Check Set**           | `Account_Readiness`                                                                                 | Places this question on the card you just created                                                   |
-| **Check Title**         | Billing City is populated                                                                           | States the question clearly on the card                                                             |
-| **Evaluation Type**     | **Verify with a formula**                                                                           | Reads a field on the open Account                                                                   |
-| **Pass Condition**      | `NOT(ISBLANK(BillingCity))`                                                                         | Passes when Billing City contains a value                                                           |
-| **Failure Severity**    | **Warning**                                                                                         | Signals that the missing value deserves attention without presenting it as the most serious outcome |
-| **Message When Failed** | `{!record.Name fallback="This Account"}` is missing Billing City. Add it before the Account review. | Explains which Account needs attention and remains clear if its Name is unavailable                 |
-| **Fix Message**         | Edit the Account billing address and rerun the check.                                               | Gives the user a concrete next step                                                                 |
-| **Action Label**        | Edit account                                                                                        | Gives the destination a clear link label                                                            |
-| **Action URL**          | `/lightning/r/Account/{!record.Id}/edit`                                                            | Opens the current Account's standard edit page without saving a change                              |
-| **Evaluation Order**    | `100`                                                                                               | Sets this Check's position when more Checks are added later                                         |
-| **Active**              | Checked                                                                                             | Allows the Check to run                                                                             |
+| Salesforce field         | Value                                                             |
+| ------------------------ | ----------------------------------------------------------------- |
+| Label                    | Billing City Is Populated                                         |
+| Record Health Check Name | `Billing_City_Is_Populated`                                       |
+| Check Set                | Account Readiness                                                 |
+| Check Title              | Billing City is populated                                         |
+| Evaluation Type          | Verify with a formula                                             |
+| Pass Condition           | `NOT(ISBLANK(BillingCity))`                                       |
+| Failure Severity         | Warning                                                           |
+| Message When Failed      | `{!record.Name fallback="This Account"}` is missing Billing City. |
+| Fix Message              | Edit the billing address, then run the Check again.               |
+| Action Label             | Edit account                                                      |
+| Action URL               | `/lightning/r/Account/{!record.Id}/edit`                          |
+| Evaluation Order         | `100`                                                             |
+| Active                   | Unchecked                                                         |
 
 5. Select **Save**.
 
-The Formula Check reads only the current Account, so it does not need SOQL or Apex.
+The formula reads Billing City on the open Account. The message uses the Account Name when the
+running user can read it and uses “This Account” otherwise. The action opens Salesforce's standard
+Account edit page; it does not save a change.
 
-To confirm `BillingCity`, open **Setup → Object Manager → Account → Fields & Relationships →
-Billing City** and read **Field Name**. The merge token `{!record.Name fallback="This Account"}`
-uses the Account Name when it is readable and substitutes “This Account” when the value is blank or
-unavailable.
+## Step 3: Validate before activation
 
-## Step 3: Validate the configuration
+Run **Validate Record Health Check Configuration** from your reusable configuration-validation
+Flow. If you do not have one, follow [Build the configuration-validation Flow](../build-checks/validate-configuration.md).
 
-1. In Setup, open **Flows** and create a short autolaunched flow.
-2. Add the **Validate Record Health Check Configuration** action.
-3. Store or display its **Configuration Is Valid**, **Error Count**, **Warning Count**, and
-   **Validation Report JSON** outputs, then run **Debug**.
-4. Do not activate the Check Set for users while **Configuration Is Valid** is false. Correct every
-   error named in the report and debug the flow again. Warnings deserve review but do not make the
-   configuration invalid.
+Continue only when:
 
-The action checks active definitions and inactive drafts, including prerequisite names and whether
-SOQL can use the runtime's multi-record query grammar. Keep this small administrator flow as a
-reusable validation tool after future Custom Metadata edits.
+- **Configuration Is Valid** is true;
+- **Error Count** is zero; and
+- you have reviewed every warning.
+
+Return to the two Custom Metadata records, select **Edit**, check **Active**, and save each one.
+Activating only after validation keeps unfinished configuration out of Lightning App Builder and
+record-page runs.
 
 ## Step 4: Add the card to an Account page
 
-1. Open an Account record.
+1. Open an Account record in the sandbox.
 2. Select **Setup → Edit Page**.
-3. Drag **Record Health Check** onto the Lightning record page.
-4. In the component properties, select the `Account_Readiness` Check Set.
-5. Confirm the component is using the intended **Check Set**. Its run timing, summary position, and
-   Run/Rerun presentation come from that Check Set.
-6. Save and activate the page.
-7. Return to the Account and refresh the page. The card loads lightweight Check Set shell settings;
-   definitions and evaluation remain deferred until you select **Run**.
+3. Drag **Record Health Check** onto the page.
+4. In the component properties, select **Account Readiness**.
+5. Save and activate the page for the intended app, record type, and profiles.
+6. Return to the Account and refresh the page.
 
-If the Check Set picker is empty, confirm the Check Set is active and its **Object** value is
-`Account`.
-
-The card should show **Account Readiness** and a Run button. It will evaluate the Billing City Check when you select **Run**.
+The card should show **Account Readiness** and a **Run** button. If Account Readiness is not in the
+picker, confirm that the Check Set is active and its Object is `Account`.
 
 ## Step 5: Test both results
 
-Use an Account you can safely edit.
+Use an Account that is safe to change in the sandbox.
 
-| Test           | What to do                                               | Expected result                                                                       |
-| -------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| Failing record | Clear Billing City, save the Account, and select **Run** | **Warning** (`FAIL`) with the failure message, fix message, and **Edit account** link |
-| Passing record | Add Billing City and save the Account                    | The completed card refreshes to **Pass**                                              |
+| Test            | Change                                       | Expected card result                                                     |
+| --------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
+| Needs attention | Clear Billing City, save, and select **Run** | Warning, the missing-city message, the fix message, and **Edit account** |
+| Pass            | Enter Billing City and save                  | Pass after the completed card refreshes; select **Rerun** if needed      |
 
-The first manual evaluation still requires **Run**. After that result exists, a standard Lightning
-record save refreshes the card automatically. Use **Rerun** when you need a deliberate run or when a
-custom component that edits the record does not send a RefreshView notification. Automatic and save-driven refresh
-do not publish user-run lifecycle events.
+Open **Edit account** during the first test and confirm that it opens the same Account. Restore the
+test data when finished.
 
-User-run lifecycle events are optional Platform Events emitted only after a person selects Run or
-Rerun and the Check Set or Check publication settings are enabled. Page-load evaluation never
-publishes those result events.
+## Troubleshoot your Check
 
-Open **Edit account** during the failing test and confirm it opens the same Account. The link does
-not save anything automatically; close the edit page without saving or restore the test value when
-you finish.
+| What you see                           | Check this first                                                             |
+| -------------------------------------- | ---------------------------------------------------------------------------- |
+| The component is missing               | Confirm that the Lightning page is activated for the current app and profile |
+| Account Readiness is not in the picker | Confirm that the Check Set is active and Object is `Account`                 |
+| The card has no rows                   | Confirm that the Check is active and belongs to Account Readiness            |
+| Unable to Check                        | Confirm that the running user can read Account and Billing City              |
+| A Setup change is not visible          | Save the Custom Metadata record, then refresh the record page                |
 
-## If the Check does not work
+For restricted troubleshooting detail, follow [Troubleshoot a run](../diagnostics/browser-console.md).
 
-| What you see                 | What to check                                                           |
-| ---------------------------- | ----------------------------------------------------------------------- |
-| The card is missing          | Confirm the Lightning page is activated for the current app and profile |
-| The Check Set is unavailable | Confirm **Active** is checked and **Object** is `Account`               |
-| The card has no Check rows   | Confirm the Check is active and belongs to `Account_Readiness`          |
-| The Check cannot evaluate    | Confirm the running user can read Account and `BillingCity`             |
-| Setup changes do not appear  | Refresh the record page after saving Custom Metadata                    |
+## Understand the technical values
 
-For authorized troubleshooting details, use [Troubleshoot Record Health Check](../diagnostics/browser-console.md).
+The first walkthrough uses Salesforce labels wherever possible. Use these references when you need
+API names, limits, or exact runtime behavior:
+
+- [Check Set fields](../reference/custom-metadata/check-set-fields.md)
+- [Check fields](../reference/custom-metadata/check-fields.md)
+- [Formula behavior](../reference/evaluation/formula.md)
+- [Merge syntax](../reference/merge-syntax/README.md)
+- [Result labels and API statuses](../reference/results/statuses-and-labels.md)
 
 ## Next steps
 
-| Goal                                                           | Next page                                                                                                                             |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Add more Formula Checks                                        | [Formula examples](../examples/README.md#formula-examples)                                                                            |
-| Check Contacts, Opportunities, Cases, or other related records | [Query examples](../examples/README.md#query-examples)                                                                                |
-| Understand every available field                               | [Configure Check Sets and Checks](../build-checks/configure-check-sets-and-checks.md)                                                 |
-| Add a link or instruction to a failed Check                    | [Configure action links](../build-checks/add-fix-link.md)                                                                             |
-| Prepare the Check Set for release                              | [Configuration review checklist](../build-checks/configure-check-sets-and-checks.md#step-12-review-checklist)                         |
-| Look up exact Setup fields                                     | [Check Set fields](../reference/custom-metadata/check-set-fields.md) and [Check fields](../reference/custom-metadata/check-fields.md) |
-| Translate card labels and statuses                             | [Read Record Health Check results](../reference/results/statuses-and-labels.md)                                                       |
+- [Choose another example](../examples/README.md)
+- [Add a safe action link](../build-checks/add-fix-link.md)
+- [Configure Checks and Check Sets](../build-checks/configure-check-sets-and-checks.md)

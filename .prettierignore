@@ -10,6 +10,13 @@
 .playwright-mcp
 # Generated field registry is checked byte-for-byte by check:field-limits.
 docs/reference/configuration/field-limits.md
+docs/reference/source-inventory.md
+site/public/assets/
+site/.astro/
+site/dist/
+site/node_modules/
+site/src/assets/
+site/src/content/docs/
 
 coverage/
 code-analyzer/

@@ -1,0 +1,19 @@
+{
+  "name": "record-health-check-documentation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:content": "node scripts/prepare-content.mjs",
+    "predev": "npm run prepare:content",
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "prebuild": "npm run prepare:content",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "check:links": "node scripts/check-internal-links.mjs",
+    "check:rendered": "node scripts/check-rendered-output.mjs",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.42.0",
+    "astro": "7.3.3"
+  }
+}

@@ -1,6 +1,6 @@
 # Using Record Health Check FAQ
 
-Use this page for short answers about fit, rollout, and everyday use.
+Find short answers about fit, rollout, and everyday use.
 
 > [!NOTE]
 > Use this page to understand purpose, fit, rollout effort, day-to-day behavior, and product
@@ -59,22 +59,22 @@ Activation requires deliberate permission assignment, Check selection, Lightning
 placement, and page activation. Automation entry points run only after configuration and an
 explicit request. See [Install and verify](../install/install-in-a-sandbox.md).
 
-## Does it change Salesforce data or block people from saving?
+## How does it affect Salesforce data and saves?
 
-No. Record Health Check reads existing information and returns guidance. A failed Check does not
-change the record, prevent a save, undo work, or cause data loss. If Salesforce must enforce a
+Record Health Check reads existing information and returns guidance while leaving the record and
+save transaction unchanged. If Salesforce must enforce a
 non-negotiable rule at save time, use a Validation Rule or another save-time control. See
 [Compare with native Salesforce tools](../start-here/when-to-use-record-health-check.md).
 
-## Can it correct a failed record automatically?
+## How does Record Health Check guide a record correction?
 
-No. Core evaluation is read-only. A Check can show a Fix Message and a reviewed Action Link, but it
-does not edit the record. Any automated correction belongs in a separately approved Flow, Apex, or
+Core evaluation is read-only. A Check can show a Fix Message and a reviewed Action Link. Any
+automated correction belongs in a separately approved Flow, Apex, or
 other Salesforce process with its own permissions, tests, fault handling, and audit requirements.
 
-## Is this a replacement for reports, dashboards, Validation Rules, or Flow?
+## How does it complement reports, dashboards, Validation Rules, and Flow?
 
-No. It complements them:
+Use each Salesforce tool for the task it handles best:
 
 - Use Record Health Check for an explainable review in the context of one record.
 - Use reports and dashboards for trends and groups of records.

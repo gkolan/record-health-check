@@ -1,7 +1,7 @@
 # Custom metadata
 
 > [!NOTE]
-> On this page, choose the Custom Metadata field reference that matches the Setup label or API name
+> Choose the Custom Metadata field reference that matches the Setup label or API name
 > you need to verify.
 
 Record Health Check configuration uses two Custom Metadata Types. The **Record Health Check Set**

@@ -356,7 +356,7 @@ for (const claim of expectedSnapshotClaims) {
 }
 
 const architectureImplementation = fs.readFileSync(
-  path.join(root, "docs/architecture/apex-implementation/README.md"),
+  path.join(docsRoot, "architecture/apex-implementation/README.md"),
   "utf8"
 );
 const architectureSupportCount =
@@ -375,7 +375,7 @@ if (
 }
 
 const featureCatalog = fs.readFileSync(
-  path.join(root, "docs/reference/feature-catalog.md"),
+  path.join(docsRoot, "reference/feature-catalog.md"),
   "utf8"
 );
 const requiredFeatureCatalogTerms = [
@@ -640,11 +640,10 @@ for (const file of markdownFiles) {
     const opening = markdown.split(/^##\s/m, 1)[0];
     if (
       !/> \[!NOTE\]/.test(opening) ||
-      !/> On this page,/.test(opening) ||
       !/> \*\*Setup reference\*\*/.test(opening)
     ) {
       failures.push(
-        `${relativeFile}: example must open with On this page and Setup reference`
+        `${relativeFile}: example opening must include a Setup reference callout`
       );
     }
 

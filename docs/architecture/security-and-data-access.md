@@ -25,7 +25,7 @@ The package protects six separate areas:
 
 ## Choose the correct Permission Set
 
-This checkout defines six Permission Sets; see [version availability](../install/choose-a-package-version.md#documentation-and-installed-version) for the published package. **Record Health Check Run**
+This checkout defines seven Permission Sets; see [version availability](../install/choose-a-package-version.md#documentation-and-installed-package) for the published package. **Record Health Check Run**
 (`rhc__Record_Health_Check_Run`) is a Custom Permission included in the four runner Permission Sets; it is not a Permission Set
 by itself.
 
@@ -45,6 +45,7 @@ Permission Sets.
 | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`)         | Run Custom Permission, the versioned Apex REST adapter, and read access to both Custom Metadata Types; excludes UI, Flow, Agentforce, async Apex, lifecycle events, and diagnostics                                        | Dedicated least-privilege MCP integration users                                                                                                                   |
 | **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`)   | Diagnostics authorization only; no Run permission, Apex, metadata, object, field, or event access                                                                                                                          | Affected Card User or User assignments that need temporary diagnostic visibility without Admin access                                                             |
 | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create)                                                                                                                         | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data                                     |
+| **Record Health Check Readiness Auditor** (`rhc__Record_Health_Check_Readiness_Auditor`)     | Read-only access to bounded private readiness receipts; no Run, Preview, cleanup, diagnostic, or metadata access                                                                                                           | Reviewers who inspect saved verification evidence without administering or executing Record Health Check                                                          |
 
 Do not assign the Admin Permission Set merely because a person needs to run a Check. Diagnostic
 detail can include formula text, SOQL text, and specific access problems.

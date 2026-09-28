@@ -1,6 +1,6 @@
 # Setup and troubleshooting FAQ
 
-Use this page for short answers about setup, permissions, and unexpected results.
+Find short answers about setup, permissions, and unexpected results.
 
 > [!NOTE]
 > Use this page for package setup, permissions, data access, operations, integration, source, and
@@ -119,16 +119,16 @@ flows.
 
 Package installation and upgrade also compile the packaged Apex tests.
 
-### Packaged tests fail while creating business records
+### Resolve packaged test record setup
 
-Older installations can encounter Framework test setup failures with an Account or
-related-object validation, required-field, trigger, or flow error when they explicitly run packaged
-tests, choose Run All Tests, or deploy package source into a customized org. The error is raised by
-subscriber automation reacting to packaged test data setup.
+Packaged test setup can fail with an Account or related-object validation, required-field, trigger,
+or flow error when an administrator explicitly runs packaged tests, chooses Run All Tests, or
+deploys package source into a customized org. The error is raised by subscriber automation reacting
+to packaged test data setup.
 
-Ordinary subscriber `RunLocalTests` does not select the installed namespaced package tests. If an older version fails this way, confirm the failing stack is Framework fixture DML and report
-unclear cases through the project support channel. Do not disable production automation merely to
-make the Framework test fixture pass.
+Ordinary subscriber `RunLocalTests` does not select the installed namespaced package tests. Confirm
+that the failing stack is Framework fixture DML and report unclear cases through the project support
+channel. Do not disable production automation merely to make the Framework test fixture pass.
 
 Current packaged tests avoid business-object DML. Follow [Upgrade and revalidate](../install/upgrade.md) to test the latest release in a sandbox.
 
@@ -228,11 +228,10 @@ includes an upgrade path that checks preservation of organization-owned Check Se
 Package-owned examples remain package content and can change in a later version. Back up all
 required configuration and prove the exact upgrade in a representative sandbox before production.
 
-## Does the package provide rollback to an older version?
+## How do I recover from an unsuccessful rollout?
 
-Salesforce does not generally support installing an older package version over a newer one as a
-rollback. Back up configuration before an upgrade, stop promotion when sandbox results are not
-acceptable, and use the documented removal and recovery process when necessary. See
+Back up configuration before a rollout, stop promotion when sandbox results are not acceptable, and
+use the documented removal and recovery process when necessary. See
 [Upgrading](../install/upgrade.md) and
 [Uninstall and rollback](../install/uninstall.md).
 

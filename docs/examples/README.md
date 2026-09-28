@@ -1,7 +1,7 @@
 # Examples you can copy
 
 > [!NOTE]
-> On this page, choose an Evaluation Type and a complete example that matches the Salesforce
+> Choose an Evaluation Type and a complete example that matches the Salesforce
 > requirement you want to check.
 
 Use these examples to build a health check for a Salesforce record. Each example starts with a
@@ -11,7 +11,7 @@ test the result.
 Examples change only when a release capability improves the business story they teach. Runtime
 fixes, deliberately invalid configurations, and specialized API/security behavior use the existing
 example, an integration-only fixture, or a focused walkthrough instead of being added to every
-Check. See [Example coverage for 2.0.8 through 2.0.10](./versioned-example-coverage.md) for the
+Check. See [Example coverage](./example-coverage.md) for the
 current decisions and verification data.
 
 You do not need to read every page. Choose the row closest to your requirement, create a Check from
@@ -125,15 +125,15 @@ Choose **Verify with Apex** when the Check needs calculations, several steps, or
 that the other Evaluation Types cannot express clearly. Apex examples require development and test
 coverage before deployment.
 
-`AccountHasRecentActivityCheck` is included in the managed package. The strategic-readiness and
+`AccountHasRecentActivityCheck` is included in the namespaced unlocked package. The strategic-readiness and
 open-opportunity classes are source-development recipes unless your team reviews, tests, and
 deploys them.
 
-| Example                                                      | What it checks                                                  | What you will learn                                                                                                                  |
-| ------------------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| [Recent Account activity](./apex/recent-activity.md)         | An Account meets a recent WhatId Task/Event cadence             | Exercise 2.0.10 typed parameters, per-record recovery, evidence, display overrides, and inline links with positive and negative data |
-| [Open Opportunity health](./apex/open-opportunity-health.md) | An open Opportunity does not have several warning signs at once | Apply several conditions to the same related record                                                                                  |
-| [Strategic Account readiness](./apex/strategic-readiness.md) | A Strategic Account meets a weighted readiness score            | Calculate and explain a configurable score                                                                                           |
+| Example                                                      | What it checks                                                  | What you will learn                                                                                                           |
+| ------------------------------------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| [Recent Account activity](./apex/recent-activity.md)         | An Account meets a recent WhatId Task/Event cadence             | Exercise typed parameters, per-record recovery, evidence, display overrides, and inline links with positive and negative data |
+| [Open Opportunity health](./apex/open-opportunity-health.md) | An open Opportunity does not have several warning signs at once | Apply several conditions to the same related record                                                                           |
+| [Strategic Account readiness](./apex/strategic-readiness.md) | A Strategic Account meets a weighted readiness score            | Calculate and explain a configurable score                                                                                    |
 
 ## What makes each example different
 

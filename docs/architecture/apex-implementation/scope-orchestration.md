@@ -1,7 +1,7 @@
 # Apex classes that coordinate a health-check request (L4)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when tracing request orchestration. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 
@@ -10,7 +10,7 @@
 > records, run each Evaluation Type, and assemble the response. Custom Apex should start with
 > `rhc.RecordHealthCheck.evaluate(...)`, not call these classes directly.
 
-This page is part of the [Apex class reference](./README.md). For the architecture story, see
+Use the [Apex class reference](./README.md) to place these orchestration classes in the full package structure. For the architecture story, see
 [Architecture § How one Check is evaluated](../framework.md#6-how-one-check-is-evaluated).
 
 ## Request coordination (L4)

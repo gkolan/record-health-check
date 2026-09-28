@@ -1,6 +1,6 @@
 # Agentforce actions
 
-This guide is for Agentforce administrators and developers.
+Use this guide to add the packaged Record Health Check actions to a native Agentforce agent.
 
 > [!NOTE]
 > Use this page to give a native Agentforce agent read-only access to one Record Health Check or
@@ -308,6 +308,28 @@ raw administrator diagnostics.
 The actions do not return Found or Expected values, display messages, action URLs, raw serialized
 results, queries, formulas, stack traces, record values, or administrator-only diagnostics. Report
 only the bounded diagnosis supplied by the action; do not infer additional technical detail.
+
+The exact Salesforce output labels are:
+
+| Output                  | Single Check | Check Set | Meaning                                                  |
+| ----------------------- | ------------ | --------- | -------------------------------------------------------- |
+| **Contract Version**    | Yes          | Yes       | Version of the action response contract                  |
+| **Correlation ID**      | Yes          | Yes       | Caller-supplied or generated safe correlation value      |
+| **Success**             | Yes          | Yes       | Whether the action returned a completed adapter response |
+| **Operation**           | Yes          | Yes       | Check or Check Set operation that ran                    |
+| **Status**              | Yes          | Yes       | Five-state health result                                 |
+| **Reason Code**         | Yes          | No        | Stable reason for the single Check result                |
+| **Passed Count**        | No           | Yes       | Checks that passed                                       |
+| **Failed Count**        | No           | Yes       | Checks that found a business problem                     |
+| **Skipped Count**       | No           | Yes       | Checks that did not apply or run                         |
+| **Unable Count**        | No           | Yes       | Checks that could not reach a reliable conclusion        |
+| **System Error Count**  | No           | Yes       | Checks stopped by a system or evaluator error            |
+| **Error Type**          | Yes          | Yes       | Stable adapter error category                            |
+| **Error Message**       | Yes          | Yes       | Safe error explanation                                   |
+| **Diagnostic ID**       | Yes          | Yes       | Safe incident identifier when available                  |
+| **Diagnostic Category** | Yes          | Yes       | Bounded diagnostic category                              |
+| **Diagnostic Summary**  | Yes          | Yes       | Value-free diagnostic explanation                        |
+| **Recommended Action**  | Yes          | Yes       | Safe next troubleshooting step                           |
 
 ## Limits and side effects
 

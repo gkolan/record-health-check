@@ -75,7 +75,7 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   exact PASS, FAIL, SKIPPED, and UNABLE_TO_EVALUATE results while its automated test proves one
   protected construction handoff and one bulk evaluation; see
   [plugin-compatibility-fixtures.md](./plugin-compatibility-fixtures.md)
-- The 2.0.10 subscriber fixtures keep business outcomes separate from failure mechanics:
+- The subscriber fixtures keep business outcomes separate from failure mechanics:
   `RHC_SP_Definition`, `RHC_SP_Values`, and `RHC_SP_Formula` have independently specified PASS and
   FAIL records plus their applicable skipped, missing-data, recovery, and capacity cases;
   `RHC_SP_Preview` executes an inactive draft across PASS, FAIL, SKIPPED, and

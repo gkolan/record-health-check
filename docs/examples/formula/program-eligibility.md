@@ -1,186 +1,120 @@
-# Account Meets the Small-business Program Minimum
+# Check whether an Account meets a program minimum
 
 > [!NOTE]
-> On this page, compare Number of Employees with a program minimum and keep the numeric Found and Expected values visible so eligibility is immediately understandable.
->
-> **Setup reference**
->
-> Use the [Formula reference](../../reference/evaluation/formula.md) for the complete setup fields and behavior.
+> **Setup reference**: [Formula Check configuration](../../reference/evaluation/formula.md)
 
-## Scenario
+Create a Formula Check that compares Number of Employees with a confirmed minimum of 10. The card
+shows the current employee count beside the required minimum so the result is easy to understand.
 
-A territory planner is reviewing Accounts for a small-business program whose confirmed minimum is 10 employees.
+## Why this pattern fits
 
-- For each Account, the planner currently compares Number of Employees with the program minimum.
-- Overlooking a low or missing value could place an ineligible Account in the program.
+Number of Employees is on the Account, and the threshold is a value in the Check, so **Verify with
+a formula** handles the comparison without SOQL or Apex. An Account below the minimum is still a
+valid Account, so this guidance should not block unrelated saves with a Validation Rule.
 
-> [!TIP]
-> **Why use Record Health Check**
->
-> Record Health Check shows the recorded employee count beside the program minimum, so the planner can understand the eligibility result without calculating it separately.
+## Before you configure it
 
-## What you will learn
-
-| Skill                                      | How this example teaches it                                       |
-| ------------------------------------------ | ----------------------------------------------------------------- |
-| Compare a number with a threshold          | Employee count is evaluated against the program limit.            |
-| Make **Found** and **Expected** meaningful | Users see the current count and required minimum.                 |
-| Write an eligibility message               | The result explains the decision without exposing formula syntax. |
-
-## Why use Verify with a formula
-
-| Evaluation Type           | Why it fits                                                                                                        |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Verify with a formula** | Best fit. Number of Employees is on the Account, and the minimum is a value the administrator enters in the Check. |
-| **Verify with a query**   | Is not needed because the employee count is already stored on the Account.                                         |
-| **Verify with Apex**      | Would require an Apex class without providing a better result.                                                     |
-
-## Why not use a Validation Rule
-
-- An Account below the program minimum is still a valid Account.
-
-- Program eligibility should be reviewed when needed instead of blocking unrelated Account updates.
-
-## Before you start
-
-- Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
-- Confirm that **Employees** (`NumberOfEmployees`) is the approved source for employee count and
-  that 10 is the approved program minimum.
+- Confirm **Employees** under **Setup → Object Manager → Account → Fields & Relationships**.
+- Confirm that Employees is the approved source and that 10 is the approved program minimum.
+- Decide how blank Employees should behave. This example treats blank as zero.
 - Confirm that intended users can read Employees.
+- Save new configuration inactive and validate it before activation.
 
-## Confirm the example fits your org
+## Step 1: Create or choose the Check Set
 
-`BLANKVALUE(NumberOfEmployees, 0)` treats a blank value as zero; `>= 10` means 10 or more passes.
-If zero should mean unknown, do not use this formula unchanged. Confirm the field under **Setup →
-Object Manager → Account → Fields & Relationships → Employees** and replace the threshold with the
-approved program rule.
+You can add this Check to an existing Account Check Set. To create one, open **Setup → Custom
+Metadata Types → Record Health Check Set → Manage Records**, select **New**, and enter:
 
-Reuse an existing Account Check Set only when its purpose and Object match; otherwise create a
-uniquely named Set instead of another `Account_Data_Quality`. The merge token uses Account Name and
-falls back to plain text when Name is unavailable.
+| Salesforce field             | Value                                             |
+| ---------------------------- | ------------------------------------------------- |
+| Label                        | Account Data Quality                              |
+| Record Health Check Set Name | `Account_Data_Quality`                            |
+| Object                       | `Account`                                         |
+| Card Title                   | Account Data Quality                              |
+| Card Subtitle                | Confirm employee count meets the program minimum. |
+| When Checks Run              | When the user clicks Run                          |
+| Summary Display              | Show below checks                                 |
+| Found/Expected Display       | Show for every check                              |
+| Active                       | Unchecked until validation succeeds               |
 
-Open a sandbox Account, edit Employees below and above the threshold, save, then Run or Rerun. Add
-the card to the Account Lightning page, activate the intended assignment, and test as a seller with
-**Record Health Check Card User** and read access to Employees.
+## Step 2: Create the Check
 
-## Step 1: Create the Check Set
+Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**, and
+enter:
 
-In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
-create this Check Set:
+| Salesforce field                | Value                                                                                                                                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Label                           | Employee Count Meets Minimum                                                                                                             |
+| Record Health Check Name        | `Employee_Count_Meets_Minimum`                                                                                                           |
+| Check Set                       | Account Data Quality, or your existing Account Check Set                                                                                 |
+| Check Title                     | Employee count meets minimum                                                                                                             |
+| Evaluation Type                 | Verify with a formula                                                                                                                    |
+| Pass Condition                  | `BLANKVALUE(NumberOfEmployees, 0) >= 10`                                                                                                 |
+| Display: Found Formula          | `BLANKVALUE(NumberOfEmployees, 0)`                                                                                                       |
+| Display: Expected Formula       | `10`                                                                                                                                     |
+| Formula Result Type             | Automatic                                                                                                                                |
+| Failure Severity                | Warning                                                                                                                                  |
+| Message When Failed             | `{!record.Name fallback="This Account"}` is below the staffing minimum. Confirm the employee count before deciding whether it qualifies. |
+| Message When Unable To Evaluate | Unable to compare employee count. Confirm access to Employees.                                                                           |
+| Fix Message                     | Correct Employees if it is inaccurate. If it is below 10, the Account does not meet this requirement.                                    |
+| Action Label                    | Edit employee count                                                                                                                      |
+| Action URL                      | `/lightning/r/Account/{!record.Id}/edit`                                                                                                 |
+| Evaluation Order                | `80`                                                                                                                                     |
+| Active                          | Unchecked until validation succeeds                                                                                                      |
 
-| Setup field                      | Value                                                             |
-| -------------------------------- | ----------------------------------------------------------------- |
-| **Label**                        | Account Data Quality                                              |
-| **Record Health Check Set Name** | `Account_Data_Quality`                                            |
-| **Object**                       | `Account`                                                         |
-| **Card Title**                   | Account Data Quality                                              |
-| **Card Subtitle**                | Confirm employee count meets the program minimum.                 |
-| **When Checks Run**              | When the user clicks Run                                          |
-| **Summary Display**              | Show below checks                                                 |
-| **Reveal Mode**                  | One by one                                                        |
-| **Passed Checks**                | Show each passed check                                            |
-| **Skipped Checks**               | Show each skipped check                                           |
-| **Found/Expected Display**       | Show for every check                                              |
-| **Stop after a system error**    | Unchecked                                                         |
-| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event**       | Unchecked                                                         |
-| **Active**                       | Checked                                                           |
+Change `10` in both the Pass Condition and Display: Expected Formula when your approved threshold
+is different. Found and Expected explain the result; only the Pass Condition decides whether it
+passes.
 
-## Step 2: Configure the Check
+## Step 3: Validate and activate
 
-In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
+1. Run the [configuration-validation Flow](../../build-checks/validate-configuration.md).
+2. Correct every error and confirm that the threshold is approved.
+3. Set the Check and Check Set to **Active** only after validation succeeds.
+4. Add **Record Health Check** to the Account Lightning record page and select the Check Set.
+5. Assign **Record Health Check Card User** to the people testing the card.
 
-| Setup field                   | API name                                                                                                                          | Value                                    |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| **Developer Name**            | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                                   | `Employee_Count_Meets_Minimum`           |
-| **Label**                     | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                                | Employee Count Meets Minimum             |
-| **Check Set**                 | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)              | `Account_Data_Quality`                   |
-| **Check Title**               | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                      | Employee Count Meets Minimum             |
-| **Evaluation Type**           | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                          | Verify with a formula                    |
-| **Pass Condition**            | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c)               | `BLANKVALUE(NumberOfEmployees, 0) >= 10` |
-| **Display: Found Formula**    | [`DisplayFoundFormula__c`](../../reference/custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c)          | `BLANKVALUE(NumberOfEmployees, 0)`       |
-| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../../reference/custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | `10`                                     |
-| **Formula Result Type**       | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c)                | Automatic                                |
+## Step 4: Test the result
 
-This scenario uses a confirmed minimum of 10 employees. When adapting the Check, replace `10` in the
-Pass Condition and Expected Formula with the minimum approved for your program.
+| Employees | Expected result | Found | Expected |
+| --------- | --------------- | ----- | -------- |
+| Blank     | Warning         | 0     | 10       |
+| 9         | Warning         | 9     | 10       |
+| 10        | Pass            | 10    | 10       |
+| 25        | Pass            | 25    | 10       |
 
-Keep the display formulas consistent with the Pass Condition. Record Health Check does not compare
-Found with Expected for a Formula Check; only **Pass Condition** decides the status. Mirror each side
-of the comparison: Found is the left side and Expected is the right side.
-
-## Optional configuration
-
-| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                       |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Compares Number of Employees with a minimum of 10 and displays both values.                                                                 |
-| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Eligibility                                                                                                                                 |
-| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                                                                     |
-| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | Names the record, then points to Found and Expected: copy it from below the table                                                           |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare employee count. Confirm the user can read Number of Employees.                                                            |
-| **Applies To**                      | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                                  | All records                                                                                                                                 |
-| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                                 |
-| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Confirm the actual employee count and correct it only if inaccurate. If it is below 10, the Account does not meet this program requirement. |
-| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Edit employee count`                                                                                                                       |
-| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/edit`                                                                                                    |
-| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `80`                                                                                                                                        |
-| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                                                     |
-| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                   |
-
-Copy this value into **Message When Failed**:
-
-```text
-{!record.Name fallback="this record"} is below the staffing minimum. Confirm the actual employee count before deciding whether this Account qualifies.
-```
-
-Query and Apex fields do not apply. This Check leaves **Display: Found Text** / **Display: Expected
-Text** blank and gets its readable values from the Found/Expected formulas. Set them when the
-wording around a value matters more than the value alone. They replace the standard Formula Check
-display.
+Repeat a failing case with the same field access intended users receive. If Employees is unreadable,
+the Check must show **Unable to Check** instead of treating the value as zero.
 
 ## What the user sees
 
-The card turns the numeric Formula result and its display formulas into these user-facing values:
+The card evaluates the formula and compares its result with the configured expected value.
 
-| Health result or card value | What the user sees                                                                                     |
-| --------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **`PASS`**                  | An Account with 10 or more employees passes.                                                           |
-| **`FAIL`**                  | An Account with fewer than 10 employees shows Needs attention.                                         |
-| **`SKIPPED`**               | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`. |
-| **Found**                   | Found shows the Account's current Number of Employees.                                                 |
-| **Expected**                | Expected shows the numeric program minimum: `10`.                                                      |
+| Result detail | Meaning                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| **`PASS`**    | The formula result satisfies the configured comparison.                                         |
+| **`FAIL`**    | The formula result does not satisfy the comparison, and the card shows the configured guidance. |
+| **`SKIPPED`** | The Check does not apply or a configured prerequisite did not pass.                             |
+| **Found**     | The evaluated formula result for the current record.                                            |
+| **Expected**  | The configured fixed value or evaluated expected formula.                                       |
 
-This Check Set uses **Show for every check** for **Found/Expected Display** because the employee count and
-program minimum are useful during both passing and failing eligibility reviews.
+## If it does not work
 
-The Found and Expected display formulas never change the Pass or Needs attention decision. If a
-display formula cannot be evaluated, the card uses its standard display instead.
+| What you see                                | Check this first                                               |
+| ------------------------------------------- | -------------------------------------------------------------- |
+| A blank value should be unknown, not zero   | Replace the formula with your approved blank-handling rule     |
+| Found and Expected disagree with the result | Keep the display formulas synchronized with the Pass Condition |
+| Unable to Check                             | Confirm Read access to Employees                               |
+| A passing result has no individual row      | Review the Check Set's Passed Checks display setting           |
 
-## Security and access
+## Technical reference
 
-Record Health Check reads Number of Employees with the running user's Salesforce access. This field supplies both the eligibility decision and the Found value.
-
-- If the user cannot read Number of Employees, the card may show **Unable to evaluate**. A display-formula problem does not change Pass or Needs attention; the card falls back to its standard text.
-
-Before activation, confirm the result and Found / Expected display with the Permission Sets assigned to program planners.
-
-## Step 3: Test the Check
-
-1. Set Employees below 10. Confirm Warning and Found / Expected when display is configured.
-2. Set Employees to 10 or more, rerun, and confirm a pass.
-3. Clear both display formulas and confirm the row uses Pass Condition text only.
-4. Repeat the failing test as a user without access to Number of Employees and confirm **Unable to evaluate**.
-
-## Failures and remedies
-
-| What the user sees                  | What to check                                                                               |
-| ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| An expected value fails             | Confirm the field values, field types, and blank or picklist functions used by the formula. |
-| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition.    |
-| **Unable to evaluate**              | Confirm the formula syntax and the running user's access to every referenced field.         |
+- [Formula evaluation](../../reference/evaluation/formula.md)
+- [Check fields and API names](../../reference/custom-metadata/check-fields.md)
+- [Check Set fields and API names](../../reference/custom-metadata/check-set-fields.md)
+- [Formula display values](../../reference/evaluation/formula.md)
 
 ## Related
 
-- [← Prev: Branch handoff](./branch-handoff.md)
-- [Browse Formula examples](./README.md)
+- [Previous: Branch handoff](./branch-handoff.md)
+- [Formula examples](./README.md)

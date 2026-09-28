@@ -284,7 +284,7 @@ sf apex run --target-org rhc-demo --file scripts/subscriber/data/verifyReadiness
 
 The demo is ready when setup and verification finish without assertion errors, all four cards show the expected summaries above, and the expanded results match the seeded evidence. These outcomes verify the prepared demo; use [Install and verify in your org](./install-in-a-sandbox.md) to evaluate an unrelated sandbox or production dataset.
 
-## If setup does not finish
+## Complete the setup
 
 The setup command does not overwrite an existing org alias. If setup fails after creating the scratch org, read the final operation shown in the terminal. If you no longer need that incomplete org, delete that exact scratch org before retrying:
 

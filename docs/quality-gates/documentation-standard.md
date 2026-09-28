@@ -7,8 +7,8 @@ explicit decisions. Match their clarity, but use the page structure that fits th
 installation guide, worked example, metadata reference, and Apex guide should not have identical
 sections.
 
-This page is for documentation contributors and should appear only in contributor navigation, not
-as a normal administrator next step.
+Review documentation changes with this contributor standard. Keep it in contributor navigation so
+administrator task paths stay focused on product use.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Before editing one page:
    page instead of behind a link.
 3. Verify technical claims against the current package source, configuration, release file, or
    script that owns the behavior. Do not use another documentation page as the only proof.
-4. Read the administrator or developer reference page that matches the intended audience.
+4. Read the task or technical reference page that covers the same Salesforce operation.
 5. Edit and validate this page before starting another page.
 
 Confirm exact Setup labels, API names, defaults, supported values, limits, permissions, method
@@ -28,17 +28,24 @@ guess.
 
 ## Step 1: Write for a Salesforce administrator first
 
-Place an audience statement near the top when a page is for a Flow administrator, Agentforce
-administrator, developer, integration engineer, package maintainer, or restricted support owner.
-Give administrators an explicit off-ramp before code or infrastructure prerequisites.
+Open with the Salesforce task, decision, or lookup the page supports. When code, hosted services,
+or restricted support access is required, say so directly and link to a no-code task when one is
+available.
 
 - Start with the Salesforce task the reader wants to complete.
+- State the useful outcome directly. Skip narrated openings such as "On this page" or "This guide."
+- Name sections for the action, scope, or result they contain. Prefer **Resolve verification
+  issues** to **If verification fails** and **Component scope** to **What the component is not**.
+- Keep exact labels such as **Failure Severity**, **System Error**, and **Error Log** when they match
+  Salesforce Setup, card output, an API contract, or a troubleshooting result.
+- State limitations and prohibited actions when they protect data, access, package integrity, or a
+  reliable result. Give the reader the approved path in the same section.
 - Use familiar Salesforce terms such as record, Flow, Apex job, Permission Set, Custom Permission,
   Platform Event, and Qualified API Name.
 - Introduce a technical term only when the reader must see it in Setup, Flow Builder, Apex, an
   error, or monitoring. Explain it where it first appears.
 - Do not use internal engineering terms when normal Salesforce language says the same thing.
-- Do not use personas, assumed team structures, or unexplained sample variables.
+- Do not organize documentation around assumed roles or team structures, and do not use unexplained sample variables.
 
 ## Keep internal review material out of user guides
 
@@ -53,7 +60,7 @@ Expected Check results, instructions for testing a configuration, and business s
 a Check belong in user documentation when they help the reader complete the task.
 
 `npm run check:docs` rejects known internal-review phrases in user pages. Passing that check or the
-structural audit does not establish usefulness or audience fit. Review every paragraph and table
+structural audit does not establish usefulness or reader fit. Review every paragraph and table
 for what the reader needs to do or understand, including text that matches none of the automated
 patterns.
 
@@ -193,6 +200,34 @@ from title to final link. Only after that page passes should the next document b
 After every page in a folder has passed individually, reread the folder in navigation order. Remove
 contradictions and unnecessary repetition, but keep information that a reader needs to use each
 page without searching another page first.
+
+## Verify the generated static site
+
+Markdown is the maintained authoring format, not the browser delivery format. The Astro build must
+convert every maintained page to usable HTML without exposing Markdown syntax or losing document
+structure. `npm run check:docs:site` is a required source gate. After building all pages, it inspects
+the generated HTML and rejects:
+
+- missing or empty main content and an incorrect number of page titles;
+- skipped heading levels or empty headings;
+- raw fences, callouts, links, headings, tables, or MDX statements;
+- task-list checkboxes without accessible names;
+- anchors without destinations; and
+- generated `undefined` or `[object Object]` values.
+
+This static gate is deliberately fast enough for every CI run. Its regression fixtures include the
+split-table-row and unnamed-checkbox failures found during the complete 2026-09-26 rendered-site
+review. Source formatting and link checks cannot substitute for this generated-output boundary.
+
+Run `npm run audit:docs:render` when a change can affect conversion or presentation across pages,
+including Astro or Starlight upgrades, Markdown preparation, global components, global styles,
+navigation, and responsive layout. The command builds the site, starts an isolated local server,
+captures every route at 1440×1000 and 390×844, and writes a manifest plus review gallery under
+`reports/docs-render-audit/`. It also fails on browser errors, failed local assets, broken images,
+horizontal overflow, and every static-gate finding. Open the gallery and review every screenshot;
+zero automated findings do not prove that spacing, clipping, overlap, contrast, or reading order is
+visually correct. Keep the report as local evidence and record the command and result in the pull
+request when this audit is required.
 
 ## Troubleshooting the review
 

@@ -78,7 +78,7 @@ verdicts and numeric fallbacks remain, but the admin detail is absent. The Check
 setting does not grant that entitlement. This API warning is not a card banner or an expected
 warning from the separate individual card requests.
 
-Save the response evidence and the executing persona. Reuse authorized existing orgs; these
+Save the response evidence and the executing user's permission assignments. Reuse authorized existing orgs; these
 instructions do not authorize scratch-org creation, new access grants or a package operation.
 
 ## Automated verification
@@ -91,11 +91,11 @@ Salesforce Apex Test Execution after deploying the fixture metadata, or include 
 repository's complete integration test run. Use its deployed namespace when selecting the class.
 
 The test does not create the persistent Accounts used for the manual steps above. It also does not
-claim to execute both permission personas or both browser runtime modes in one invocation; record
+claim to execute both permission contexts or both browser runtime modes in one invocation; record
 those manual checks separately.
 
 ## Related
 
 See [Check and Check Set outcome verification](./check-outcome-verification.md) for the release
-requirements and [2.0.10 presentation behavior](../reference/release-2.0.10.md#add-structured-presentation)
+requirements and [presentation behavior](../reference/current-contract.md#add-structured-presentation)
 for the public allocation contract.

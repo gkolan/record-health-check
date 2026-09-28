@@ -1,7 +1,7 @@
 # Choose a developer integration
 
 > [!NOTE]
-> On this page, choose whether a health result belongs on a Lightning record page, in the current
+> Choose whether a health result belongs on a Lightning record page, in the current
 > Flow or Apex process, in a large background job, or in optional Platform Event automation.
 
 > [!TIP]
@@ -9,7 +9,7 @@
 > [Install and verify](../install/install-in-a-sandbox.md), then return here when you need Apex,
 > Flow, Batch Apex, or Platform Event automation.
 
-Use this page to decide who or what needs the result. Most implementations start with the Lightning
+Choose an integration based on who or what needs the result. Most implementations start with the Lightning
 card, Flow, or Apex. Use Platform Events only when a separate Flow, Apex trigger, or external
 integration must receive the result after the Record Health Check transaction completes successfully.
 
@@ -25,15 +25,15 @@ does not create a second configuration model.
 |    2 | [Flow actions](../flow-guides/action-inputs-and-outputs.md)                | Branch in automation without custom Apex                        |
 |    3 | [Lifecycle events](../save-results/when-to-use-platform-events.md)         | Optional Platform Events for a separate receiving process       |
 
-Stop after the row that meets your requirement. Agentforce is an optional administrator track when
-the org has Agentforce enabled. MCP and REST are platform-engineering tracks and are not part of a
-normal card or Flow rollout.
+Stop after the row that meets your requirement. Use Agentforce only when the org has Agentforce
+enabled and the requirement needs a native agent action. MCP and REST are optional integration
+paths; they are not part of a normal card or Flow rollout.
 
-| Optional advanced track | Guide                                                                | Audience                             |
-| ----------------------- | -------------------------------------------------------------------- | ------------------------------------ |
-| Native agent tools      | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md)     | Agentforce administrator             |
-| Hosted MCP service      | [Deploy the MCP service](./agentforce-and-mcp/deploy-mcp-service.md) | Platform and security engineer       |
-| Service-identity API    | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md)   | Salesforce and integration developer |
+| Optional advanced task | Guide                                                                | What you configure                                      |
+| ---------------------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
+| Add native agent tools | [Agentforce actions](./agentforce-and-mcp/agentforce-actions.md)     | Agent topics and exact Check or Check Set actions       |
+| Host an MCP service    | [Deploy the MCP service](./agentforce-and-mcp/deploy-mcp-service.md) | External hosting, identity, MCP tools, and operations   |
+| Call the REST adapter  | [Agent tool REST API](./agentforce-and-mcp/agent-tool-rest-api.md)   | External Client App access and a dedicated service user |
 
 For immediate and background Apex patterns, use [API examples](./README.md). For receiving
 Flow, Apex, or external-integration examples, use
@@ -122,7 +122,7 @@ request. Queueable, Batch, and Scheduled Apex perform the work in the background
 Start with a Check Set. Use a single Check only when your process intentionally needs one specific
 check rather than the complete configured health assessment.
 
-## What it is not
+## Integration option scope
 
 | Not this                              | Why                                                                                                                                                        |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -240,7 +240,7 @@ Lifecycle and restricted error-log publication are off by default:
 
 For a Set request, planned evaluations equal records × active Checks.
 
-## Design for failures
+## Design recovery paths
 
 Handle these cases separately:
 

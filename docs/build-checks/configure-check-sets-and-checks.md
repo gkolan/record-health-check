@@ -1,7 +1,7 @@
 # Configure Check Sets and Checks
 
 > [!NOTE]
-> On this page, turn one everyday Salesforce review into a Check Set, add the Checks that belong to
+> Turn one everyday Salesforce review into a Check Set, add the Checks that belong to
 > it, place the card on a Lightning record page, and test the complete experience before users rely
 > on it.
 
@@ -13,7 +13,7 @@ which sections to complete and which optional settings can keep their defaults.
 
 ## What you will create
 
-This guide uses an Account handoff as an example:
+The steps use an Account handoff as an example:
 
 - One Check Set named `Account_Handoff_Review` controls the Account card.
 - One Check confirms that Billing Country is populated.
@@ -140,15 +140,7 @@ This example checks Billing Country with a formula:
 | **Action Label**        | Edit account                                                                                    |
 | **Action URL**          | `/lightning/r/Account/{!record.Id}/edit`                                                        |
 | **Evaluation Order**    | `10`                                                                                            |
-| **Active**              | Checked                                                                                         |
-
-This comparison means the Contact count must be greater than zero. One or more visible Contacts
-passes; zero visible Contacts fails.
-
-For **One row or aggregate**, Record Health Check reads one result. Leave **Source Query
-Field** blank for bare `COUNT()`; for an aliased aggregate such as `SUM(Amount) total`, enter the
-alias `total`. Other query-result modes evaluate each returned row or compare lists and require the
-matching fields described in the Query reference.
+| **Active**              | Unchecked while building                                                                        |
 
 The Pass Condition must return `true` or `false`:
 
@@ -180,11 +172,19 @@ Create another Check in the same Check Set. This example counts related Contacts
 | **Failure Severity**          | Warning                                                            |
 | **Message When Failed**       | Add at least one verified Contact before handing off this Account. |
 | **Evaluation Order**          | `20`                                                               |
-| **Active**                    | Checked                                                            |
+| **Active**                    | Unchecked while building                                           |
 
 The query runs with the running user's Salesforce access. A Contact hidden from that user is not
 counted. Missing access to Contact or `AccountId` can produce `UNABLE_TO_EVALUATE`; it should not be
 described as a business failure.
+
+This comparison means the Contact count must be greater than zero. One or more visible Contacts
+passes; zero visible Contacts fails.
+
+For **One row or aggregate**, Record Health Check reads one result. Leave **Source Query
+Field** blank for bare `COUNT()`; for an aliased aggregate such as `SUM(Amount) total`, enter the
+alias `total`. Other query-result modes evaluate each returned row or compare lists and require the
+matching fields described in the Query reference.
 
 For all Query settings and empty-result choices, see the [Query reference](../reference/evaluation/query.md).
 
@@ -212,7 +212,22 @@ A prerequisite must:
 Do not use a prerequisite merely to group Checks. Use it only when the later result cannot be
 interpreted correctly without the earlier pass.
 
-## Step 7: Understand the results
+## Step 7: Validate and activate
+
+Keep the Check Set and both Checks inactive until the packaged validation action accepts the
+configuration.
+
+1. Run your reusable [configuration-validation Flow](./validate-configuration.md) in **Debug**.
+2. Confirm **Configuration Is Valid** is true and **Error Count** is zero.
+3. Correct every error and review every warning before continuing.
+4. Edit each Check, select **Active**, and save it.
+5. Edit the Check Set, select **Active**, and save it last.
+
+Activating the Check Set last prevents users and Lightning App Builder from finding a partly built
+review. If you change the configuration later, make the affected records inactive, validate the
+complete change, and reactivate them only after validation succeeds.
+
+## Step 8: Understand the results
 
 | Health result        | What it means                                                                                                 | What to do                                                                 |
 | -------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
@@ -225,7 +240,7 @@ interpreted correctly without the earlier pass.
 Failure Severity (Critical, Warning, or Info) changes how a `FAIL` appears. It does not change the
 meaning of `PASS`, `SKIPPED`, `UNABLE_TO_EVALUATE`, or `ERROR`.
 
-## Step 8: Place the card on the record page
+## Step 9: Place the card on the record page
 
 1. Open **Setup → Lightning App Builder**.
 2. Edit the Account record page used by the intended users.
@@ -241,23 +256,21 @@ If the dropdown does not show the Check Set, confirm that its **Object** matches
 that the Check Set is active. If exactly one active Check Set matches the object, Salesforce selects
 it automatically.
 
-## Step 9: Test before activation
+## Step 10: Test before rollout
 
 Test in a sandbox with realistic records and the same permissions users will have.
 
-1. Keep the Check Set inactive while completing its Checks.
-2. Review every Check's exact Setup values and activate the Checks that belong in the test.
-3. Activate the Check Set and select it on the Lightning record page.
-4. Test a record that passes every Check.
-5. Test a record that fails each Check, one condition at a time.
-6. Test records that should be skipped because of applicability or a prerequisite.
-7. In a sandbox-only permission test, remove access to a queried field and confirm
+1. Confirm the validated, active Check Set is selected on the Lightning record page.
+2. Test a record that passes every Check.
+3. Test a record that fails each Check, one condition at a time.
+4. Test records that should be skipped because of applicability or a prerequisite.
+5. In a sandbox-only permission test, remove access to a queried field and confirm
    `UNABLE_TO_EVALUATE`. Restore access after the test.
-8. Test as a user with restricted sharing and confirm that query results include only records that
+6. Test as a user with restricted sharing and confirm that query results include only records that
    user can see.
-9. Follow every action link and confirm it opens the intended page without immediately changing
+7. Follow every action link and confirm it opens the intended page without immediately changing
    data.
-10. Rerun after correcting the saved record and confirm the result changes as expected.
+8. Rerun after correcting the saved record and confirm the result changes as expected.
 
 Turn on **Show Diagnostics** only for authorized troubleshooting. Diagnostic detail requires a
 direct assignment of the installed **Record Health Check Diagnostics Viewer** or **Record Health
@@ -265,7 +278,7 @@ Check Admin** Permission Set. Assign Diagnostics Viewer temporarily alongside
 Card User or User when the affected runner must reproduce an issue without Admin access.
 Turn diagnostics off again after the investigation.
 
-## Step 10: Review limits
+## Step 11: Review limits
 
 - One direct Apex or Flow request accepts at most 200 record IDs.
 - Every whole-set entry point accepts up to 25 active Checks. If a Check Set has more, the request
@@ -284,7 +297,7 @@ go before using Flow, Queueable, Batch, or Scheduled Apex.
 See [Batch Apex](../developer-guides/async-apex/batch.md) for large-volume examples and the Evaluation Type references for
 query and formula behavior.
 
-## Step 11: Troubleshoot the configuration
+## Step 12: Troubleshoot the configuration
 
 | What the user sees                                       | What to check first                                                                                                                                                                                                            |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -301,7 +314,7 @@ query and formula behavior.
 Use [Troubleshoot Record Health Check](../diagnostics/browser-console.md) for a complete,
 step-by-step investigation.
 
-## Step 12: Review checklist
+## Step 13: Review checklist
 
 - [ ] The Check Set name, title, and subtitle describe one recognizable business review.
 - [ ] The Check Set Object exactly matches the Lightning record page object.
@@ -309,6 +322,7 @@ step-by-step investigation.
 - [ ] Every failure message explains the problem in language users understand.
 - [ ] Every fix message gives a safe and specific next step.
 - [ ] Applicability and prerequisites produce `SKIPPED` only where intended.
+- [ ] The complete inactive configuration passed validation before activation.
 - [ ] Queries were tested with realistic sharing and field permissions.
 - [ ] Pass, fail, skipped, unable-to-evaluate, and error behavior is understood.
 - [ ] Diagnostics and Platform Event publication are off unless a defined process needs them.
@@ -327,7 +341,7 @@ Record Health Check does not automatically create a Salesforce record for every 
 [Batch Apex](../developer-guides/async-apex/batch.md), [Flow actions](../flow-guides/action-inputs-and-outputs.md), and
 [Lifecycle events](../save-results/when-to-use-platform-events.md) before building automation.
 
-## Step 13: Learn the merge-token options
+## Step 14: Learn the merge-token options
 
 Merge tokens insert values from the current record or health-check result into messages, queries,
 and supported URLs. For example, `{!record.Name fallback="this Account"}` uses the Account name when

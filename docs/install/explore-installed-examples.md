@@ -15,7 +15,7 @@ API Name also includes the `rhc__` namespace, such as
 Use these records to verify a sandbox installation. Create separate Check Sets with names and
 requirements owned by your organization before using Record Health Check in a business process.
 
-The descriptions below match the examples in this checkout. An installed release can have different rules and order; see [version availability](./choose-a-package-version.md#documentation-and-installed-version) before expecting identical results.
+The descriptions below match the examples in this checkout. An installed release can have different rules and order; see [version availability](./choose-a-package-version.md#documentation-and-installed-package) before expecting identical results.
 
 ## Outcome
 
@@ -29,6 +29,9 @@ to a Lightning record page, and proved that a controlled record change updates t
 - Use records whose values you are allowed to change in a sandbox.
 
 ## Example catalog
+
+The tables group the examples by card. For the generated, source-backed list of every shipped Check
+and its Evaluation Type, use [Installed example Checks](../reference/source-inventory.md#installed-example-checks-50).
 
 ### Account
 
@@ -63,9 +66,9 @@ when the Account name is unavailable.
 Open these Check records in Setup to see where each token is saved. Use the
 [merge syntax reference](../reference/merge-syntax/README.md) when adapting them to your own Check.
 
-### 2.0.10 Apex and inline-link example
+### Apex and inline-link example
 
-**Example: Verified engagement cadence** is the packaged 2.0.10 reference Check. Its
+**Example: Verified engagement cadence** is the packaged public contract Check. Its
 `AccountHasRecentActivityCheck` class declares the two JSON parameters and their bounds, returns
 typed comparison evidence, and adds display-only guidance with a safe Account link. Its metadata
 keeps complete fallback message, fix, and action values, including an explicit `{!link ...}` token,
@@ -82,9 +85,9 @@ Use the demo Accounts to verify both sides of the contract:
 The same two aggregate queries serve one Account or the complete scope. A Contact-only `WhoId`
 Task and activity older than the window are intentional negative cases and do not count. Follow the
 [complete recent-activity verification](../examples/apex/recent-activity.md) and the
-[2.0.10 contract](../reference/release-2.0.10.md) for limits and security behavior. The
-[versioned example coverage](../examples/versioned-example-coverage.md) explains why these two Apex
-Checks changed while unrelated installed Checks remained focused on their existing lessons.
+[public contract](../reference/current-contract.md) for limits and security behavior. The
+[example coverage](../examples/example-coverage.md) explains why these two Apex Checks carry the
+plugin and presentation lessons while unrelated installed Checks remain focused on their own tasks.
 
 ### Contact and Opportunity
 
@@ -119,7 +122,7 @@ to translate the card label into the programmatic status.
 Lightning App Builder selects only the Check Set. Run timing, summary placement, and Run/Rerun
 presentation come from that Check Set's Custom Metadata fields.
 
-## If verification fails
+## Resolve verification issues
 
 If no example appears in Lightning App Builder, confirm the installed package version and refresh
 the builder. If the card shows setup guidance, confirm the record object's API name matches the

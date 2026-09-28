@@ -1,7 +1,7 @@
 # Draft Check configuration with AI
 
 > [!NOTE]
-> On this page, pick one Evaluation Type prompt, paste it into an approved AI assistant with your
+> Pick one Evaluation Type prompt, paste it into an approved AI assistant with your
 > business requirement, then verify every suggested Salesforce API name before entering anything in
 > Setup.
 
@@ -9,19 +9,19 @@ Use this folder as the single place to draft Record Health Check configuration w
 An assistant can organize a requirement and suggest fields. It cannot know your org's fields,
 sharing, or approved rules unless you provide them. Treat every answer as a draft.
 
-The self-contained prompts are reviewed against the Record Health Check 2.0.10 metadata and runtime
+The self-contained prompts are reviewed against the Record Health Check metadata and runtime
 contract. The offline release gate checks all 63 configurable fields, 21 restricted picklists, the
 shared prompt block, and one provider-neutral reference draft for each Evaluation Type.
 
-## What this guide does not authorize
+## Guide scope and required approvals
 
-- Do not paste unreviewed AI output into a production org.
-- Do not let an AI assistant invent object, field, relationship, Check Set, Check, report, or Apex
-  class API names.
-- Do not send customer data, credentials, Salesforce session details, or other restricted
-  information to an AI service.
-- Do not activate a Check until an administrator has tested pass, fail, skipped, access-restricted,
-  and unable-to-evaluate cases in a sandbox.
+- Review and approve every AI suggestion before entering it in a production org.
+- Verify object, field, relationship, Check Set, Check, report, and Apex class API names in the
+  target Salesforce org.
+- Use approved, non-sensitive inputs that exclude customer data, credentials, Salesforce session
+  details, and other restricted information.
+- Activate a Check after an administrator has tested pass, fail, skipped, access-restricted, and
+  unable-to-evaluate cases in a sandbox.
 
 Follow your organization's AI, privacy, security, and change-management policies. Use only an AI
 product your organization approves. This guide does not require or endorse a particular vendor.
@@ -45,7 +45,7 @@ product your organization approves. This guide does not require or endorse a par
 6. Keep the proposed Check Set and Check inactive. Enter approved values in a sandbox, then follow
    [Test the human-approved draft](#test-the-human-approved-draft).
 7. For an unsaved Check, use [Validate and preview an AI draft](./validate-and-preview-an-ai-draft.md)
-   before activation when the 2.0.10 Preview component is installed.
+   before activation when the Preview component is installed.
 8. Choose and test the complete [entry and exit path](./choose-entry-and-exit-points.md). A valid
    evaluation rule is incomplete until its actual caller, execution principal, result destination,
    consumer, and failure recovery are known.
@@ -54,7 +54,7 @@ product your organization approves. This guide does not require or endorse a par
    Apex caller, Queueable, Batch, Scheduled adapter, persistence service, or event receiver. Keep
    generated source under normal test-first, security-review, and deployment controls.
 
-## 2.0.10 capabilities the prompts cover
+## Capabilities the prompts cover
 
 | Capability           | What the assistant must decide                                                                                                                    |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -198,7 +198,7 @@ last edit; an earlier review does not cover a changed formula, query, JSON value
 - [ ] Any Apex class exists in the org and passed developer review and tests.
 - [ ] An intended user tested the configuration in a sandbox.
 
-## When the AI draft is wrong
+## Correct an AI draft
 
 | Problem                                                                                                                   | Correct response                                                                                                                                                                                                     |
 | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -1,7 +1,7 @@
 # Deploy the MCP service one security gate at a time
 
 > [!IMPORTANT]
-> **Audience: platform, identity, security, and Salesforce integration engineers.** This is not a
+> Use this page when deploying and securing the hosted MCP service. This is not a
 > Lightning or Flow administrator task. If you cannot run Node.js and container security checks,
 > hand this page to the team that operates hosted services.
 

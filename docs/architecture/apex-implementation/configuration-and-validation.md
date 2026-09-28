@@ -1,15 +1,15 @@
 # Configuration and validation classes (L2)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when tracing configuration and validation classes. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 
 > [!NOTE]
-> On this page, find the internal classes that load Check Sets and Checks, identify invalid
+> Find the internal classes that load Check Sets and Checks, identify invalid
 > configuration, and define the allowed values and limits used by the package.
 
-This page is part of the [Apex class reference](./README.md).
+Use the [Apex class reference](./README.md) to place these configuration and validation classes in the full package structure.
 
 ## Configuration and validation (L2)
 

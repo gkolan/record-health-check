@@ -3,7 +3,7 @@
 Use these examples when two lists of records must be compared.
 
 > [!NOTE]
-> On this page, choose an example that compares the results of two SOQL queries without custom
+> Choose an example that compares the results of two SOQL queries without custom
 > Apex.
 
 Use **Compare two queries** when both values needed for the decision come from Salesforce records.

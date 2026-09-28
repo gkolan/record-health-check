@@ -1,7 +1,7 @@
 # Requirement template for AI Check drafts
 
 > [!NOTE]
-> On this page, copy the template, replace the placeholders with verified API names and business
+> Copy the template, replace the placeholders with verified API names and business
 > decisions, then paste it after the Evaluation Type system prompt.
 
 ```text

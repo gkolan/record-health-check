@@ -1,7 +1,7 @@
 # Compare two queries
 
 > [!NOTE]
-> On this page, configure a Check that compares the result of one SOQL query with the result of a
+> Configure a Check that compares the result of one SOQL query with the result of a
 > second SOQL query. Use it for two counts, two single values, or two lists.
 >
 > **Reference**

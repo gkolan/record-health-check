@@ -1,0 +1,93 @@
+---
+title: Record Health Check documentation
+description: Install, configure, and extend Record Health Check for Salesforce.
+template: splash
+sourcePath: site/src/content/home.mdx
+hero:
+  title: A coach on every Salesforce record
+  tagline: Record Health Check turns business rules into clear, actionable guidance on Salesforce record pages without changing record data or save behavior.
+  image:
+    html: '<img src="/assets/img/Example_SLDS_2_Account_Relationship_Risk_Screenshot.png" alt="Record Health Check showing passed, failed, warning, informational, and skipped checks on an Account" />'
+  actions:
+    - text: Install in Sandbox
+      link: https://recordhealthcheck.com/install/sandbox
+      variant: primary
+    - text: Install in Production
+      link: https://recordhealthcheck.com/install/production
+      variant: secondary
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+import GuidedPath from "../../components/GuidedPath.astro";
+import HomeSection from "../../components/HomeSection.astro";
+import ResourceLinks from "../../components/ResourceLinks.astro";
+import UseCaseExamples from "../../components/UseCaseExamples.astro";
+
+<HomeSection
+  id="fastest-path"
+  eyebrow="Guided path"
+  title="The fastest path to a working Check"
+  description="Follow one focused sequence from understanding the card to configuring your first production-ready experience."
+  tone="neutral"
+>
+
+<GuidedPath />
+
+</HomeSection>
+
+<HomeSection
+  id="examples"
+  eyebrow="Examples"
+  title="See it solve real Salesforce problems"
+  description="Explore substantial Salesforce scenarios across every evaluation type. Open a Check to see why the evaluation type fits and the key configuration choices."
+  tone="accent"
+>
+
+<UseCaseExamples />
+
+</HomeSection>
+
+<HomeSection
+  id="choose-your-path"
+  eyebrow="Documentation"
+  title="Choose what you want to do"
+  description="Find focused guidance for learning the basics, building Checks, operating in production, or extending the framework."
+  tone="neutral"
+>
+
+<CardGrid>
+  <LinkCard
+    title="Start with the basics"
+    description="See the card, understand the result labels, then install safely in a sandbox."
+    href="/start-here/"
+  />
+  <LinkCard
+    title="Build a Check"
+    description="Choose Formula, Query, Compare Two Queries, or Apex and configure it step by step."
+    href="/build-checks/"
+  />
+  <LinkCard
+    title="Operate and troubleshoot"
+    description="Find permissions, diagnostics, production operations, and recovery guidance."
+    href="/diagnostics/browser-console/"
+  />
+  <LinkCard
+    title="Extend the framework"
+    description="Use Apex, Flow, Agentforce, MCP, Platform Events, and plugin interfaces."
+    href="/developer-guides/"
+  />
+</CardGrid>
+
+</HomeSection>
+
+<HomeSection
+  id="ecosystem"
+  eyebrow="Resources"
+  title="Explore the ecosystem"
+  description="Go beyond the core package with optional extensions, reusable recipes, presentations, and product demonstrations."
+  tone="accent"
+>
+
+<ResourceLinks />
+
+</HomeSection>

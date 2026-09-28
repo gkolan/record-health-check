@@ -123,7 +123,7 @@ The class implements `RecordHealthCheckPluginDefinitionSource`. Its
 help, and bulk capacity of 200. JSON strings such as `"90"`, unknown or duplicate keys, nested
 values, and out-of-range integers are rejected before `evaluate` runs.
 
-**2.0.10 outcome, evidence, recovery, and display:**
+**Outcome, evidence, recovery, and display:**
 
 - Each PASS or FAIL uses `RecordHealthCheckValue` counts for Found and Expected and records the
   `GREATER_THAN_OR_EQUAL` comparison.

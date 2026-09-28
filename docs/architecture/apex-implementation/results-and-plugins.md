@@ -1,7 +1,7 @@
 # Apex result, Lightning, and plugin types (L1)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when tracing result, Lightning, or plugin types. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 
@@ -10,7 +10,7 @@
 > card, the interface implemented by a custom Apex Check, and the examples included in the
 > repository.
 
-This page is part of the [Apex class reference](./README.md). For writing a plugin, see
+Use the [Apex class reference](./README.md) to place these result and plugin classes in the full package structure. To write a plugin, see
 [Apex Check contract](../../developer-guides/write-an-apex-check.md) and
 [Plugin verification](../../developer-guides/verify-an-apex-check.md).
 
@@ -47,14 +47,14 @@ SKIPPED, UNABLE_TO_EVALUATE, and ERROR results.
 
 **Key members:**
 
-| Member                                                                             | Purpose                                                                                                                                                     |
-| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `RecordHealthCheckDefinition.developerName` / `label` / `description` / `priority` | One Check's identity and display fields                                                                                                                     |
-| `RecordHealthCheckDefinition.dependsOnCheckDeveloperName`                          | `null` when the Check has no `PrerequisiteCheck__c` dependency                                                                                              |
-| `RecordHealthCheckDefinitionResponse` title/trigger/reveal/display fields          | Check Set card settings (title, trigger/reveal modes, passed/skipped/comparison display, stop-on-first-error)                                               |
-| `RecordHealthCheckDefinitionResponse.checksOmittedByLimit`                         | Legacy compatibility flag; accepted 2.0.10 responses keep it `false` because a Check Set over 25 active Checks fails closed before definitions are returned |
-| `RecordHealthCheckDefinitionResponse.inactiveCheckLabels`                          | Diagnostics-only detail behind `inactiveCheckCount`                                                                                                         |
-| `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks`                   | Diagnostics visibility flag and the ordered Check definitions                                                                                               |
+| Member                                                                             | Purpose                                                                                                                |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `RecordHealthCheckDefinition.developerName` / `label` / `description` / `priority` | One Check's identity and display fields                                                                                |
+| `RecordHealthCheckDefinition.dependsOnCheckDeveloperName`                          | `null` when the Check has no `PrerequisiteCheck__c` dependency                                                         |
+| `RecordHealthCheckDefinitionResponse` title/trigger/reveal/display fields          | Check Set card settings (title, trigger/reveal modes, passed/skipped/comparison display, stop-on-first-error)          |
+| `RecordHealthCheckDefinitionResponse.checksOmittedByLimit`                         | Compatibility flag kept `false` because a Check Set over 25 active Checks fails closed before definitions are returned |
+| `RecordHealthCheckDefinitionResponse.inactiveCheckLabels`                          | Diagnostics-only detail behind `inactiveCheckCount`                                                                    |
+| `RecordHealthCheckDefinitionResponse.showDiagnostics` / `checks`                   | Diagnostics visibility flag and the ordered Check definitions                                                          |
 
 **Notable behavior:**
 

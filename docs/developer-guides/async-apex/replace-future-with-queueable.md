@@ -5,7 +5,7 @@
 > future method for Record Health Check.
 
 > [!IMPORTANT]
-> **Audience: Salesforce developers maintaining legacy code.** This is a migration page, not a
+> Use this page when replacing a legacy future-method caller. This is a migration page, not a
 > supported new entry point and not a Flow recipe. Administrators should use Flow or ask a developer
 > to replace the legacy caller.
 

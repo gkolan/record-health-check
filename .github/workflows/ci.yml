@@ -20,6 +20,7 @@ jobs:
       - run: npm install --global @salesforce/cli@2.150.6
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
+      - run: npm ci --prefix site
       # Ruff is not an npm dependency. Install it before the gates so that
       # lint:python runs for real here; it is allowed to skip only on a
       # contributor's machine, never in CI.

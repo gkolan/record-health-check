@@ -1,7 +1,7 @@
 # Apex entry points (L5)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when tracing the package's supported entry points. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 
@@ -9,7 +9,7 @@
 > Use this page to identify the package class behind each supported way to start a health check or
 > publish its results. Follow the linked task guide when you need working setup steps and examples.
 
-This page is part of the [Apex class reference](./README.md). For the architecture story, see
+Use the [Apex class reference](./README.md) to place these entry points in the full package structure. For the architecture story, see
 [Architecture](../framework.md).
 
 ## Entry points (L5)

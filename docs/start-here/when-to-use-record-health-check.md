@@ -1,7 +1,7 @@
 # Decide when to use Record Health Check
 
 > [!NOTE]
-> On this page, explain how Record Health Check compares to Validation Rules, Duplicate Rules, and
+> Explain how Record Health Check compares to Validation Rules, Duplicate Rules, and
 > Flow error messages or before-save automation, then choose the right tool for a given business
 > requirement.
 
@@ -77,7 +77,7 @@ still save the record while an administrator corrects the Check. See
 [Architecture: Position in the platform](../architecture/framework.md#1-position-in-the-platform)
 for the full comparison.
 
-## They are not mutually exclusive
+## Combine these approaches
 
 Combine them. A common pattern:
 

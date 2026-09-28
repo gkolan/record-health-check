@@ -1,7 +1,7 @@
 # Flow action inputs and outputs
 
 > [!NOTE]
-> On this page, build a Flow that runs one Check Set or Check, branches on the returned Status, or
+> Build a Flow that runs one Check Set or Check, branches on the returned Status, or
 > validates every Check definition before activation.
 
 Use the packaged Flow actions to evaluate a Salesforce record or validate Record Health Check

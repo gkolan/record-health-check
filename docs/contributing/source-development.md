@@ -3,7 +3,7 @@
 Use this workflow to change the package implementation or evaluate examples that are not yet released.
 
 > [!NOTE]
-> On this page, create a scratch org for changing the Record Health Check package source. The setup
+> Create a scratch org for changing the Record Health Check package source. The setup
 > deploys Apex, Lightning Web Components, and Custom Metadata and runs the package's local Apex
 > tests.
 
@@ -171,6 +171,15 @@ npm run check:agent-tool-contract
 The package source is under `packages/record-health-check/force-app`. Test-only metadata under
 `packages/record-health-check/integration-tests` and `subscriber-app` is not included in a normal
 installation.
+
+### Documentation and static-site changes
+
+Documentation is maintained as Markdown under `docs/` and published as generated HTML. Run
+`npm run check:docs:site` for every documentation or site-renderer change. When conversion,
+navigation, global components, global styles, responsive layout, Astro, or Starlight can affect
+multiple pages, also run `npm run audit:docs:render` and inspect every desktop and mobile screenshot.
+Follow [Static-site rendering and visual verification](../quality-gates/static-site-rendering-and-visual-verification.md)
+for the required evidence, targeted retry rules, and completion checklist.
 
 ## Step 4: Delete scratch orgs when testing is complete
 

@@ -1,0 +1,90 @@
+---
+import { Icon } from '@astrojs/starlight/components';
+import Search from '@astrojs/starlight/components/Search.astro';
+import { GITHUB_REPOSITORY_URL } from '../lib/site-links.mjs';
+---
+
+<div class="header site-header">
+  <a class="site-title" href="/" translate="no">
+    <span class="product-name">Docs.RecordHealthCheck</span>
+  </a>
+
+  <div class="header-actions print:hidden">
+    <a class="github-link" href={GITHUB_REPOSITORY_URL}>
+      <Icon name="github" size="1rem" />
+      <span>GitHub</span>
+    </a>
+    <div class="search">
+      <Search />
+    </div>
+  </div>
+</div>
+
+<style>
+  @layer starlight.core {
+    .site-header,
+    .header-actions,
+    .site-title,
+    .github-link {
+      display: flex;
+      align-items: center;
+    }
+
+    .site-header {
+      justify-content: space-between;
+      gap: var(--sl-nav-gap);
+      height: 100%;
+    }
+
+    .site-title {
+      min-width: 0;
+      gap: 0.4rem;
+      color: var(--sl-color-text-accent);
+      font-size: var(--sl-text-h4);
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .product-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-actions {
+      flex: 1;
+      justify-content: flex-end;
+      gap: var(--sl-nav-gap);
+      min-width: 0;
+    }
+
+    .github-link {
+      flex: none;
+      gap: 0.4rem;
+      color: var(--sl-color-gray-2);
+      font-size: var(--sl-text-sm);
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .github-link:hover {
+      color: var(--sl-color-white);
+    }
+
+    .search {
+      flex: 0 1 22rem;
+      width: min(22rem, 32vw);
+    }
+
+    .search :global(button[data-open-modal]) {
+      width: 100%;
+    }
+
+    @media (max-width: 49.99rem) {
+      .search {
+        flex-basis: auto;
+        width: auto;
+      }
+    }
+  }
+</style>

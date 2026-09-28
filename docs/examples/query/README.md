@@ -1,7 +1,7 @@
 # Query Check examples
 
 > [!NOTE]
-> On this page, choose a Query example when the answer depends on related Salesforce records.
+> Choose a Query example when the answer depends on related Salesforce records.
 
 Use **Verify with a query** when one SOQL query can retrieve the related records needed for the
 decision. For example, count Contacts, require every open Opportunity to have a Next Step, or check

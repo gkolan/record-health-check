@@ -1,7 +1,7 @@
 # Add a fix link
 
 > [!NOTE]
-> On this page, turn a failed Check into a useful next step by pairing a clear Fix Message with a safe, context-aware action link when navigation genuinely helps.
+> Turn a failed Check into a useful next step by pairing a clear Fix Message with a safe, context-aware action link when navigation genuinely helps.
 >
 > **Reference**
 >

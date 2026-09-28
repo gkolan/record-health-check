@@ -1,6 +1,6 @@
 # Languages, locales, and translated text
 
-This page describes localization behavior and translation responsibilities.
+Plan translations and locale-sensitive output with the rules in this reference.
 
 > [!NOTE]
 > This page explains which text Salesforce can translate, which values use the running user's
@@ -51,7 +51,7 @@ comparison.
 
 See [Display value format](../configuration/display-found-and-expected.md) for every supported format.
 
-## Which Check text is not translated automatically?
+## Translate administrator-authored Check text
 
 Text entered in Record Health Check Custom Metadata is ordinary text. Translation Workbench does
 not create a different version for each user language.
@@ -65,7 +65,7 @@ This includes:
 - Action Label.
 
 For example, if **Failure Message** contains `Enter the Account's billing country`, every user sees
-that sentence in English unless your team chooses a different configuration for that audience.
+that sentence in English unless your team chooses a different configuration for those users.
 
 ## Plan a Check Set for users in more than one language
 
@@ -80,9 +80,9 @@ Choose an approach before rollout:
 Test the chosen record-page assignments and visibility rules with a user from every intended
 language group. Record Health Check does not choose a Check Set automatically from `User.LanguageLocaleKey`.
 In Lightning App Builder, place the language-specific component on the relevant app or record-page
-activation and use component visibility where your design can identify the intended audience.
+activation and use component visibility where your design can identify the intended users.
 
-## Comparisons do not use translated display text
+## Comparisons use stored values
 
 Record Health Check compares Salesforce values, not the translated words shown on screen. For
 example, a Check against the Account `Industry` picklist compares its stored API value. A translated
@@ -99,7 +99,7 @@ Before rollout, go to **Setup → Users → Users**, open representative users, 
 Language, Locale, and Time Zone. Log in as or use a sandbox test user for each supported combination
 and verify the card on its activated record page.
 
-## Merge tokens do not translate a sentence
+## Merge tokens insert Salesforce values
 
 A merge token inserts a value into the surrounding message. It does not translate the message
 itself.

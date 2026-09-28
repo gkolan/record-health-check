@@ -1,0 +1,86 @@
+---
+import DefaultFooter from '@astrojs/starlight/components/Footer.astro';
+import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro';
+import {
+  GITHUB_REPOSITORY_URL,
+  LICENSE_URL,
+  MAINTAINER_URL,
+  createDocumentationIssueUrl,
+} from '../lib/site-links.mjs';
+
+const { entry, lastUpdated, pagination } = Astro.locals.starlightRoute;
+const { title, sourcePath } = entry.data;
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const issueUrl = createDocumentationIssueUrl({ title, pageUrl, sourcePath });
+const showDefaultFooter = Boolean(lastUpdated || pagination.prev || pagination.next);
+---
+
+{showDefaultFooter && <DefaultFooter />}
+
+<footer class="site-footer">
+  <div class="footer-heading">
+    <strong>Record Health Check</strong>
+    <div class="theme-select print:hidden">
+      <ThemeSelect />
+    </div>
+  </div>
+  <div class="footer-details">
+    <span>
+      Maintained by <a href={MAINTAINER_URL}>Gautam Kolan</a>
+      <span aria-hidden="true"> · </span>
+      <a href={LICENSE_URL}>Apache 2.0</a>
+    </span>
+    <nav aria-label="Footer">
+      <a href="/start-here/what-it-does/">About</a>
+      <a href={issueUrl}>Improve this page</a>
+      <a href={GITHUB_REPOSITORY_URL}>GitHub</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 3rem;
+    padding-block: 1.25rem 2rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+  }
+
+  .footer-heading,
+  .footer-details {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    align-items: center;
+  }
+
+  .footer-heading strong {
+    color: var(--sl-color-white);
+    font-weight: 650;
+  }
+
+  .site-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: end;
+    gap: 0.5rem 1rem;
+  }
+
+  .site-footer a {
+    color: inherit;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (max-width: 40rem) {
+    .footer-details {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .site-footer nav {
+      justify-content: start;
+    }
+  }
+</style>

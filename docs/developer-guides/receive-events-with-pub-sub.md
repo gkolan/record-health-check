@@ -1,14 +1,15 @@
 # Receive events in an external system with Pub/Sub API
 
-This guide is for integration developers.
+Use this guide when an external system must receive Record Health Check Platform Events through
+Salesforce Pub/Sub API.
 
 > [!NOTE]
-> On this page, design an external Record Health Check integration that authenticates with least
+> Design an external Record Health Check integration that authenticates with least
 > privilege, resumes safely after disconnects, and separates replay position from duplicate
 > processing.
 
 > [!IMPORTANT]
-> **Audience: external integration engineers.** Pub/Sub API, gRPC, Avro, Replay IDs, and
+> Use this page when building an external event consumer. Pub/Sub API, gRPC, Avro, Replay IDs, and
 > ManagedSubscribe are not Salesforce Setup features. Use a Platform Event-triggered Flow instead
 > when the work can stay inside Salesforce.
 

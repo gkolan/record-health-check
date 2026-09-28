@@ -1,7 +1,7 @@
 # Build Checks
 
 > [!NOTE]
-> On this page, choose the guide that helps you decide whether Record Health Check fits, configure
+> Choose the guide that helps you decide whether Record Health Check fits, configure
 > Check Sets and Checks, troubleshoot results, or operate it in production.
 
 Start with these guides after installing Record Health Check and creating your first Check. If you
@@ -46,6 +46,7 @@ optional; there is no theme picker, and an AI draft never replaces human review.
 | Understand why the card follows the active Salesforce theme                       | [How the card follows your Salesforce theme](../lightning-record-page/theme-and-accessibility.md) |
 | Draft configuration with an AI assistant                                          | [Draft configuration with AI](./draft-with-ai/)                                                   |
 | Draft a Flow, Apex caller, Queueable, Batch, schedule, or result receiver with AI | [Generate a non-agent execution workflow](./draft-with-ai/execution-workflow-generator.md)        |
+| Validate inactive Check and Check Set records before activation                   | [Build the configuration-validation Flow](./validate-configuration.md)                            |
 
 ### Run and fix
 

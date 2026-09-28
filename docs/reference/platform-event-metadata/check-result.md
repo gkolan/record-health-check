@@ -1,12 +1,12 @@
 # Check Result event fields (`Record_Health_Check_Result__e`)
 
 > [!NOTE]
-> On this page, look up every Check Result event field, learn exactly when the event publishes, and
+> Look up every Check Result event field, learn exactly when the event publishes, and
 > understand what a receiving Flow, Apex trigger, or integration must do with one finalized Check
 > outcome.
 
 > [!NOTE]
-> **Audience: Flow builders and integration developers looking up `$Record` fields.** For ordered
+> Use this page to look up Check Result `$Record` fields. For ordered
 > Flow Builder steps, use [Save or route individual Check results](../../save-results/save-individual-results.md).
 
 > [!TIP]

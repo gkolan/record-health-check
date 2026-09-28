@@ -6,7 +6,7 @@ third-party products, subscriber fields, locale, currency, and time zone.
 
 The tracked project file is a template because Salesforce namespaces and `04t` dependencies are
 real registry assets, not names this repository can invent. Before use, a release owner supplies a
-registered partner namespace and the exact 2.0.9 candidate ID in a private working copy. Creating
+registered partner namespace and the exact reviewed package candidate ID in a private working copy. Creating
 or publishing either package remains a release-owner action; this fixture does not perform it.
 
 ## Repeatable verification path
@@ -30,5 +30,5 @@ value factory, fluent comparison, status, and reason. Its pass is necessary but 
 NS-03 is verified only after the installed-package public API and card call the explicitly
 qualified partner class.
 
-No NS-03 pass is currently claimed. A registered second namespace, a 2.0.9 candidate `04t`, and
+No NS-03 pass is currently claimed. A registered second namespace, a reviewed package candidate `04t`, and
 release-owner authorization are still required to execute the install sequence.

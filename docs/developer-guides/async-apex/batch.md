@@ -1,7 +1,7 @@
 # Check many records with Batch Apex
 
 > [!IMPORTANT]
-> **Audience: Salesforce developers and release administrators.** Flow Builder cannot start the
+> Use this page when a developer-owned Batch Apex job will check many records. Flow Builder cannot start the
 > packaged Batch helper directly. An administrator can monitor it in **Setup → Apex Jobs**, but a
 > developer must submit it or provide approved automation.
 

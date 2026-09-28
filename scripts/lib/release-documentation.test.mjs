@@ -45,13 +45,13 @@ test("Batch architecture exposes the Check Set adapter supported by the public A
 });
 
 test("release reference describes the display result mode for Apex callers", async () => {
-  const text = await read("docs/reference/release-2.0.10.md");
+  const text = await read("docs/reference/current-contract.md");
   assert.doesNotMatch(text, /Display execution is card-only/);
   assert.match(text, /EVALUATION_WITH_DISPLAY/);
 });
 
 test("partial plugin-definition sample is explicitly identified as an excerpt", async () => {
-  const text = await read("docs/reference/release-2.0.10.md");
+  const text = await read("docs/reference/current-contract.md");
   const sample = text.indexOf("global with sharing class MyCheck");
   assert.ok(sample > 0, "The definition sample must remain discoverable.");
   assert.match(

@@ -29,7 +29,7 @@ plain-language summary, and recommended action. It is included in `RHC_Negative_
 ¹ The retained API name predates relationship-field planning. The fixture now references a missing
 field through `Parent` so it remains a deterministic relationship-path configuration failure.
 
-² Record Health Check 2.0.9 preserves the specific interface and constructor classifications
+² Record Health Check reviewed package preserves the specific interface and constructor classifications
 through configuration preflight. A missing class remains distinct from a class that cannot cast to
 `RecordHealthCheckPlugin` or a plugin whose constructor fails.
 

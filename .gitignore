@@ -130,11 +130,11 @@ scripts/*
 # Public Apex plugin scaffolding shipped as the 2.0 migration path.
 !scripts/templates/
 !scripts/templates/**
-# Reproducible demo scratch-org provisioning (see docs/installation/create-rhc-scratch-org.md).
+# Reproducible demo scratch-org provisioning (see docs/install/install-demo-in-a-scratch-org.md).
 !scripts/setup-demo.sh
 # Reproducible multi-currency integration-demo provisioning.
 !scripts/setup-integration-demo.sh
-# Display: Value Format coverage org (see docs/reference/reference-display-value-format.md).
+# Display: Value Format coverage org (see docs/reference/configuration/display-found-and-expected.md).
 !scripts/setup-display-formats.sh
 # Exception: the metadata validator is a release-gate dependency referenced by
 # .github/workflows/salesforce-validate.yml and the upgrade guide, so it must

@@ -51,7 +51,7 @@ explicit fraction format; it does not restrict values to 100%, so `1.4` displays
 to list entries and to the operator phrase as well, and it never affects whether
 a Check passes or fails. Pass and fail are decided from the raw typed values before any of this runs.
 
-### When a format does not fit the value
+### Choose a format that fits the value
 
 Naming a format that cannot apply is not an error. The value is shown with its original spelling
 instead, so a display choice can never break a card:
@@ -136,7 +136,7 @@ Only values that keep a numeric Apex type are grouped. A digit-only string is le
 codes, years, and Ids with leading zeroes keep their exact spelling. To group one anyway, set
 Display: Value Format to Number.
 
-## Automatic: Text values without a retained type
+## Automatic: Text values with an inferred type
 
 Fixed Expected Values from Custom Metadata and other values stored as text are recognized in this
 order:
@@ -228,7 +228,7 @@ List comparisons render through `formatList`:
 Every entry uses the Check's Display: Value Format, so a list of amounts reads consistently, and each
 entry carries the currency of the row it came from.
 
-## What this formatter does not change
+## Formatter scope
 
 - Pass and fail decisions still use the raw typed values and operators. No Display: Value Format
   choice can move a Check between pass and fail.

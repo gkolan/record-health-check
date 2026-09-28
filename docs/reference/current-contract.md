@@ -1,22 +1,18 @@
-# Record Health Check 2.0.10
+# Record Health Check public contract
 
 > [!NOTE]
-> On this page, review the complete public contract introduced in 2.0.10 and the compatibility,
-> security, limits, examples, and evidence that govern each feature.
+> Review the complete public contract, security boundaries, limits, examples, and evidence that
+> govern each feature.
 
-Use this reference to implement or review every public 2.0.10 behavior. Version 2.0.10 expands the
-subscriber extension contract, adds detached draft preview and readiness evidence, and introduces
-structured display content. It also removes several parser-shaped authoring restrictions from Query
-Checks and makes framework limits fail as one visible unit. Existing Checks remain compatible: every new Apex interface is
-optional, plain metadata text still renders, diagnostic contract 2.0 is opt-in, and normal
-evaluation remains the authority for PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR.
+Use this reference to implement or review every public behavior. The contract includes subscriber
+extensions, detached draft preview, readiness evidence, structured display content, conventional
+Query authoring, and fail-closed framework limits. Optional Apex interfaces remain optional, plain
+metadata text renders without an extension, diagnostics are opt-in, and normal evaluation remains
+the authority for PASS, FAIL, SKIPPED, UNABLE_TO_EVALUATE, and ERROR.
 
-For the promoted artifact and immutable installation links, see the
-[2.0.10.1 release record](../quality-gates/release-2.0.10.1-record.md).
+## Contract areas
 
-## What changed
-
-| Area                 | 2.0.10 behavior                                                                                                           | Start here                                                                                                     |
+| Area                 | Behavior                                                                                                                  | Start here                                                                                                     |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | Apex parameters      | A plugin can declare typed parameters, defaults, bounds, administrator labels, and capacity                               | [Declare a plugin definition](#declare-a-plugin-definition)                                                    |
 | Outcome construction | Typed equality and list helpers reject contradictory outcomes while they are built                                        | [Build typed outcomes](#build-typed-outcomes)                                                                  |
@@ -75,13 +71,14 @@ Definition limits and validation rules:
 - Defaults apply to omitted values. Explicit `null` is distinct from omission and requires `nullable(key, true)`.
 - Capacity is enforced after applicability, so records that do not apply do not consume the plugin's declared scope.
 
-Plugins that do not implement the definition interface retain the legacy flat-JSON behavior. Preview can fully report parameter schema only when the class is resolved in `EXECUTE` mode.
+Plugins that do not implement the definition interface accept a flat JSON parameter object. Preview
+can fully report parameter schema only when the class is resolved in `EXECUTE` mode.
 
 ## Build typed outcomes
 
 `RecordHealthCheckValue` provides canonical values for `STRING`, `BOOLEAN`, `NUMBER`, `DATE`, `DATETIME`, `ID`, `COUNT`, and `LIST`. Scalar values use `storedValue`; lists use `storedValues`. Numbers are locale-neutral, dates are ISO dates, datetimes are UTC ISO-8601 values, IDs normalize to their Salesforce string form, and counts cannot be negative.
 
-2.0.10 adds these guarded outcome builders:
+Record Health Check provides these guarded outcome builders:
 
 - `passEquals(reason, found, expected)` requires compatible equal values.
 - `failEquals(reason, found, expected)` requires compatible unequal values.
@@ -148,7 +145,10 @@ Destinations must be a safe same-org path beginning with `/` or an absolute HTTP
 
 Structured-display limits are 100 link tokens, 1,000 nodes, 20,000 visible characters, and 64 KiB for one Check field. Link labels and complete URLs may contain at most 2,000 characters.
 
-A response shares 256 KiB across its optional structured display and evidence. This counts serialized UTF-8 JSON for the `displayContent` and `evidence` objects, their property names, and the enclosing projection objects and array. Machine evaluation facts and legacy plain-text fallbacks are separate from this optional-presentation limit; it is not a maximum size for the entire API response.
+A response shares 256 KiB across its optional structured display and evidence. This counts
+serialized UTF-8 JSON for the `displayContent` and `evidence` objects, their property names, and the
+enclosing projection objects and array. Machine evaluation facts and plain-text fallbacks are
+separate from this optional-presentation limit; it is not a maximum size for the entire API response.
 
 Allocation follows selected Check order, then normalized record order. Within each result, message, fix, Found and Expected precede evidence. Oversized fields are omitted whole, preserving their original plain-text fallback. Evidence retains whole leading rows and updates returned, omitted and completeness information; unknown authorized totals remain unknown. Once the shared budget is exhausted, later optional content is omitted. An authorized diagnostic viewer receives at most one fixed omission warning in the existing admin-detail message. Existing diagnostic explanations and terminal reason codes are preserved; ordinary responses do not gain diagnostic details.
 
@@ -263,7 +263,7 @@ Counts exclude prerequisite and sibling results. A current live verification req
 
 `deleteExpiredReadinessReceipts(true)` deletes at most 200 expired rows visible to the authorized administrator. Passing `false` is rejected because cleanup requires explicit confirmation.
 
-## Shipped 2.0.10 example
+## Shipped Apex example
 
 `AccountHasRecentActivityCheck` is the reference implementation. The active **Example: Account Check Builder Guide** Check Set includes **Example: Verified engagement cadence**, configured with `{"daysBack": 60, "minimumActivities": 2}`.
 
@@ -280,16 +280,15 @@ The example demonstrates:
 The shipped readiness data exercises a ready Account that passes, a needs-review Account that fails, and an empty Account that fails with an observed count of zero. The verification procedure is in [Recent Account activity](../examples/apex/recent-activity.md) and [Explore the installed examples](../install/explore-installed-examples.md).
 
 This is a deliberate example boundary. The other installed Formula, Query, and Compare Two Queries
-Checks receive 2.0.10 runtime fixes without unrelated metadata changes. Invalid formulas,
-inaccessible fields, unsafe links, diagnostic payloads, and forced plugin failures remain in
-integration fixtures. Preview and readiness reuse an existing definition because they are
-administrator workflows rather than additional Check types. See
-[Example coverage for 2.0.8 through 2.0.10](../examples/versioned-example-coverage.md) for the full
+Checks demonstrate their own configuration paths. Invalid formulas, inaccessible fields, unsafe
+links, diagnostic payloads, and forced plugin failures remain in integration fixtures. Preview and
+readiness reuse an existing definition because they are administrator workflows rather than
+additional Check types. See [Example coverage](../examples/example-coverage.md) for the complete
 capability-to-fixture decision and deterministic data matrix.
 
 ## Compatibility and operational boundaries
 
-- New interfaces and response fields are additive. Existing Apex plugins need no source change.
+- Apex extension interfaces are optional; plugins implement only the capabilities they need.
 - The engine continues to own identity, severity, applicability, event publication, and final contract validation.
 - Preview and readiness require administrator authorization; normal record-card users do not gain draft-management access.
 - Evidence and display links pass through access and URL policy before transport.

@@ -1,7 +1,7 @@
 # Apex test-only access
 
 > [!IMPORTANT]
-> **Audience: contributors changing Apex in this repository.** This policy is not a Setup or Flow
+> Use this page when changing Apex in this repository. This policy is not a Setup or Flow
 > walkthrough. Subscriber developers should use the public Apex API or Apex Check contract.
 
 > [!NOTE]
@@ -45,14 +45,14 @@ annotation to a different file counts as new test-only access and fails the chec
 
 ## `Test.isRunningTest()` branches
 
-Production authorization no longer changes when Apex tests run. Restricted-persona integration
+Production authorization no longer changes when Apex tests run. Restricted-user integration
 tests exercise the real Custom Permission assignment or absence. Focused unit tests may still use
 the private `@TestVisible` override to force an authorization branch that is unrelated to the test's
 metadata setup.
 
 That override may select the authorized branch; it may not change query/DML access mode or grant
 object and field access. A same-user Permission Set assignment in `@TestSetup` is not a substitute
-for a real restricted-persona test and is not reliable evidence for the package-version test
+for a real restricted-user test and is not reliable evidence for the package-version test
 principal. Do not add a package-test User factory as a workaround: subscriber User automation can
 run during unlocked-package testing. For package-owned operational data, follow the
 [service-owned data contract](./regression-testing-standard.md#service-owned-data-and-package-build-principals).

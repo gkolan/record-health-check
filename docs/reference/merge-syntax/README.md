@@ -1,6 +1,6 @@
 # Merge syntax
 
-This page lists the tokens available in Check configuration.
+Insert Salesforce and Record Health Check values into Check text with the tokens in this reference.
 
 > [!NOTE]
 > Use this page to insert Salesforce record, Check, Check Set, result, or run values into messages,
@@ -61,7 +61,7 @@ Review {!record.Name fallback="this record"} before approval.
 The same token without a fallback (`{!record.Name}`) still becomes `Acme` when Name has a value.
 When Name is blank, it inserts nothing, so the sentence reads `Review  before approval.`
 
-### Examples by value source
+## Examples by value source
 
 Most messages and queries use the current record:
 
@@ -102,7 +102,7 @@ Empty tokens behave differently in display text (including Action Label), Action
 
 ## Inline links inside display text
 
-Record Health Check 2.0.10 can place a link inside **Message When Failed**, **Message When Unable To
+Record Health Check can place a link inside **Message When Failed**, **Message When Unable To
 Evaluate**, **Message When Not Applicable**, **Fix Message**, **Display: Found Text**, and **Display:
 Expected Text**. Use the exact `link` token with both required attributes:
 
@@ -134,7 +134,7 @@ One field supports at most 100 inline links. A label and the completed URL may e
 character and 64 KiB per Check field limits. Structured display and evidence also share a 256 KiB
 serialized JSON projection budget per response, including envelope overhead. Original plain-text
 fallbacks and machine evaluation facts remain available outside that optional-presentation budget.
-See [response allocation and limits](../release-2.0.10.md#metadata-merge-syntax). Resolved record values
+See [response allocation and limits](../current-contract.md#metadata-merge-syntax). Resolved record values
 remain text; Record Health Check never reparses them as new link markup.
 
 ## Value sources and properties
@@ -205,7 +205,7 @@ addressable without `ORDER BY`. A row count reads no column and no order, so it 
 `sourceRowCount` there would always be 1. Use `{!rhcResult.foundValue}` for the number counted, or
 alias the aggregate as `SELECT COUNT(Id) total` and read `{!rhcQuery.sourceRows[0].total}`.
 
-### When the value is not there
+### Provide a fallback for an empty value
 
 A row the query never returned, and a selected field that is null, are both empty and use the
 fallback. In an Action URL an empty value with no fallback removes the link rather than building a
@@ -223,7 +223,7 @@ The raw query rows and unused columns stay transient on the server and are never
 result or published in an event. A field selected by a token is intentionally copied into the
 completed message, label, or URL, so that the completed text follows its normal destination: it can
 reach the browser or API caller and, when diagnostics are enabled, diagnostic logs. Treat every row
-field referenced by a token as user-visible and choose fields appropriate for the result's audience.
+field referenced by a token as user-visible and choose fields appropriate for everyone who can receive the result.
 No token causes an extra query.
 
 ## Four names for Found, and which one you are reading
@@ -366,7 +366,7 @@ Full outcome list lives in [Reason Codes](../results/reason-codes.md).
 
 ## Related
 
-- [Configure Check Sets and Checks: Merge tokens](../../build-checks/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options)
+- [Configure Check Sets and Checks: Merge tokens](../../build-checks/configure-check-sets-and-checks.md#step-14-learn-the-merge-token-options)
 - [Configure action links](../../build-checks/add-fix-link.md)
 - [Check fields](../custom-metadata/check-fields.md)
 - [Query reference](../evaluation/query.md)

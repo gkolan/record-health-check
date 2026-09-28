@@ -1,7 +1,7 @@
 # Supporting Apex classes (L2-L5)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when tracing runtime support classes. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 

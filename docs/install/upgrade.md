@@ -1,7 +1,7 @@
 # Upgrade and revalidate an installation
 
 > [!NOTE]
-> On this page, preserve the current Record Health Check configuration, upgrade a representative
+> Preserve the current Record Health Check configuration, upgrade a representative
 > sandbox, and verify the pages, access, automation, and business results before production.
 
 Use this guide when Record Health Check is already installed. The goal is not simply to complete a
@@ -146,7 +146,7 @@ Proceed to production only when:
 Repeat the same verification after the production upgrade. Installation success alone is not the
 release outcome; a working user experience is.
 
-## If verification fails
+## Resolve verification issues
 
 Stop before production. Preserve the installation result and the evidence from the affected Check
 Set.

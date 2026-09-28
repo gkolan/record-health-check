@@ -1,7 +1,7 @@
 # Uninstall and rollback
 
 > [!NOTE]
-> On this page, preserve organization-owned configuration, remove Record Health Check dependencies
+> Preserve organization-owned configuration, remove Record Health Check dependencies
 > in a safe order, uninstall the package, and verify that the org is clean.
 
 Use this guide when an org no longer needs Record Health Check. You will preserve anything needed

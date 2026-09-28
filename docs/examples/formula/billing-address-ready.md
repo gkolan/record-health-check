@@ -1,166 +1,120 @@
-# Billing Address Is Ready for Review
+# Check whether the billing address is ready for review
 
 > [!NOTE]
-> On this page, create one Formula Check that requires Billing City, Billing State, and Billing Country together while showing users the Found and Expected address details they need to act.
->
-> **Setup reference**
->
-> Use the [Formula reference](../../reference/evaluation/formula.md) for the complete setup fields and behavior.
+> **Setup reference**: [Formula Check configuration](../../reference/evaluation/formula.md)
 
-## Scenario
+Create a Formula Check that passes only when Billing City, Billing State, and Billing Country are
+all populated. When a value is missing, the card tells the user which address part needs attention.
 
-A Salesforce user is preparing an Account for tax and territory review.
+## Why this pattern fits
 
-- Billing City, Billing State, and Billing Country determine where the Account belongs and which tax process applies.
-- A missing part of the address can delay the review or send the Account to the wrong territory.
-- The complete billing location is needed before the review begins.
+All three values are fields on the Account that is already open, so **Verify with a formula** is
+the simplest evaluation type. This is guidance rather than a Validation Rule because an incomplete
+billing address should not block every unrelated Account update.
 
-> [!TIP]
-> **Why use Record Health Check**
->
-> Record Health Check presents the billing address as one readiness result and points the user to the fields that still need attention.
+## Before you configure it
 
-## What you will learn
+- Confirm the required address parts with the teams that use the address for tax or territory work.
+- In orgs with State and Country/Territory Picklists, decide whether the formula should use
+  `BillingStateCode` and `BillingCountryCode` instead of the display fields.
+- Confirm that the people using the card can read all fields in the formula.
+- Save new configuration inactive and validate it before activation.
 
-| Skill                              | How this example teaches it                                 |
-| ---------------------------------- | ----------------------------------------------------------- |
-| Require a complete group of fields | `AND` requires every billing-address field.                 |
-| Treat blank text consistently      | `ISBLANK` makes each missing value visible in the decision. |
-| Test a completeness Check          | You verify both a complete and an incomplete Account.       |
+## Step 1: Create or choose the Check Set
 
-## Why use Verify with a formula
+You can add this Check to an existing Account Check Set. To create one, open **Setup → Custom
+Metadata Types → Record Health Check Set → Manage Records**, select **New**, and enter:
 
-| Evaluation Type           | Why it fits                                                                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **Verify with a formula** | Best fit. Billing City, Billing State, and Billing Country are all on the Account, and one formula can require all three. |
-| **Verify with a query**   | Would add query setup for fields the Account formula can already read.                                                    |
-| **Verify with Apex**      | Would require an Apex class for logic that Verify with a formula already handles.                                         |
+| Salesforce field             | Value                                                                 |
+| ---------------------------- | --------------------------------------------------------------------- |
+| Label                        | Account Data Quality                                                  |
+| Record Health Check Set Name | `Account_Data_Quality`                                                |
+| Object                       | `Account`                                                             |
+| Card Title                   | Account Data Quality                                                  |
+| Card Subtitle                | Confirm the billing address is complete for tax and territory review. |
+| When Checks Run              | When the user clicks Run                                              |
+| Summary Display              | Show below checks                                                     |
+| Found/Expected Display       | Show on demand                                                        |
+| Active                       | Unchecked until validation succeeds                                   |
 
-## Why not use a Validation Rule
+## Step 2: Create the Check
 
-- The address is needed for tax and territory review, but it may not be needed for every Account edit.
+Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**, and
+enter:
 
-- Blocking every save would interrupt users who are updating unrelated information.
+| Salesforce field          | Value                                                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label                     | Billing Address Is Complete                                                                                                                              |
+| Record Health Check Name  | `Billing_Address_Is_Complete`                                                                                                                            |
+| Check Set                 | Account Data Quality, or your existing Account Check Set                                                                                                 |
+| Check Title               | Billing address is complete                                                                                                                              |
+| Evaluation Type           | Verify with a formula                                                                                                                                    |
+| Pass Condition            | `AND(NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingCountry)))`                                                               |
+| Display: Found Formula    | `IF(ISBLANK(BillingCity), "City missing; ", "") & IF(ISBLANK(BillingState), "State missing; ", "") & IF(ISBLANK(BillingCountry), "Country missing", "")` |
+| Display: Expected Formula | `"City, State, and Country populated"`                                                                                                                   |
+| Formula Result Type       | Automatic                                                                                                                                                |
+| Failure Severity          | Critical                                                                                                                                                 |
+| Message When Failed       | `{!record.Name fallback="This Account"}` has an incomplete billing address.                                                                              |
+| Fix Message               | Add every billing-address value named in Found, then run the Check again.                                                                                |
+| Action Label              | Edit billing address                                                                                                                                     |
+| Action URL                | `/lightning/r/Account/{!record.Id}/edit`                                                                                                                 |
+| Evaluation Order          | `40`                                                                                                                                                     |
+| Active                    | Unchecked until validation succeeds                                                                                                                      |
 
-## Before you start
+Add Street or Postal Code to both the pass formula and user guidance if your business requires
+them. The Found formula is display guidance; only the Pass Condition decides the health result.
 
-- Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
-- Confirm that Billing City, Billing State, and Billing Country are the address fields required by
-  your tax or territory process.
-- Confirm that intended users can read all three fields.
+## Step 3: Validate and activate
 
-## Confirm the example fits your org
+1. Run the [configuration-validation Flow](../../build-checks/validate-configuration.md).
+2. Correct every error and review every warning.
+3. Set the Check and Check Set to **Active** only after validation succeeds.
+4. Add **Record Health Check** to the Account Lightning record page and select the Check Set.
+5. Assign **Record Health Check Card User** to the people testing the card.
 
-- `AND()` requires every listed address value. `IF()` chooses display text, and `&` joins text.
-- In State and Country/Territory Picklists orgs, confirm whether your policy should use
-  `BillingStateCode` and `BillingCountryCode` instead of the display fields in this example.
-- Add Street or Postal Code to the formula if a complete address requires them.
-- **Display: Found Formula** returns Text. An empty Found value on a passing record is possible and
-  does not mean evaluation failed; use the PASS status as the result.
-- Verify field access from **Permission Sets → [User permission set] → Object Settings → Account →
-  Field Permissions**.
+## Step 4: Test the result
 
-Create an Account with a partial billing address, add the card to the Account Lightning page,
-activate the intended assignment, assign **Record Health Check Card User**, and test both partial and
-complete addresses.
+Use sandbox Accounts that are safe to edit.
 
-## Step 1: Create the Check Set
+| Billing City | Billing State | Billing Country | Expected result                         |
+| ------------ | ------------- | --------------- | --------------------------------------- |
+| Populated    | Populated     | Populated       | Pass                                    |
+| Blank        | Populated     | Populated       | Critical; Found names City              |
+| Populated    | Blank         | Blank           | Critical; Found names State and Country |
 
-In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
-create this Check Set:
-
-| Setup field                      | Value                                                                     |
-| -------------------------------- | ------------------------------------------------------------------------- |
-| **Label**                        | Account Data Quality                                                      |
-| **Record Health Check Set Name** | `Account_Data_Quality`                                                    |
-| **Object**                       | `Account`                                                                 |
-| **Card Title**                   | Account Data Quality                                                      |
-| **Card Subtitle**                | Confirm billing address fields are complete for tax and territory review. |
-| **When Checks Run**              | When the user clicks Run                                                  |
-| **Summary Display**              | Show below checks                                                         |
-| **Reveal Mode**                  | One by one                                                                |
-| **Passed Checks**                | Show each passed check                                                    |
-| **Skipped Checks**               | Show each skipped check                                                   |
-| **Found/Expected Display**       | Show on demand                                                            |
-| **Stop after a system error**    | Unchecked                                                                 |
-| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting         |
-| **Publish User Run Event**       | Unchecked                                                                 |
-| **Active**                       | Checked                                                                   |
-
-## Step 2: Configure the Check
-
-In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
-
-| Setup field                   | API name                                                                                                                          | Value                                                                                                                                                    |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Developer Name**            | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                                   | `Billing_Address_Is_Complete`                                                                                                                            |
-| **Label**                     | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                                | Billing Address Is Complete                                                                                                                              |
-| **Check Set**                 | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)              | `Account_Data_Quality`                                                                                                                                   |
-| **Check Title**               | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                      | Billing Address Is Complete                                                                                                                              |
-| **Evaluation Type**           | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                          | Verify with a formula                                                                                                                                    |
-| **Pass Condition**            | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c)               | `AND(NOT(ISBLANK(BillingCity)), NOT(ISBLANK(BillingState)), NOT(ISBLANK(BillingCountry)))`                                                               |
-| **Display: Found Formula**    | [`DisplayFoundFormula__c`](../../reference/custom-metadata/check-fields.md#display-found-formula-displayfoundformula__c)          | `IF(ISBLANK(BillingCity), "City missing; ", "") & IF(ISBLANK(BillingState), "State missing; ", "") & IF(ISBLANK(BillingCountry), "Country missing", "")` |
-| **Display: Expected Formula** | [`DisplayExpectedFormula__c`](../../reference/custom-metadata/check-fields.md#display-expected-formula-displayexpectedformula__c) | `"City, State, and Country populated"`                                                                                                                   |
-| **Formula Result Type**       | [`FormulaResultType__c`](../../reference/custom-metadata/check-fields.md#formula-result-type-formularesulttype__c)                | Automatic                                                                                                                                                |
-
-## Optional configuration
-
-| Setup field                         | API name                                                                                                                                   | Value                                                                                                                 |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
-| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks whether Billing City, State, and Country are all populated.                                                    |
-| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Completeness                                                                                                          |
-| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Critical                                                                                                              |
-| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has an incomplete billing address: City, State, and Country are all required. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check the billing address. Confirm the user can read all three fields.                                      |
-| **Applies To**                      | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                                  | All records                                                                                                           |
-| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                           |
-| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Add every billing-address field named in Found.                                                                       |
-| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Edit billing address`                                                                                                |
-| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/edit`                                                                              |
-| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `40`                                                                                                                  |
-| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                               |
-| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                             |
-
-The Found formula names the missing address parts, so the user does not have to inspect all three
-fields. Query and Apex fields do not apply.
+Repeat a failing case with the same field access intended users receive. An unreadable referenced
+field must produce **Unable to Check**, not a guessed pass or failure.
 
 ## What the user sees
 
-The card turns the Formula result and its display formulas into these user-facing values:
+The card evaluates the formula and compares its result with the configured expected value.
 
-| Health result or card value | What the user sees                                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **`PASS`**                  | The Account passes only when Billing City, Billing State, and Billing Country are all populated.                          |
-| **`FAIL`**                  | Clearing any required field shows Needs attention with Critical severity and the configured failure and fix guidance.     |
-| **`SKIPPED`**               | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`.                    |
-| **Found**                   | When the user reveals Found and Expected, Found names each missing address part, such as `City missing; Country missing`. |
-| **Expected**                | When the user reveals Found and Expected, Expected shows `City, State, and Country populated`.                            |
+| Result detail | Meaning                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| **`PASS`**    | The formula result satisfies the configured comparison.                                         |
+| **`FAIL`**    | The formula result does not satisfy the comparison, and the card shows the configured guidance. |
+| **`SKIPPED`** | The Check does not apply or a configured prerequisite did not pass.                             |
+| **Found**     | The evaluated formula result for the current record.                                            |
+| **Expected**  | The configured fixed value or evaluated expected formula.                                       |
 
-## Security and access
+## If it does not work
 
-Record Health Check reads Billing City, Billing State, and Billing Country on the Account with the running user's Salesforce access.
+| What you see                                      | Check this first                                                                        |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| A complete address fails                          | Confirm whether your org uses the Code fields for State and Country/Territory Picklists |
+| Found does not name every missing part            | Copy the complete Display: Found Formula and verify its quotes                          |
+| Unable to Check                                   | Confirm Read access to every address field in the formula                               |
+| The Check Set is missing in Lightning App Builder | Confirm Object is `Account` and both records are active                                 |
 
-- If the user cannot read any referenced address field, the card may show **Unable to evaluate** instead of treating the field as blank.
+## Technical reference
 
-Before activation, run the complete-address and missing-address cases with the Permission Sets assigned to the intended reviewers.
-
-## Step 3: Test the Check
-
-1. Populate City and State, clear Billing Country. Confirm Critical.
-2. Populate all three, rerun, and confirm a pass.
-3. Clear Billing City only and confirm Critical again.
-4. Repeat the failing test as a user without access to one referenced Billing Address field and confirm **Unable to evaluate**.
-
-## Failures and remedies
-
-| What the user sees                  | What to check                                                                               |
-| ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| An expected value fails             | Confirm the field values, field types, and blank or picklist functions used by the formula. |
-| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition.    |
-| **Unable to evaluate**              | Confirm the formula syntax and the running user's access to every referenced field.         |
+- [Formula evaluation](../../reference/evaluation/formula.md)
+- [Check fields and API names](../../reference/custom-metadata/check-fields.md)
+- [Check Set fields and API names](../../reference/custom-metadata/check-set-fields.md)
+- [Formula functions and supported result types](../../reference/evaluation/formula.md)
 
 ## Related
 
-- [← Prev: Seller research readiness](./account-research-ready.md) · [Next: Partner regional assignment →](./partner-regional-assignment.md)
-- [Browse Formula examples](./README.md)
+- [Previous: Seller research readiness](./account-research-ready.md)
+- [Formula examples](./README.md)
+- [Next: Partner regional assignment](./partner-regional-assignment.md)

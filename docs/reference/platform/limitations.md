@@ -1,6 +1,6 @@
 # Platform limitations and safe patterns
 
-Audience: Check authors and developers diagnosing a platform edge case. For ordinary configuration,
+Diagnose platform edge cases with the boundaries in this reference. For ordinary configuration,
 start with the [Formula](../evaluation/formula.md) or [Query](../evaluation/query.md) reference.
 
 Record Health Check runs inside Salesforce security, query, and FormulaEval contracts. Use this

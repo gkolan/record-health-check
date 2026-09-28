@@ -1,6 +1,6 @@
 # Package testing and upgrades
 
-This page is for package maintainers.
+Test a package build or upgrade with this evidence sequence.
 
 > [!NOTE]
 > This page separates the steps an administrator follows to upgrade an installed package from the
@@ -17,7 +17,7 @@ If you only install and operate the package, follow this section and then return
 [Revalidate or upgrade](../install/upgrade.md). The contributor sections below do not
 apply to a subscriber org.
 
-### Use a package version, not a source deployment
+### Use a package version for upgrade testing
 
 | Use this approach                                               | Do not use this approach                                                      |
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
@@ -88,7 +88,7 @@ package test utility, not a public extension point.
 Package-version creation is also its own Apex execution context. Its test principal must not be
 assumed to hold packaged Permission Sets, and assigning a packaged Permission Set to the current
 user in `@TestSetup` is not accepted as proof that later user-mode access will match an installed
-administrator. Do not create replacement User personas in unlocked-package tests: subscriber User
+administrator. Do not create replacement Users in unlocked-package tests: subscriber User
 automation can execute in the packaging org. Model customer records in user mode; model any private
 service-owned package store explicitly, authorize it at the public boundary, and pin every reviewed
 system-mode exception with `check:apex-surface` and focused source tests. A source-org green run does
@@ -162,7 +162,7 @@ backlog until it is executed or explicitly removed from the supported release sc
 Do not maintain a parallel local design spec as a release ledger. Its component counts, test counts,
 org aliases, findings, and pending boxes become stale as soon as the package changes. Missing
 candidate evidence still blocks that candidate; retiring a stale planning document never counts as
-proof that an install, upgrade, persona, asynchronous, or hosted validation passed.
+proof that an install, upgrade, access-context, asynchronous, or hosted validation passed.
 
 ## Related
 

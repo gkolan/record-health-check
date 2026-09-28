@@ -1,7 +1,7 @@
 # Choose a package version
 
-Use this page to select an exact package version, verify the installed version, or
-plan recovery. For a normal first installation, follow [Install and verify](./install-in-a-sandbox.md).
+Select an exact package version, verify the installed version, or plan recovery. For a normal first
+installation, follow [Install and verify](./install-in-a-sandbox.md).
 
 Each Salesforce package version has a unique `04t` ID. The sandbox and production links
 install the same released package; only the Salesforce login destination differs.
@@ -18,22 +18,20 @@ changing versions and follow the full [upgrade and revalidation procedure](./upg
 To see the current version, open **Setup → Installed Packages**, select **Record Health Check**, and
 read **Version Number**.
 
-## Documentation and installed version
+## Documentation and installed package
 
 Verify the exact target before installation. Repository source can include changes that are
 not yet released. When following an example, use documentation, Check definitions, data scripts,
 and expected results from the same source or release.
 
-The [release configuration](../../config/package-releases.json) identifies the latest stable
-package and its installation links. The [changelog](../../CHANGELOG.md) records release history.
+The [release configuration](../../config/package-releases.json) identifies the published package
+and its installation links. The [changelog](../../CHANGELOG.md) records work prepared for publication.
 Deploying source to a scratch org does not update the published package.
 
-## Step 1: Choose a version
+## Step 1: Choose an installation target
 
-The public redirects can temporarily target an older version than the latest promoted package version.
-Check the current distribution notice in the [release notes](../../CHANGELOG.md), confirm the
-installation screen, and validate in a sandbox before upgrading. Do not interpret an older redirect
-as an in-place downgrade path for an existing installation.
+Confirm the current distribution notice in the [release notes](../../CHANGELOG.md), verify the
+package ID on the Salesforce installation screen, and validate in a sandbox before production.
 
 Public install destinations:
 

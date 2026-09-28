@@ -1,164 +1,120 @@
-# Account Is Ready for Seller Research
+# Check whether an Account is ready for research
 
 > [!NOTE]
-> On this page, create a Formula Check that considers an Account ready for seller research when either Phone or Website gives the seller a useful place to begin.
->
-> **Setup reference**
->
-> Use the [Formula reference](../../reference/evaluation/formula.md) for the complete setup fields and behavior.
+> **Setup reference**: [Formula Check configuration](../../reference/evaluation/formula.md)
 
-## Scenario
+Create a Formula Check that passes when an Account has either a Phone or a Website. When both are
+blank, the card asks the user to add a reliable starting point before outreach.
 
-A seller is preparing to contact an Account and needs a reliable place to begin.
+## Why this pattern fits
 
-- Some Accounts provide a business phone number; others provide a website for learning about the company.
-- Either one is enough to begin preparing for the conversation.
-- When both are missing, the seller must enrich the Account before outreach.
+Phone and Website are fields on the Account that is already open. **Verify with a formula** can
+review both fields without SOQL or Apex. This is guidance rather than a Validation Rule because a
+missing research starting point should not block an unrelated Account update.
 
-> [!TIP]
-> **Why use Record Health Check**
->
-> Record Health Check combines Phone and Website into one readiness result and requests enrichment when neither starting point is available.
+## Before you configure it
 
-## What you will learn
-
-| Skill                            | How this example teaches it                                               |
-| -------------------------------- | ------------------------------------------------------------------------- |
-| Choose **Verify with a formula** | The decision uses only fields on the current Account.                     |
-| Allow more than one valid path   | `OR` lets either Phone or Website satisfy the Check.                      |
-| Write useful remediation         | The failure message tells the seller exactly what to add before outreach. |
-
-## Why use Verify with a formula
-
-| Evaluation Type           | Why it fits                                                                                   |
-| ------------------------- | --------------------------------------------------------------------------------------------- |
-| **Verify with a formula** | Best fit. Phone and Website are both on the Account, and one formula can accept either field. |
-| **Verify with a query**   | Would add separate setup for values already available to the Account formula.                 |
-| **Verify with Apex**      | Would require an Apex class for logic that Verify with a formula already handles.             |
-
-## Why not use a Validation Rule
-
-- A missing Phone and Website should prompt research, not block an unrelated Account update.
-
-- The readiness question belongs in the seller's outreach preparation with the other checks for that work.
-
-## Before you start
-
-- Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
-- Confirm that intended users can read Account, Phone, and Website.
-
-## Confirm the example fits your org
-
-- `OR()` means either Phone or Website can satisfy the Check. `ISBLANK()` tests whether a value is
-  empty, and `NOT()` reverses that result. Use `AND()` instead if both fields are required.
 - Confirm Phone and Website under **Setup → Object Manager → Account → Fields & Relationships**.
-  Person Accounts use the same Account fields, but test the intended record types explicitly.
-- A syntactically nonblank placeholder website still passes. Use Query or reviewed Apex if validity,
-  not presence, is the real requirement.
-- `/lightning/r/Account/{!record.Id}/edit` is a Lightning navigation URL, not a formula field. It
-  opens the Account edit form and does not save automatically.
+- Decide whether either field is enough. This example uses either; use `AND` instead of `OR` if your
+  requirement needs both.
+- Confirm that the people using the card can read Account, Phone, and Website.
+- Save new configuration inactive and validate it before activation.
 
-After configuration, add the card to the Account Lightning record page, activate the correct page
-assignment, assign **Record Health Check Card User**, and test with the user's Account field permissions.
+## Step 1: Create or choose the Check Set
 
-## Step 1: Create the Check Set
+You can add this Check to an existing Account Check Set. To create a new one, open **Setup → Custom
+Metadata Types → Record Health Check Set → Manage Records**, select **New**, and enter:
 
-In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
-create this Check Set:
+| Salesforce field             | Value                                                         |
+| ---------------------------- | ------------------------------------------------------------- |
+| Label                        | Account Data Quality                                          |
+| Record Health Check Set Name | `Account_Data_Quality`                                        |
+| Object                       | `Account`                                                     |
+| Card Title                   | Account Data Quality                                          |
+| Card Subtitle                | Confirm Phone or Website is available before seller research. |
+| When Checks Run              | When the user clicks Run                                      |
+| Summary Display              | Show below checks                                             |
+| Found/Expected Display       | Show on demand                                                |
+| Active                       | Unchecked until validation succeeds                           |
 
-| Setup field                      | Value                                                             |
-| -------------------------------- | ----------------------------------------------------------------- |
-| **Label**                        | Account Data Quality                                              |
-| **Record Health Check Set Name** | `Account_Data_Quality`                                            |
-| **Object**                       | `Account`                                                         |
-| **Card Title**                   | Account Data Quality                                              |
-| **Card Subtitle**                | Confirm Phone or Website is available before seller research.     |
-| **When Checks Run**              | When the user clicks Run                                          |
-| **Summary Display**              | Show below checks                                                 |
-| **Reveal Mode**                  | One by one                                                        |
-| **Passed Checks**                | Show each passed check                                            |
-| **Skipped Checks**               | Show each skipped check                                           |
-| **Found/Expected Display**       | Show on demand                                                    |
-| **Stop after a system error**    | Unchecked                                                         |
-| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event**       | Unchecked                                                         |
-| **Active**                       | Checked                                                           |
+## Step 2: Create the Check
 
-## Step 2: Configure the Check
+Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**, and
+enter:
 
-In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
+| Salesforce field         | Value                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------------------------- |
+| Label                    | Account Is Ready for Seller Research                                                      |
+| Record Health Check Name | `Account_Ready_For_Seller_Research`                                                       |
+| Check Set                | Account Data Quality, or your existing Account Check Set                                  |
+| Check Title              | Ready for seller research                                                                 |
+| Evaluation Type          | Verify with a formula                                                                     |
+| Pass Condition           | `OR(NOT(ISBLANK(Phone)), NOT(ISBLANK(Website)))`                                          |
+| Failure Severity         | Warning                                                                                   |
+| Message When Failed      | `{!record.Name fallback="This Account"}` needs a Phone or Website before seller research. |
+| Fix Message              | Add a verified business phone number or website, then run the Check again.                |
+| Action Label             | Edit account                                                                              |
+| Action URL               | `/lightning/r/Account/{!record.Id}/edit`                                                  |
+| Evaluation Order         | `10`                                                                                      |
+| Active                   | Unchecked until validation succeeds                                                       |
 
-| Setup field         | API name                                                                                                             | Value                                            |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| **Developer Name**  | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                      | `Phone_Or_Website_Is_Required`                   |
-| **Label**           | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                   | Phone or Website Is Required                     |
-| **Check Set**       | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c) | `Account_Data_Quality`                           |
-| **Check Title**     | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                         | Phone or Website Is Required                     |
-| **Evaluation Type** | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)             | Verify with a formula                            |
-| **Pass Condition**  | [`PassConditionFormula__c`](../../reference/custom-metadata/check-fields.md#pass-condition-passconditionformula__c)  | `OR(NOT(ISBLANK(Phone)), NOT(ISBLANK(Website)))` |
+The formula checks only whether a value is present. A placeholder website still passes, so use a
+different pattern when validity matters more than presence.
 
-## Optional configuration
+## Step 3: Validate and activate
 
-These values improve presentation. Change them for your process, or leave an optional field blank.
+1. Run the [configuration-validation Flow](../../build-checks/validate-configuration.md).
+2. Correct every error and review every warning.
+3. Set the Check and Check Set to **Active** only after validation succeeds.
+4. Add **Record Health Check** to the Account Lightning record page and select the Check Set.
+5. Assign **Record Health Check Card User** to the people testing the card.
 
-| Setup field                         | API name                                                                                                                                   | Value                                                                                                        |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks whether the Account has at least one contact channel: Phone or Website.                               |
-| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Completeness                                                                                                 |
-| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                                      |
-| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has neither Phone nor Website set. Add at least one contact channel. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check Phone and Website. Confirm the user can read both fields.                                    |
-| **Applies To**                      | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                                  | All records                                                                                                  |
-| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                  |
-| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Enter either Phone or Website on the Account. Both are not required.                                         |
-| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Edit contact details`                                                                                       |
-| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/edit`                                                                     |
-| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `20`                                                                                                         |
-| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                      |
-| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                    |
+## Step 4: Test the result
 
-Leave **Display: Found Formula** and **Display: Expected Formula** blank because there is no single
-value to show: either Phone or Website can satisfy the Check. Leave **Formula Result Type** as
-**Automatic**. Query and Apex fields do not apply.
+Use sandbox Accounts that are safe to edit.
+
+| Phone     | Website   | Expected result                              |
+| --------- | --------- | -------------------------------------------- |
+| Blank     | Blank     | Warning with the research-readiness guidance |
+| Populated | Blank     | Pass                                         |
+| Blank     | Populated | Pass                                         |
+| Populated | Populated | Pass                                         |
+
+Run the same tests with the field access used by the people who will use the card. If Phone or
+Website is not readable, the Check must not guess a result.
 
 ## What the user sees
 
-The Formula result produces these health results and card values:
+The card evaluates the formula and compares its result with the configured expected value.
 
-| Health result or card value | What the user sees                                                                                            |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **`PASS`**                  | The Check passes as soon as Phone or Website has a value.                                                     |
-| **`FAIL`**                  | When both fields are blank, the card shows Needs attention with Warning severity and the configured guidance. |
-| **`SKIPPED`**               | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`.        |
-| **Found**                   | Blank because **Display: Found Formula** is blank and either of two fields can satisfy the Check.             |
-| **Expected**                | The expanded details label the Pass Condition as **Passes when** and show the `OR(…)` formula.                |
+| Result detail | Meaning                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------- |
+| **`PASS`**    | The formula result satisfies the configured comparison.                                         |
+| **`FAIL`**    | The formula result does not satisfy the comparison, and the card shows the configured guidance. |
+| **`SKIPPED`** | The Check does not apply or a configured prerequisite did not pass.                             |
+| **Found**     | The evaluated formula result for the current record.                                            |
+| **Expected**  | The configured fixed value or evaluated expected formula.                                       |
 
-## Security and access
+## If it does not work
 
-Record Health Check reads Phone and Website on the Account with the running user's Salesforce access.
+| What you see                                      | Check this first                                                                       |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| The Check Set is missing in Lightning App Builder | Confirm Object is `Account` and the Check Set is active                                |
+| The card has no Check row                         | Confirm the Check is active and belongs to the selected Check Set                      |
+| Unable to Check                                   | Confirm Read access to Account, Phone, and Website                                     |
+| A placeholder website passes                      | Presence is all this formula tests; use Query or reviewed Apex for stronger validation |
+| Edit account does not open the same record        | Copy the Action URL exactly and keep `{!record.Id}` in the path                        |
 
-- If the user cannot read either referenced field, the card may show **Unable to evaluate** instead of Pass or Needs attention.
+## Technical reference
 
-Before activation, run the Check with the Permission Sets and field access assigned to the sellers who will use the card.
-
-## Step 3: Test the Check
-
-1. Open an Account on a page that includes Record Health Check for this Check’s Check Set.
-2. Clear both Phone and Website. Run the check and confirm Warning with the failure message.
-3. Populate Phone only (leave Website blank), rerun, and confirm a pass.
-4. Clear Phone, set Website only, rerun, and confirm a pass again.
-5. Repeat the failing test as a user who cannot read Phone or Website and confirm the Check follows your field-access design.
-
-## Failures and remedies
-
-| What the user sees                  | What to check                                                                               |
-| ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| An expected value fails             | Confirm the field values, field types, and blank or picklist functions used by the formula. |
-| The Check runs on the wrong records | Review **Applies To** and **Applies When (Formula)** separately from the Pass Condition.    |
-| **Unable to evaluate**              | Confirm the formula syntax and the running user's access to every referenced field.         |
+- [Formula evaluation](../../reference/evaluation/formula.md)
+- [Check fields and API names](../../reference/custom-metadata/check-fields.md)
+- [Check Set fields and API names](../../reference/custom-metadata/check-set-fields.md)
+- [Merge tokens](../../reference/merge-syntax/README.md)
+- [Action links](../../build-checks/add-fix-link.md)
 
 ## Related
 
-- [Next: Billing address is ready for review →](./billing-address-ready.md)
-- [Browse Formula examples](./README.md)
+- [Formula examples](./README.md)
+- [Create your first Check](../../step-by-step-guide/create-your-first-check.md)
+- [Next: Billing address review](./billing-address-ready.md)

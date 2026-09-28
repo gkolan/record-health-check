@@ -79,7 +79,7 @@ The `rhc__` after `FROM` identifies the Custom Metadata **Type** installed by Re
 The returned `QualifiedApiName` identifies each Check Set record. Copy the returned value; do not
 add or remove a prefix.
 
-## What happens if the name is wrong?
+## Resolve an API name mismatch
 
 Record Health Check does not guess. It does not remove a namespace, add `rhc__`, retry with Developer
 Name, or select a record with a similar label. The request fails clearly when the exact Qualified

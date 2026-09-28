@@ -1,174 +1,121 @@
-# Open Opportunities Are Ready for Pipeline Review
+# Check whether open Opportunities have Next Steps
 
 > [!NOTE]
-> On this page, require every open Opportunity to have a Next Step, fail on an empty value, and skip the Check entirely when the Account has no open pipeline to review.
->
-> **Setup reference**
->
-> Use the [Query reference](../../reference/evaluation/query.md) for the complete setup fields and behavior.
+> **Setup reference**: [Query Check configuration](../../reference/evaluation/query.md)
 
-> [!IMPORTANT]
-> This example is not installed by the package. Create the Check Set and Check in your org by
-> following the steps below.
+Create a Query Check that reviews every visible open Opportunity related to an Account. It passes
+only when each returned Opportunity has a Next Step and skips Accounts with no open Opportunities.
 
-## Scenario
+## Why this pattern fits
 
-An account executive opens an Account before a pipeline discussion.
+The values are on related Opportunity records, so **Verify with a query** is the simplest option.
+The Check gives pipeline guidance on the Account without forcing a Next Step during every
+Opportunity save.
 
-- Every open Opportunity must identify a Next Step so each deal has a documented action for the pipeline discussion.
-- A missing Next Step leaves the account executive and manager without an agreed action for that deal.
-- Accounts with no open pipeline are outside this pipeline discussion.
+## Before you configure it
 
-> [!TIP]
-> **Why use Record Health Check**
->
-> Record Health Check shows one pipeline-readiness result and identifies how many open Opportunities still need a Next Step.
+- Confirm **Next Step** under **Setup → Object Manager → Opportunity → Fields & Relationships**.
+- Decide whether every open stage needs a Next Step. Add stage filters if early deals are exempt.
+- Confirm that intended users can read Opportunity, Account, Is Closed, and Next Step.
+- Save new configuration inactive and validate it before activation.
 
-## What you will learn
+## Step 1: Create or choose the Check Set
 
-| Skill                            | How this example teaches it                               |
-| -------------------------------- | --------------------------------------------------------- |
-| Evaluate several related records | The query returns every open Opportunity for the Account. |
-| Require every row to qualify     | The Check checks that each Opportunity has a Next Step.   |
-| Test mixed query results         | One incomplete Opportunity is enough to produce `FAIL`.   |
+Use the Account Related Record Review Check Set from the previous example, or create it from
+**Setup → Custom Metadata Types → Record Health Check Set → Manage Records**:
 
-## Why use Verify with a query
+| Salesforce field             | Value                                                  |
+| ---------------------------- | ------------------------------------------------------ |
+| Label                        | Account Related Record Review                          |
+| Record Health Check Set Name | `Account_Related_Record_Review`                        |
+| Object                       | `Account`                                              |
+| Card Title                   | Account Related Record Review                          |
+| Card Subtitle                | Confirm related records are ready for pipeline review. |
+| When Checks Run              | When the user clicks Run                               |
+| Summary Display              | Show below checks                                      |
+| Found/Expected Display       | Show on demand                                         |
+| Active                       | Unchecked until validation succeeds                    |
 
-| Evaluation Type                                              | Why it fits                                                                                         |
-| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| **Verify with a query**                                      | Best fit. The query reviews Next Step on every open Opportunity related to the Account.             |
-| **Verify with a formula**                                    | An Account formula cannot review fields on all related Opportunities.                               |
-| **Verify with a query** that fails when no records are found | Would mark an Account with no open Opportunities as needing attention. This example should skip it. |
+## Step 2: Create the Check
 
-## Why not use a Validation Rule or Report
+Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**, and
+enter:
 
-- **Validation Rule:** A Validation Rule would enforce Next Step during every Opportunity save, even when early-stage deals may remain incomplete.
+| Salesforce field                | Value                                                                                          |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Label                           | Open Opportunities Have Next Steps                                                             |
+| Record Health Check Name        | `Open_Opportunities_Have_Next_Steps`                                                           |
+| Check Set                       | Account Related Record Review                                                                  |
+| Check Title                     | Open Opportunities are ready for review                                                        |
+| Evaluation Type                 | Verify with a query                                                                            |
+| Source Query                    | `SELECT NextStep FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false`         |
+| Source Query Field              | `NextStep`                                                                                     |
+| How To Read Query Results       | Every record passes                                                                            |
+| Comparison Operator             | Is not empty                                                                                   |
+| If Query Finds No Records       | Skip                                                                                           |
+| If Field Value Is Empty         | Treat as not matching                                                                          |
+| Max Query Rows                  | `200`                                                                                          |
+| Failure Severity                | Warning                                                                                        |
+| Message When Failed             | `{!record.Name fallback="This Account"}` has one or more open Opportunities with no Next Step. |
+| Message When Unable To Evaluate | Unable to check open Opportunity Next Step. Confirm access to the queried fields.              |
+| Fix Message                     | Enter Next Step on every open Opportunity that still needs one.                                |
+| Action Label                    | Review open opportunities                                                                      |
+| Action URL                      | `/lightning/r/Account/{!record.Id}/related/Opportunities/view`                                 |
+| Evaluation Order                | `40`                                                                                           |
+| Active                          | Unchecked until validation succeeds                                                            |
 
-- **Report:** A report can list missing values across the pipeline. It does not place the answer directly on the Account being prepared for review.
+**Every record passes** evaluates each returned row. A blank Next Step is **Treat as not matching**,
+so one blank value fails the Check. No returned rows produce Skipped.
 
-## Before you start
+## Step 3: Validate and activate
 
-- Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
-- Confirm that intended users can read Opportunity, `AccountId`, `IsClosed`, and `NextStep` and can
-  see all Opportunities that should be included in pipeline review.
+1. Run the [configuration-validation Flow](../../build-checks/validate-configuration.md).
+2. Correct every error and review every warning.
+3. Set the Check and Check Set to **Active** only after validation succeeds.
+4. Add **Record Health Check** to the Account Lightning record page and select the Check Set.
+5. Assign **Record Health Check Card User** to the people testing the card.
 
-## Read the query and prepare test data
+## Step 4: Test the result
 
-**Every record passes** evaluates each returned open Opportunity. **Is not empty** requires each
-Next Step value to contain something. If the query finds no open Opportunities, this example
-returns Skipped. If a returned Opportunity has a blank Next Step, **Treat as not matching** makes
-that row fail.
+| Visible open Opportunities | Next Step values | Expected result |
+| -------------------------- | ---------------- | --------------- |
+| None                       | Not applicable   | Skipped         |
+| One                        | Populated        | Pass            |
+| Two                        | Both populated   | Pass            |
+| Two                        | One blank        | Warning         |
 
-Confirm Next Step under **Setup → Object Manager → Opportunity → Fields & Relationships**. Create
-an Account and two open Opportunities, one with Next Step and one without, then test the Account
-card. If your process requires Next Step only at later stages or uses a custom Next Action field,
-adapt the query and applicability rule.
-
-Add the card to the Account Lightning page, activate the intended assignment, and test as a user
-with **Record Health Check Card User**. Use a representative restricted-access user to prove sharing;
-do not change production sharing merely to create a test.
-
-## Step 1: Create the Check Set
-
-In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
-create this Check Set:
-
-| Setup field                      | Value                                                             |
-| -------------------------------- | ----------------------------------------------------------------- |
-| **Label**                        | Account Related Record Review                                     |
-| **Record Health Check Set Name** | `Account_Related_Record_Review`                                   |
-| **Object**                       | `Account`                                                         |
-| **Card Title**                   | Related Record Review                                             |
-| **Card Subtitle**                | Confirm every open Opportunity has a Next Step.                   |
-| **When Checks Run**              | When the user clicks Run                                          |
-| **Summary Display**              | Show below checks                                                 |
-| **Reveal Mode**                  | One by one                                                        |
-| **Passed Checks**                | Show each passed check                                            |
-| **Skipped Checks**               | Show each skipped check                                           |
-| **Found/Expected Display**       | Show on demand                                                    |
-| **Stop after a system error**    | Unchecked                                                         |
-| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event**       | Unchecked                                                         |
-| **Active**                       | Checked                                                           |
-
-## Step 2: Configure the Check
-
-In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
-
-| Setup field                   | API name                                                                                                                     | Value                                                                                  |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| **Developer Name**            | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                              | `Open_Opportunities_Have_Next_Steps`                                                   |
-| **Label**                     | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                           | Open Opportunities Have Next Steps                                                     |
-| **Check Set**                 | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)         | `Account_Related_Record_Review`                                                        |
-| **Check Title**               | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                 | Open Opportunities Are Ready for Review                                                |
-| **Evaluation Type**           | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                     | Verify with a query                                                                    |
-| **Source Query**              | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c)                              | `SELECT NextStep FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Source Query Field**        | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)              | `NextStep`                                                                             |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c) | Every record passes                                                                    |
-| **Comparison Operator**       | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)         | Is not empty                                                                           |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c)               | Skip                                                                                   |
-| **If Field Value Is Empty**   | [`EmptyValueHandling__c`](../../reference/custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c)     | Treat as not matching                                                                  |
-| **Max Query Rows (1-2000)**   | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c)                   | `200`                                                                                  |
-
-## Optional configuration
-
-| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                                        |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Confirms that every visible open Opportunity has a Next Step; skips Accounts with none.                                                                      |
-| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Readiness                                                                                                                                                    |
-| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                                                                                      |
-| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has one or more open Opportunities with no Next Step. Add the next planned action to each deal that needs attention. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to check open Opportunity Next Step. Confirm the user can read the queried fields.                                                                    |
-| **Applies To**                      | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                                  | All records; empty-query handling creates the skip                                                                                                           |
-| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                                                  |
-| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Review open Opportunities and enter Next Step on every deal that still needs one.                                                                            |
-| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Review open opportunities`                                                                                                                                  |
-| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/related/Opportunities/view`                                                                                               |
-| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `40`                                                                                                                                                         |
-| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                                                                      |
-| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                                    |
-
-Comparison Query, list, Formula, and Apex fields do not apply.
+Repeat the failing case as a user who can see only part of the pipeline. The result must follow the
+running user's record sharing and field access; it cannot report hidden Opportunities.
 
 ## What the user sees
 
-The query rows and no-record behavior produce these health results and card values:
+The card reads the visible query result and compares it with the configured expected value.
 
-| Health result or card value | What the user sees                                                                                                                       |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **`PASS`**                  | Every visible open Opportunity has Next Step populated.                                                                                  |
-| **`FAIL`**                  | At least one visible open Opportunity has blank Next Step, so the card shows Needs attention with Warning severity.                      |
-| **`SKIPPED`**               | An Account with no open Opportunities is skipped because **No rows result** is **Skipped**.                                              |
-| **Found**                   | For **Every record passes**, Found summarizes the result, such as `1 of 5 Opportunities did not pass`; it does not list every Next Step. |
-| **Expected**                | Expected shows that Next Step must not be empty.                                                                                         |
+| Result detail | Meaning                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| **`PASS`**    | The query result satisfies the configured comparison.                                         |
+| **`FAIL`**    | The query result does not satisfy the comparison, and the card shows the configured guidance. |
+| **`SKIPPED`** | The Check does not apply or a configured prerequisite did not pass.                           |
+| **Found**     | The normalized row, list, or aggregate value returned by the query.                           |
+| **Expected**  | The configured fixed value or evaluated expected formula.                                     |
 
-## Security and access
+## If it does not work
 
-Record Health Check reads open Opportunities and their Next Step with the running user's Salesforce access.
+| What you see                     | Check this first                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------------- |
+| A closed Opportunity is included | Copy the complete `IsClosed = false` filter                                      |
+| A blank Next Step passes         | Confirm **Every record passes**, **Is not empty**, and **Treat as not matching** |
+| The Account skips unexpectedly   | Confirm the user can see its open Opportunities                                  |
+| Unable to Check                  | Confirm object access, field access, and SOQL field names                        |
 
-- The Check evaluates only visible open Opportunities. A hidden Opportunity with blank Next Step cannot appear in the result.
+## Technical reference
 
-- Missing object or field permission can show **Unable to evaluate** rather than Pass or Needs attention.
-
-Before activation, repeat the test as a user who can see only part of the Account's pipeline.
-
-## Step 3: Test the Check
-
-1. Add an open Opportunity with Next Step blank. Confirm Warning.
-2. Enter Next Step on every open Opportunity, rerun, and confirm a pass.
-3. Close or remove open Opportunities and confirm the Check is skipped.
-4. Repeat the blank Next Step test as a user with restricted Opportunity access and confirm the result follows that user's visible records and fields.
-
-## Failures and remedies
-
-| What the user sees                     | What to check                                                                                             |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records.                      |
-| Empty results behave incorrectly       | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**.                         |
-| **Unable to evaluate**                 | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
+- [Query evaluation](../../reference/evaluation/query.md)
+- [Check fields and API names](../../reference/custom-metadata/check-fields.md)
+- [Merge tokens](../../reference/merge-syntax/README.md)
+- [Query examples](./README.md)
 
 ## Related
 
-- [← Prev: Customer handoff](./customer-contact.md) · [Next: Significant pipeline →](./significant-opportunity.md)
-- [Browse Query examples](./README.md)
+- [Previous: Customer handoff](./customer-contact.md)
+- [Next: Significant pipeline](./significant-opportunity.md)

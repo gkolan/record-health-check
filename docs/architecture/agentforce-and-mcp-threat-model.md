@@ -1,6 +1,6 @@
 # Agentforce and MCP threat model
 
-Audience: security architects and Agentforce or MCP implementers. If you only need to let an agent
+Review security for an Agentforce or MCP implementation with this threat model. To let an agent
 run a Check, use [Agentforce actions](../developer-guides/agentforce-and-mcp/agentforce-actions.md).
 
 > [!NOTE]

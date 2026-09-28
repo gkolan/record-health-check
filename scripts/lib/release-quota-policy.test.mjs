@@ -63,7 +63,7 @@ test("release scratch orgs use a rolling two-version LWS and Locker window", () 
   assert.equal(policy.retainedReleasePairs, 2);
   assert.equal(policy.retireReleaseOffset, 2);
   assert.equal(policy.maximumLifetimeDays, 30);
-  assert.match(lifecycleGuide, /2\.0\.11.*delete.*2\.0\.9/is);
+  assert.match(lifecycleGuide, /Release `N`[\s\S]*delete the `N` pair/is);
   assert.match(lifecycleGuide, /four retained scratch orgs/i);
   assert.match(source, /name: Salesforce source validation \(non-release\)/);
   assert.match(subscriber, /--release-pair/);

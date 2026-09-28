@@ -1,7 +1,7 @@
 # Scratch org lifecycle and release plan
 
-Use this page as the authority for creating, reusing, verifying, and deleting Record Health Check
-scratch orgs. Read it before creating an org locally or changing an org-consuming workflow.
+Follow this lifecycle when creating, reusing, verifying, and deleting Record Health Check scratch
+orgs. Read it before creating an org locally or changing an org-consuming workflow.
 
 Record Health Check is released as a second-generation unlocked package with the `rhc` namespace.
 An ordinary subscriber org usually has no namespace of its own, but an installed Record Health
@@ -133,8 +133,6 @@ Keep at most two release pairs, or four retained scratch orgs, at one time:
 2. Release `N+1` creates a new pair, installs promoted `N` as its upgrade base, upgrades to `N+1`,
    and retains both release pairs.
 3. When work starts on `N+2`, delete the `N` pair before authorizing creation of the `N+2` pair.
-4. For example, 2.0.9 retains two orgs; 2.0.10 creates two more and verifies the 2.0.9-to-2.0.10
-   upgrade; when 2.0.11 work starts, delete both 2.0.9 orgs before creating the 2.0.11 pair.
 
 Scratch orgs expire after at most 30 days. If a retained pair expires before `N+2` begins, record the
 expiry and do not recreate it merely to satisfy the retention window. Use sandboxes instead when a
@@ -156,7 +154,7 @@ review every active org. Use **Scratch Org Infos** to see the request history. C
 org as:
 
 - actively owned development or demonstration work with an agreed deletion date;
-- a current release org whose workflow is still running;
+- a release-validation org whose workflow is still running;
 - abandoned or orphaned work that the administrator has confirmed can be deleted.
 
 Delete confirmed abandoned orgs from **Active Scratch Orgs**. Deleting the active record frees an

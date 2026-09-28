@@ -1,0 +1,117 @@
+---
+const resources = [
+  {
+    title: 'Extensions repository',
+    description: 'Explore optional packages for logs, scheduled runs, guided building, alerts, reports, and integrations.',
+    href: 'https://github.com/gkolan/record-health-check-extensions',
+    status: 'Open repository',
+  },
+  {
+    title: 'Recipes repository',
+    description: 'Copy practical Check and Check Set patterns for common Salesforce use cases.',
+    status: 'Coming soon',
+  },
+  {
+    title: 'View Slides',
+    description: 'Use presentation-ready material to introduce the product to your team.',
+    status: 'Coming soon',
+  },
+  {
+    title: 'View Demo',
+    description: 'Watch it explain findings directly on a Salesforce record.',
+    status: 'Coming soon',
+  },
+];
+---
+
+<div class="resource-grid">
+  {
+    resources.map((resource) => resource.href ? (
+      <a class="resource-card" href={resource.href}>
+        <span class="resource-title">{resource.title}</span>
+        <span class="resource-description">{resource.description}</span>
+        <span class="resource-status available">{resource.status} <span aria-hidden="true">→</span></span>
+      </a>
+    ) : (
+      <div class="resource-card future" aria-disabled="true">
+        <span class="resource-title">{resource.title}</span>
+        <span class="resource-description">{resource.description}</span>
+        <span class="resource-status">{resource.status}</span>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  @layer starlight.components {
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .resource-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 0.7rem;
+      min-height: 8.5rem;
+      margin: 0;
+      border: 0;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      background: color-mix(in srgb, var(--sl-color-gray-6) 52%, var(--sl-color-bg));
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a.resource-card:hover {
+      background: color-mix(in srgb, var(--sl-color-gray-6) 72%, var(--sl-color-bg));
+    }
+
+    a.resource-card,
+    a.resource-card:hover {
+      transition: background 160ms ease;
+    }
+
+    .resource-title {
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-lg);
+      font-weight: 650;
+      line-height: 1.25;
+    }
+
+    .resource-description {
+      max-width: 55ch;
+      color: var(--sl-color-gray-3);
+      line-height: 1.55;
+    }
+
+    .resource-status {
+      width: max-content;
+      border-radius: 0.3rem;
+      padding: 0.25rem 0.45rem;
+      background: var(--sl-color-gray-6);
+      color: var(--sl-color-gray-2);
+      font-size: var(--sl-text-2xs);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .resource-status.available {
+      background: var(--sl-color-gray-5);
+      color: var(--sl-color-white);
+    }
+
+    .future {
+      opacity: 0.78;
+    }
+
+    @media (max-width: 39.99rem) {
+      .resource-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+</style>

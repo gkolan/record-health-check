@@ -1,13 +1,13 @@
 # Run Record Health Check from Scheduled Apex
 
-Use this page when a developer-owned job must run on a schedule.
+Schedule a developer-owned Record Health Check job with Scheduled Apex.
 
 > [!NOTE]
 > Use Scheduled Apex when Record Health Check should run automatically at a recurring time. The
 > scheduled class should start Queueable or Batch Apex instead of checking all records itself.
 
 > [!IMPORTANT]
-> **Audience: Salesforce developers and scheduling administrators.** The packaged `scheduleDaily`
+> Use this page when implementing a developer-owned schedule. The packaged `scheduleDaily`
 > helper is Apex-only and does not appear as a class an administrator can select directly in
 > **Schedule Apex**. A developer can provide a custom `Schedulable` wrapper. For a no-code schedule,
 > use a Scheduled-Triggered Flow with the packaged Flow action when its record selection fits.

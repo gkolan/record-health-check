@@ -1,7 +1,7 @@
 # Error Log event fields
 
 > [!IMPORTANT]
-> **Audience: restricted support automation owners.** For step-by-step Flow setup, use
+> Use this page when building restricted support automation. For step-by-step Flow setup, use
 > [Save or route restricted errors](../../save-results/save-restricted-errors.md). Do not branch permanent
 > business automation on diagnostic `Code__c`; use public result Status and Reason Code instead.
 

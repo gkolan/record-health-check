@@ -1,180 +1,113 @@
-# Account Has Meaningful Pipeline
+# Check whether an Account has meaningful open pipeline
 
 > [!NOTE]
-> On this page, compare open Opportunity amounts with an Account-specific threshold so one meaningful deal can satisfy the Check only when the Account is eligible for the review.
->
-> **Setup reference**
->
-> Use the [Query reference](../../reference/evaluation/query.md) for the complete setup fields and behavior.
+> **Setup reference**: [Query Check configuration](../../reference/evaluation/query.md)
 
-## Scenario
+Create a Query Check that passes when at least one visible open Opportunity has an Amount greater
+than 10% of the Account's Annual Revenue. Accounts without positive Annual Revenue are skipped.
 
-A strategic-account seller is preparing for a pipeline review and needs to know whether the Account has a deal that is meaningful for a customer of its size.
+## Why this pattern fits
 
-- Sales leadership has defined a significant deal as more than 10% of the Account's Annual Revenue.
-- A fixed amount would overstate significance for some customers and understate it for others.
-- Without a usable Annual Revenue value, the seller cannot make the comparison.
+The Check compares related Opportunity records with a value calculated from the Account. **Verify
+with a query** supports that record formula and can pass when any returned Opportunity qualifies.
 
-> [!TIP]
-> **Why use Record Health Check**
->
-> Record Health Check compares the Account with its open Opportunities and shows whether meaningful pipeline exists for the review.
+## Before you configure it
 
-## What you will learn
+- Confirm that Annual Revenue is maintained consistently and that 10% is an approved threshold.
+- Confirm intended users can read Account Annual Revenue and Opportunity Amount.
+- Decide whether pipeline with a blank Amount should be ignored or treated as a problem. This query
+  excludes blank Amounts.
+- Save new configuration inactive and validate it before activation.
 
-| Skill                                      | How this example teaches it                                            |
-| ------------------------------------------ | ---------------------------------------------------------------------- |
-| Compare query data with the current record | Opportunity Amount is evaluated against an Account-specific threshold. |
-| Resolve a record formula as **Expected**   | The target can vary from Account to Account.                           |
-| Detect meaningful pipeline                 | At least one returned Opportunity must meet the threshold.             |
+## Step 1: Create or choose the Check Set
 
-## Why use Verify with a query
+Use an Account Check Set such as **Account Related Record Review**. If you create it now, use Object
+`Account`, run on click, show Found/Expected on demand, and leave **Active** unchecked until
+validation succeeds.
 
-| Evaluation Type                                     | Why it fits                                                                                                                             |
-| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| **Verify with a query**                             | Best fit. The query reviews related Opportunity Amounts, and the expected-value formula calculates 10% of the Account's Annual Revenue. |
-| **Verify with a formula**                           | Can read Annual Revenue on the Account but cannot review Amount on every related Opportunity.                                           |
-| **Verify with a query** with a fixed expected value | Would use the same amount for every Account instead of adjusting to Account size.                                                       |
+## Step 2: Create the Check
 
-## Why not use a Validation Rule or Report
+Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**, and
+enter:
 
-- **Validation Rule:** A Validation Rule cannot compare an Account value with all related Opportunity Amounts.
+| Salesforce field                | Value                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Label                           | Has Significant Open Opportunity                                                                        |
+| Record Health Check Name        | `Has_Significant_Open_Opportunity`                                                                      |
+| Check Set                       | Account Related Record Review                                                                           |
+| Check Title                     | Has significant open Opportunity                                                                        |
+| Evaluation Type                 | Verify with a query                                                                                     |
+| Source Query                    | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null` |
+| Source Query Field              | `Amount`                                                                                                |
+| How To Read Query Results       | Any record passes                                                                                       |
+| Comparison Operator             | Greater than                                                                                            |
+| Expected Value Comes From       | Record formula                                                                                          |
+| Expected Value (Formula)        | `AnnualRevenue * 0.1`                                                                                   |
+| If Query Finds No Records       | Fail                                                                                                    |
+| If Field Value Is Empty         | Treat as not matching                                                                                   |
+| Max Query Rows                  | `200`                                                                                                   |
+| Applies To                      | When a formula is true                                                                                  |
+| Applies When (Formula)          | `BLANKVALUE(AnnualRevenue, 0) > 0`                                                                      |
+| Failure Severity                | Info                                                                                                    |
+| Message When Failed             | `{!record.Name fallback="This Account"}` has no open Opportunity greater than 10% of Annual Revenue.    |
+| Message When Unable To Evaluate | Unable to compare Opportunity Amount with Annual Revenue. Confirm access to both fields.                |
+| Fix Message                     | Review Annual Revenue and open Opportunity Amounts, then correct only inaccurate values.                |
+| Evaluation Order                | `60`                                                                                                    |
+| Active                          | Unchecked until validation succeeds                                                                     |
 
-- **Report:** A report can support portfolio analysis. It does not place the answer directly on the Account beside the other strategic-account checks.
+Leave Action Label and Action URL blank unless your org has one verified destination that can guide
+users through both Account and Opportunity values.
 
-## Before you start
+## Step 3: Validate and activate
 
-- Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
-- Confirm that Annual Revenue and Opportunity Amount are the approved values for this pipeline
-  requirement and that 10% is the approved threshold.
-- Confirm that intended users can read Annual Revenue, Opportunity Amount, and the Opportunity
-  fields used by the query.
+1. Run the [configuration-validation Flow](../../build-checks/validate-configuration.md).
+2. Correct every error and confirm the business threshold.
+3. Set the Check and Check Set to **Active** only after validation succeeds.
+4. Add **Record Health Check** to the Account Lightning record page and select the Check Set.
+5. Assign **Record Health Check Card User** to the people testing the card.
 
-## Read the comparison and prepare test data
+## Step 4: Test the result
 
-**Any record passes** means one returned open Opportunity at or above the threshold is enough;
-**Every record passes** would require all of them. The expected record formula
-`AnnualRevenue * 0.1` sets a threshold at 10 percent. For Annual Revenue 1,000,000, an Opportunity
-Amount of 100,000 or more satisfies it. `Amount != null` keeps blank Amount rows out of the query.
+For an Account with Annual Revenue of 1,000,000, the expected value is 100,000.
 
-When several Opportunities qualify, Found is a representative successful query value, not total
-pipeline. Use an aggregate Query if total pipeline is the requirement. Adapt the revenue field and
-severity to the approved policy; Info is a lower-emphasis card presentation but still status
-`FAIL` when unmet. Consider an Account Opportunities related-list action link.
+| Annual Revenue | Visible open Opportunity Amounts | Expected result                           |
+| -------------- | -------------------------------- | ----------------------------------------- |
+| Blank or 0     | Any                              | Skipped                                   |
+| 1,000,000      | None                             | Info                                      |
+| 1,000,000      | 75,000 and 100,000               | Info; comparison is strictly greater than |
+| 1,000,000      | 75,000 and 125,000               | Pass                                      |
 
-Add the card to the Account Lightning page, activate the intended assignment, and test as a user
-with **Record Health Check Card User**.
-
-## Step 1: Create the Check Set
-
-In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
-create this Check Set:
-
-| Setup field                      | Value                                                             |
-| -------------------------------- | ----------------------------------------------------------------- |
-| **Label**                        | Account Related Record Review                                     |
-| **Record Health Check Set Name** | `Account_Related_Record_Review`                                   |
-| **Object**                       | `Account`                                                         |
-| **Card Title**                   | Related Record Review                                             |
-| **Card Subtitle**                | Confirm an open Opportunity is significant for this Account.      |
-| **When Checks Run**              | When the user clicks Run                                          |
-| **Summary Display**              | Show below checks                                                 |
-| **Reveal Mode**                  | One by one                                                        |
-| **Passed Checks**                | Show each passed check                                            |
-| **Skipped Checks**               | Show each skipped check                                           |
-| **Found/Expected Display**       | Show on demand                                                    |
-| **Stop after a system error**    | Unchecked                                                         |
-| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event**       | Unchecked                                                         |
-| **Active**                       | Checked                                                           |
-
-## Step 2: Configure the Check
-
-In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
-
-| Setup field                   | API name                                                                                                                      | Value                                                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| **Developer Name**            | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                               | `Has_Significant_Open_Opportunity`                                                                      |
-| **Label**                     | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                            | Has Significant Open Opportunity                                                                        |
-| **Check Set**                 | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)          | `Account_Related_Record_Review`                                                                         |
-| **Check Title**               | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                  | Has Significant Open Opportunity                                                                        |
-| **Evaluation Type**           | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                      | Verify with a query                                                                                     |
-| **Source Query**              | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c)                               | `SELECT Amount FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false AND Amount != null` |
-| **Source Query Field**        | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)               | `Amount`                                                                                                |
-| **How To Read Query Results** | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c)  | Any record passes                                                                                       |
-| **Comparison Operator**       | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)          | Greater than                                                                                            |
-| **Expected Value Comes From** | [`ExpectedValueSource__c`](../../reference/custom-metadata/check-fields.md#expected-value-comes-from-expectedvaluesource__c)  | Record formula                                                                                          |
-| **Expected Value (Formula)**  | [`ExpectedRecordFormula__c`](../../reference/custom-metadata/check-fields.md#expected-value-formula-expectedrecordformula__c) | `AnnualRevenue * 0.1`                                                                                   |
-| **If Query Finds No Records** | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c)                | Fail                                                                                                    |
-| **If Field Value Is Empty**   | [`EmptyValueHandling__c`](../../reference/custom-metadata/check-fields.md#if-field-value-is-empty-emptyvaluehandling__c)      | Treat as not matching; the query excludes blank Amount                                                  |
-| **Max Query Rows (1-2000)**   | [`MaxQueryRows__c`](../../reference/custom-metadata/check-fields.md#max-query-rows-1-2000-maxqueryrows__c)                    | `200`                                                                                                   |
-| **Applies To**                | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                     | When a formula is true                                                                                  |
-| **Applies When (Formula)**    | [`ApplicabilityFormula__c`](../../reference/custom-metadata/check-fields.md#applies-when-formula-applicabilityformula__c)     | `BLANKVALUE(AnnualRevenue, 0) > 0`                                                                      |
-
-This scenario uses a confirmed 10% threshold. When adapting the Check, replace `0.1` with the
-percentage approved for your pipeline review.
-
-## Optional configuration
-
-| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                                                          |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks whether an open Opportunity exceeds 10% of Annual Revenue when Annual Revenue is available.                                                                             |
-| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Readiness                                                                                                                                                                      |
-| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Info                                                                                                                                                                           |
-| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has no open Opportunity that exceeds 10% of Annual Revenue. Increase an open Opportunity Amount or revisit the Account Annual Revenue. |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare open Opportunity Amount with Annual Revenue. Confirm access to both objects and fields.                                                                      |
-| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank; applicability already prevents a meaningless zero threshold.                                                                                                      |
-| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Review Annual Revenue and open Opportunity Amounts, then correct the value that is inaccurate.                                                                                 |
-| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | Leave blank: one portable link cannot edit both Account and Opportunity values.                                                                                                |
-| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | Leave blank; use a verified org-specific report or playbook if needed.                                                                                                         |
-| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `60`                                                                                                                                                                           |
-| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked                                                                                                                                                                        |
-| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                                                      |
-
-Leave **Display: Found Text** and **Display: Expected Text** blank to show the Opportunity Amount and
-calculated threshold produced by the query and formula. Those optional fields can customize any
-Query Check's display; they are not limited to **Every record passes**. Comparison Query, list,
-Formula, and Apex fields do not apply.
+Repeat the tests with intended sharing. A hidden qualifying Opportunity cannot make the Check pass.
 
 ## What the user sees
 
-Formula applicability and the query comparison produce these health results and card values:
+The card reads the visible query result and compares it with the configured expected value.
 
-| Health result or card value | What the user sees                                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| **`PASS`**                  | At least one visible open Opportunity Amount is greater than 10% of Account Annual Revenue.                               |
-| **`FAIL`**                  | No visible open Opportunity exceeds the Account-specific threshold, so the card shows Needs attention with Info severity. |
-| **`SKIPPED`**               | Blank or zero Annual Revenue skips the Check so a zero threshold cannot create a misleading pass.                         |
-| **Found**                   | Found shows the Opportunity Amount evaluated by the successful or representative query result.                            |
-| **Expected**                | Expected shows the Account-specific threshold calculated from Annual Revenue.                                             |
+| Result detail | Meaning                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| **`PASS`**    | The query result satisfies the configured comparison.                                         |
+| **`FAIL`**    | The query result does not satisfy the comparison, and the card shows the configured guidance. |
+| **`SKIPPED`** | The Check does not apply or a configured prerequisite did not pass.                           |
+| **Found**     | The normalized row, list, or aggregate value returned by the query.                           |
+| **Expected**  | The configured fixed value or evaluated expected formula.                                     |
 
-## Security and access
+## If it does not work
 
-Record Health Check reads Account Annual Revenue and visible open Opportunity Amounts with the running user's Salesforce access.
+| What you see                           | Check this first                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------------ |
+| An Amount equal to the threshold fails | This example uses **Greater than**; choose Greater than or equal if policy allows equality |
+| Expected is 0 or blank                 | Confirm Annual Revenue and the applicability formula                                       |
+| A qualifying deal is not found         | Confirm Opportunity sharing, Is Closed, and nonblank Amount                                |
+| Unable to Check                        | Confirm Read access to both objects and all queried or formula fields                      |
 
-- A qualifying Opportunity hidden from the user does not contribute to **Any record passes**, so users can legitimately receive different results.
+## Technical reference
 
-- Missing Annual Revenue, Opportunity, or Amount permission can show **Unable to evaluate**.
-
-Before activation, run the Check with the Account and Opportunity access assigned to pipeline reviewers.
-
-## Step 3: Test the Check
-
-1. Set Annual Revenue and open Opportunity Amounts so none exceed 10% of Annual Revenue. Confirm Info.
-2. Raise one open Opportunity Amount above that formula result, rerun, and confirm a pass.
-3. Clear Annual Revenue and confirm the Check is skipped.
-4. Repeat the failing test as a user with restricted Opportunity Amount access and confirm the Check follows that user's field access.
-
-## Failures and remedies
-
-| What the user sees                     | What to check                                                                                             |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records.                      |
-| Empty results behave incorrectly       | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**.                         |
-| **Unable to evaluate**                 | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
+- [Query evaluation](../../reference/evaluation/query.md)
+- [Check fields and API names](../../reference/custom-metadata/check-fields.md)
+- [Formula evaluation](../../reference/evaluation/formula.md)
 
 ## Related
 
-- [← Prev: Pipeline next steps](./opportunity-next-steps.md) · [Next: Forecast amounts →](./forecast-amounts.md)
-- [Browse Query examples](./README.md)
+- [Previous: Opportunity next steps](./opportunity-next-steps.md)
+- [Query examples](./README.md)
+- [Next: Forecast amounts](./forecast-amounts.md)

@@ -1,11 +1,11 @@
 # Write a custom Apex Check
 
-Audience: Salesforce developers. Administrators select **Verify with Apex** for **Evaluation Type**
-and paste a reviewed class API name into the Check record; they do not need to implement this
+Implement a custom Apex Check with the public plugin contract on this page. An administrator selects
+**Verify with Apex** for **Evaluation Type** and pastes a reviewed class API name into the Check record; they do not need to implement this
 contract. Use a Formula or Query Check when either can express the rule safely.
 
 > [!NOTE]
-> On this page, create an Apex class for logic that cannot be expressed with a Formula or Query
+> Create an Apex class for logic that cannot be expressed with a Formula or Query
 > Check. The class receives up to 200 record IDs at once and must return one result for every ID.
 
 ## Interface
@@ -19,10 +19,10 @@ global interface RecordHealthCheckPlugin {
 This is the interface declared inside the installed package. A class created in your org uses the
 `rhc.` prefix, as shown in the complete example below.
 
-Version 2.0.10 also provides three optional interfaces/helpers: declare parameters with
+Version Record Health Check also provides three optional interfaces/helpers: declare parameters with
 `RecordHealthCheckPluginDefinitionSource`, isolate ordinary per-record failures with
 `RecordHealthCheckRecordEvaluator` plus `RecordHealthCheckOutcome.tryEvaluate`, and add card-only
-presentation with `RecordHealthCheckDisplayPlugin`. The [complete 2.0.10 contract](../reference/release-2.0.10.md)
+presentation with `RecordHealthCheckDisplayPlugin`. The [complete public contract](../reference/current-contract.md)
 lists every builder, limit, failure rule, and fallback.
 
 Declare the class `global with sharing` so the installed package can call it. Run every SOQL query
@@ -90,7 +90,7 @@ framework performs no currency conversion and does not infer plugin-internal uni
 labels.
 
 The custom class does not set record identity, Check identity, Severity, applicability,
-publication, or diagnostics. Check metadata owns those values. An optional 2.0.10 display plugin
+publication, or diagnostics. Check metadata owns those values. An optional display plugin
 can add presentation only; it cannot change evaluation.
 
 ### Declare and validate parameters
@@ -107,9 +107,9 @@ Use `rhc.RecordHealthCheckEvidence` when Found and Expected alone do not explain
 Declare typed columns, add rows in the same order, and attach the snapshot with `.withEvidence()`.
 Synthetic cells use `RecordHealthCheckEvidenceCell.value`; cells derived from a business-record
 field use `.field(recordId, fieldPath, value)` so the framework can enforce field access. Evidence
-is bounded and explanatory. See [evidence limits and permission behavior](../reference/release-2.0.10.md#attach-evidence).
+is bounded and explanatory. See [evidence limits and permission behavior](../reference/current-contract.md#attach-evidence).
 
-### Isolate ordinary per-record failures
+### Keep per-record errors isolated
 
 When data is already loaded in bulk, `RecordHealthCheckOutcome.tryEvaluate(recordId, evaluator)`
 can turn one ordinary record exception into `RECORD_EVALUATION_FAILED` and a null record result into
@@ -229,7 +229,7 @@ global with sharing class ContactPresenceCheck implements rhc.RecordHealthCheckP
 }
 ```
 
-## Actions a custom Apex Check must not perform
+## Keep custom Apex Checks within these boundaries
 
 A custom Apex Check must not create, update, or delete records; publish events; enqueue work; send
 email; make callouts; or start asynchronous Apex. Record Health Check uses a savepoint and governor
@@ -276,4 +276,4 @@ does not prove that a custom Apex Check compiles with that package version.
 - [Plugin verification](./verify-an-apex-check.md)
 - [Apex API](./run-from-apex.md)
 - [Recent activity example](../examples/apex/recent-activity.md)
-- [Complete 2.0.10 contract](../reference/release-2.0.10.md)
+- [Complete public contract](../reference/current-contract.md)

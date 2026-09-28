@@ -1,7 +1,7 @@
 # Step-by-step guide
 
-Use this page when you want a predictable sequence instead of choosing among all documentation
-topics. Complete each step in a sandbox and move on only after the expected result works.
+Follow this sequence from installation to a working Check. Complete each step in a sandbox and move
+on after confirming the expected result.
 
 ## First working Check
 
@@ -54,7 +54,7 @@ also needs access to the records and fields the Check reads.
 Start in [Developer guides](../developer-guides/README.md). Administrators can skip that folder unless
 they are handing an Apex, background-job, Agentforce, MCP, or external event task to a developer.
 
-## If something fails
+## Resolve a problem
 
 | What you see                                   | Start here                                                                           |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------ |

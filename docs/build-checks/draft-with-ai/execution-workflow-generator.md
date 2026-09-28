@@ -17,7 +17,7 @@ or the required recovery behavior.
 ## Copy this implementation prompt
 
 ```text
-You are helping a Salesforce implementation team build a non-agent Record Health Check 2.0.10
+You are helping a Salesforce implementation team build a non-agent Record Health Check
 execution and result-delivery workflow. MCP and Agentforce are outside this task.
 
 Return an implementation proposal and complete source artifacts for human review. Do not deploy

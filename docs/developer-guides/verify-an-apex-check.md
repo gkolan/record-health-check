@@ -1,7 +1,7 @@
 # Verify a custom Apex Check
 
 > [!IMPORTANT]
-> **Audience: Salesforce developers implementing a custom Apex Check.** This is not a Setup or Flow
+> Use this page to verify a custom Apex Check before deployment. This is not a Setup or Flow
 > walkthrough. Administrators should use the Flow, configuration, and evaluation guides.
 
 > [!NOTE]
@@ -96,6 +96,15 @@ The test passes this permission check only when:
 
 Creating a second user without removing access to a relevant record or field does not provide useful
 permission evidence.
+
+## Use the fluent test facade for a focused assertion
+
+Inside an Apex test, `rhc.RecordHealthCheckPluginTest.verify(plugin, scope)` returns a
+`rhc.RecordHealthCheckPluginVerification`. Chain `assertComplete()`, `assertNoSideEffects()`, and
+`assertRenderable()` when one focused test needs to prove result coverage, guarded side effects,
+and typed rendering. The facade throws `TEST_CONTEXT_REQUIRED` outside an Apex test and is not a
+production execution entry point. Use `RecordHealthCheckContractTest` for the complete 1, 10, 50,
+and 200-record contract suite.
 
 ## Before activating the Check
 

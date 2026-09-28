@@ -139,15 +139,15 @@ available public namespaced package in one of the authorized source orgs and exe
 class name from it. Record the install ID and exact RHC reason code. This proves foreign-namespace
 resolution and rejection provenance only; it does not prove NS-03 unless that package implements
 `rhc.RecordHealthCheckPlugin`. Keep the successful compatible-plugin topology pending until the Dev
-Hub has a genuinely different registered namespace. For 2.0.9, the selected public control is DLRS
+Hub has a genuinely different registered namespace. The selected public control is DLRS
 2.25 (`04tKA000000cCA1YAM`), and `RHCForeignApexNamespaceIT` must prove that
 `dlrs.RollupService` resolves and returns `PLUGIN_INTERFACE_INVALID`.
 
 ## 3a. Complete the human documentation review
 
 Before package creation, a named reviewer other than the author must read the affected user pages
-in navigation order and record the review in the pull request or retained release evidence. For
-2.0.9, the reviewer must confirm:
+in navigation order and record the review in the pull request or retained release evidence. The
+reviewer must confirm:
 
 - every published example uses objects and fields available in an ordinary Salesforce org;
 - examples show diagnostics, run events, result events, and error events off by default;
@@ -179,7 +179,7 @@ candidate requires the documented reviewed override and is not a normal retry me
 Do not perform this section unless the release owner explicitly authorizes creation of the exact
 two-org pair for this release.
 
-1. Before creation, delete the pair two releases behind. For 2.0.11, delete both 2.0.9 orgs.
+1. Before creation, delete the pair two releases behind according to the rolling retention policy.
 2. Open **Actions → Subscriber release-pair validation**.
 3. Select **Run workflow** and choose the unchanged release branch.
 4. Enter the exact candidate `04t` in `package_version_id`.
@@ -206,7 +206,7 @@ it actually tested.
 When the release owner requests human acceptance, install or upgrade the exact candidate in an
 approved representative sandbox with the affected CPQ Quote page and customer-owned configuration.
 Coordinate access with its owner; never
-use production as the test environment. Record the org, persona, expected/actual outcome, and a safe
+use production as the test environment. Record the org, permission assignments, expected/actual outcome, and a safe
 evidence reference for each scenario below. Do not include credentials or customer record contents.
 
 | Scenario                                | Acceptance evidence required                                                                                                                                                                                           |
@@ -259,9 +259,7 @@ After promotion:
 Do not announce a candidate as released before promotion and publication are complete.
 
 The release registry, changelog, package chooser, and public production/sandbox redirects must name
-the same promoted `04t`. An emergency redirect to an older release is a documented rollback action,
-not a package downgrade: existing subscribers cannot install an older unlocked-package version over
-a newer installed version.
+the same promoted `04t`. Redirect changes are distribution controls, not package downgrade paths.
 
 ## Stop conditions
 

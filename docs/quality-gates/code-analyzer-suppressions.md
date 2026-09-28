@@ -1,10 +1,11 @@
 # Code Analyzer suppressions
 
-Audience: package contributors reviewing pull-request security evidence. This page is never needed
-to configure or run a Check. Administrators should use [Security and data access](../architecture/security-and-data-access.md).
+Review pull-request security evidence and inline Salesforce Code Analyzer suppressions here.
+Administrators can follow [Security and data access](../architecture/security-and-data-access.md)
+to configure and run Checks.
 
 > [!NOTE]
-> On this page, find every inline Salesforce Code Analyzer suppression in the Record Health Check
+> Find every inline Salesforce Code Analyzer suppression in the Record Health Check
 > package, exactly where each one is, and why it is safe to leave in place.
 
 ## AppExchange security-review readiness
@@ -12,7 +13,7 @@ to configure or run a Check. Administrators should use [Security and data access
 Record Health Check is **engineered for AppExchange security-review readiness**. Its release process
 keeps Salesforce Code Analyzer rules enabled by default, fails on new unsanctioned findings, and
 requires every narrow suppression to be documented and reviewable on this page. Those controls are
-supplemented by clean-source CI, authorization-persona tests, adversarial tests, package-boundary
+supplemented by clean-source CI, permission-assignment tests, adversarial tests, package-boundary
 checks, and Salesforce runtime validation.
 
 This readiness statement describes the repository's engineering controls. It is not a claim that a
@@ -93,7 +94,7 @@ allowed to run Checks at all (`RecordHealthCheckAccess.canRunChecks()`).
 | `RecordHealthCheckContractHarnessTest.cls` |  145 | `OperationWithLimitsInLoop` | This test deliberately checks records one at a time, instead of in bulk, to prove Record Health Check catches and rejects that pattern in a custom Apex Check. |
 | `RecordHealthCheckScopePlannerTest.cls`    |  208 | `OperationWithLimitsInLoop` | This test deliberately uses up all but two of the record-lookup slots, to prove the planner blocks a Check that would need three.                              |
 
-### Fixed instead of suppressed
+### Fix the finding in source
 
 Not every finding here got a suppression comment. `AvoidHardcodedCredentialsInFieldDecls` matched
 a field named `AUTHORIZATION_MESSAGE` in three classes; its heuristic matched the word
@@ -111,7 +112,7 @@ The public `'AUTHORIZATION'` reason code these classes return to callers, docume
 [Agent tool contract](../reference/contracts/agent-tool-contract.md), did not change. Only the private field
 holding the message text did.
 
-## Integration tests (not shipped)
+## Repository-only integration tests
 
 9 suppressions. This package only runs in a scratch org during development. It is never packaged,
 never installed in a subscriber org, and ships with none of the metadata described here.

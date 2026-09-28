@@ -1,13 +1,13 @@
 # Run Record Health Check from Queueable Apex
 
-Use this page when up to 200 known records can run later.
+Run up to 200 known records later with Queueable Apex.
 
 > [!NOTE]
 > Use Queueable Apex when up to 200 known record IDs should run in a separate transaction and the
 > submitting process does not need the response immediately.
 
 > [!IMPORTANT]
-> **Audience: Salesforce developers.** Flow Builder cannot enqueue the packaged helper directly.
+> Use this page when implementing a Queueable Apex caller. Flow Builder cannot enqueue the packaged helper directly.
 > An administrator can monitor the returned job ID in **Setup → Apex Jobs**, but a developer must
 > choose the packaged or custom Queueable and its result destination.
 

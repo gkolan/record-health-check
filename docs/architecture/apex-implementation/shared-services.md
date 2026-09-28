@@ -1,7 +1,7 @@
 # Shared Apex services (L2)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when reviewing shared internal services. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 
@@ -9,7 +9,7 @@
 > Use this page to understand internal package classes that compare values, format results, prepare
 > SOQL, read Salesforce fields, check permissions, and write logs.
 
-This page is part of the [Apex class reference](./README.md).
+Use the [Apex class reference](./README.md) to place these shared services in the full package structure.
 
 ## Shared evaluation services (L2)
 

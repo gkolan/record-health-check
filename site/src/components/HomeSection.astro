@@ -1,0 +1,101 @@
+---
+interface Props {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  tone?: 'neutral' | 'accent';
+}
+
+const { id, eyebrow, title, description, tone = 'neutral' } = Astro.props;
+---
+
+<section id={id} class:list={['home-section', `tone-${tone}`]}>
+  <header class="section-heading">
+    <p class="eyebrow">{eyebrow}</p>
+    <h2>{title}</h2>
+    <p class="description">{description}</p>
+  </header>
+  <div class="section-content">
+    <slot />
+  </div>
+</section>
+
+<style>
+  @layer starlight.core {
+    .home-section {
+      --section-background: color-mix(
+        in srgb,
+        var(--sl-color-gray-6) 56%,
+        var(--sl-color-bg)
+      );
+      margin-block: 0 !important;
+      padding-block: clamp(3rem, 5vw, 4.5rem);
+      background: var(--section-background);
+      box-shadow: 0 0 0 100vmax var(--section-background);
+      clip-path: inset(0 -100vmax);
+    }
+
+    .tone-accent {
+      --section-background: var(--sl-color-bg);
+    }
+
+    .section-heading {
+      display: grid;
+      gap: 0.65rem;
+      max-width: 46rem;
+      margin-bottom: clamp(1.75rem, 4vw, 2.5rem);
+    }
+
+    .section-heading h2,
+    .section-heading p {
+      margin: 0;
+    }
+
+    .section-heading h2 {
+      max-width: 24ch;
+      color: var(--sl-color-white);
+      font-size: clamp(var(--sl-text-2xl), calc(1.25rem + 1vw), var(--sl-text-4xl));
+      line-height: 1.15;
+    }
+
+    .eyebrow {
+      color: var(--sl-color-text-accent);
+      font-size: var(--sl-text-xs);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .description {
+      max-width: 62ch;
+      color: var(--sl-color-gray-2);
+      font-size: var(--sl-text-base);
+      line-height: 1.65;
+    }
+
+    .section-content :global(.card-grid) {
+      gap: 1rem;
+    }
+
+    .section-content :global(.sl-link-card) {
+      min-height: 8rem;
+      border: 0 !important;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      background: var(--sl-color-bg);
+      box-shadow: none !important;
+    }
+
+    .section-content :global(.sl-link-card:hover) {
+      border: 0 !important;
+      background: color-mix(in srgb, var(--sl-color-gray-6) 45%, var(--sl-color-bg));
+      box-shadow: none !important;
+    }
+
+    .section-content :global(.sl-link-card),
+    .section-content :global(.sl-link-card:hover) {
+      transition: background 160ms ease;
+    }
+  }
+</style>

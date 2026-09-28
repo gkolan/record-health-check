@@ -68,7 +68,7 @@ Background work can cross several transactions. Capture the job identity as well
 Use the [Asynchronous Apex guides](../developer-guides/async-apex/README.md) for each execution
 contract. A completed Apex job does not mean every health Check passed.
 
-## Restricted Error Log event
+## Use the restricted Error Log event
 
 `Record_Health_Check_Log__e` provides structured `ERROR` details for restricted monitoring. It is
 disabled by default and requires both **Publish Error Log Event** on the Check Set and the Error Log

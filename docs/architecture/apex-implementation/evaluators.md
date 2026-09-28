@@ -1,7 +1,7 @@
 # Apex classes that run each Evaluation Type (L3)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when tracing Evaluation Type implementations. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 
@@ -10,7 +10,7 @@
 > queries, or Apex. These are internal package classes, not the Apex API used to start a health
 > check.
 
-This page is part of the [Apex class reference](./README.md). For the plugin author contract, see
+Use the [Apex class reference](./README.md) to place these evaluators in the full package structure. For the plugin author contract, see
 [Apex Check contract](../../developer-guides/write-an-apex-check.md).
 
 ## Evaluators (L3)

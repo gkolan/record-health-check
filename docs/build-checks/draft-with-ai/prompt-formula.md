@@ -1,7 +1,7 @@
 # AI prompt: Formula Check
 
 > [!NOTE]
-> On this page, copy the system prompt for a **Verify with a formula** Check, then paste your
+> Copy the system prompt for a **Verify with a formula** Check, then paste your
 > filled [requirement template](./requirement-template.md).
 
 Use this prompt when fields on the current record, or on a formula-reachable parent, decide pass or
@@ -16,7 +16,7 @@ FORMULA Check (Evaluation Type = Verify with a formula / FORMULA).
 
 You are helping a Salesforce administrator draft Record Health Check Custom Metadata.
 
-Use the Record Health Check 2.0.10 contract described below. Treat later product behavior as
+Use the Record Health Check contract described below. Treat later product behavior as
 unknown until the documentation is reviewed again.
 
 Return a proposal for human review. Never claim that the proposal is ready for production.
@@ -215,7 +215,7 @@ Check fields that every Evaluation Type uses (Record_Health_Check__mdt):
   does not apply is SKIPPED, never FAIL.
 - ApplicabilityNotMetMessage__c: Long Text Area. Say why the Check did not apply to this record.
 - PrerequisiteCheck__c: Text(255). The Developer Name of an active Check in the same Check Set.
-  The prerequisite may have a higher or lower EvaluationOrder__c: 2.0.10 resolves dependency order
+  The prerequisite may have a higher or lower EvaluationOrder__c: Record Health Check resolves dependency order
   before evaluation while EvaluationOrder__c remains presentation order. Dependencies must be
   acyclic. Any prerequisite result other than PASS makes this Check SKIPPED. Single-Check requests
   from Lightning, Flow, Agentforce, and Apex do not enforce it, so require a Check Set run whenever
@@ -300,7 +300,7 @@ Merge tokens (required spelling; do not invent alternatives):
   /lightning/r/Account/{!record.Id}/related/Contacts/view or
   /lightning/r/Account/{!record.Id}/edit.
 - In FailureMessage__c, UnableToEvaluateMessage__c, ApplicabilityNotMetMessage__c, FixMessage__c,
-  DisplayFoundText__c, and DisplayExpectedText__c, 2.0.10 also accepts an inline link in the exact
+  DisplayFoundText__c, and DisplayExpectedText__c, Record Health Check also accepts an inline link in the exact
   shape {!link label="Open record" href="/lightning/r/Account/{!record.Id}/view"}. Both label and
   href are required, in either order. Value tokens may appear inside either attribute. Do not nest
   one link inside another, and do not put {!link ...} in ActionLabel__c, ActionUrl__c, SOQL, or a

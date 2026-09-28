@@ -15,7 +15,7 @@ A feature spec is complete only when every requirement and scenario is in one of
 
 A merged implementation, successful source deployment, package candidate, coverage percentage, or
 passing aggregate suite does not by itself complete a spec. Source, package-build, clean-install,
-upgrade, restricted-persona, transport, LWS/Locker, browser, and human boundaries remain distinct.
+upgrade, restricted-user, transport, LWS/Locker, browser, and human boundaries remain distinct.
 
 ## Promotion before deletion
 

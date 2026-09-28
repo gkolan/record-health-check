@@ -14,7 +14,7 @@ every one of them against
 The gate reads the Check table the prompts require, then reports invented fields, Setup labels or
 literal `N/A` stored where a deployable value belongs, fields the Evaluation Type does not use,
 missing required fields, merge tokens on surfaces that reject them, and values past their field
-length. It also guards the 2.0.10 prerequisite-order, inline-link, and optional Apex-extension
+length. It also guards the prerequisite-order, inline-link, and optional Apex-extension
 contracts and requires provider-neutral drafts to remain inactive until human sandbox review. It
 also requires an execution and result-delivery plan covering the caller, principal, timing, result
 destination, consumer, and failure channels. It requires `FormulaResultType__c` on every draft,

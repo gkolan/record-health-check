@@ -1,7 +1,7 @@
 # Check Set Run event fields
 
 > [!NOTE]
-> **Audience: Flow builders and integration developers looking up summary fields.** For the full
+> Use this page to look up Check Set summary fields. For the full
 > history-object and Flow recipe, use [Save Check Set run summaries](../../save-results/save-run-summaries.md).
 
 | Setup value | Name                             |

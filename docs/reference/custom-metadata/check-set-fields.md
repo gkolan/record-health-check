@@ -1,6 +1,6 @@
 # Check Set fields
 
-This page is the complete field dictionary for Check Set metadata.
+Find every Check Set metadata field by its Salesforce label or API name.
 
 | Setup value                   | Name                           |
 | ----------------------------- | ------------------------------ |
@@ -8,7 +8,7 @@ This page is the complete field dictionary for Check Set metadata.
 | Custom Metadata Type API name | `Record_Health_Check_Set__mdt` |
 
 A Check Set decides which Salesforce object to check and how the Record Health Check card behaves.
-Use this page when creating or reviewing a Check Set in **Setup → Custom Metadata Types → Record
+Create or review a Check Set in **Setup → Custom Metadata Types → Record
 Health Check Set → Manage Records**.
 
 For a guided example that creates both a Check Set and its Checks, start with

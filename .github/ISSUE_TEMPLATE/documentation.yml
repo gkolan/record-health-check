@@ -1,0 +1,50 @@
+name: Documentation correction
+description: Report unclear, incomplete, or incorrect documentation.
+title: "Docs: "
+labels:
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Record Health Check. Links opened from the documentation site fill in the page and source automatically.
+  - type: input
+    id: page
+    attributes:
+      label: Documentation page
+      description: URL of the page that needs improvement.
+      placeholder: https://docs.recordhealthcheck.com/...
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source file
+      description: Repository path shown by the documentation site.
+      placeholder: docs/path/to/article.md
+    validations:
+      required: false
+  - type: textarea
+    id: correction
+    attributes:
+      label: What is unclear or incorrect?
+      description: Describe what you expected to learn and what the page currently says.
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested correction
+      description: Share proposed wording, an example, or a source that would make the page better.
+    validations:
+      required: false
+  - type: dropdown
+    id: impact
+    attributes:
+      label: How much did this affect you?
+      options:
+        - I could continue, but the page was confusing
+        - I was blocked from completing the task
+        - This is a minor wording or formatting issue
+    validations:
+      required: true

@@ -1,7 +1,7 @@
 # Formula Checks
 
 > [!NOTE]
-> On this page, configure a Formula Check for a question Salesforce can answer from the current
+> Configure a Formula Check for a question Salesforce can answer from the current
 > record and its parent records, such as “Does this Account have an Industry and an Annual Revenue?”
 >
 > **Reference**

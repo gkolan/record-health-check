@@ -38,8 +38,8 @@ const sourceVersion = metrics.apex.sourceVersion;
 for (const text of [
   `Apex_coverage-${apexPercent}%25-brightgreen`,
   `LWC_lines-${lwcLines}%25-brightgreen`,
-  `${apexPercent}% coverage from the complete namespaced ${sourceVersion} source test run`,
-  `Salesforce-validated ${metrics.apex.packageVersion} package coverage: ${Number(packagePercent)}%`,
+  `${apexPercent}% coverage from the complete namespaced source test run`,
+  `Salesforce-validated package coverage: ${Number(packagePercent)}%`,
   `${lwcLines}% line coverage`
 ]) {
   if (!readme.includes(text)) {

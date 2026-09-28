@@ -1,7 +1,6 @@
 # Agent tool contract
 
-Audience: Agentforce, REST, and MCP integrators. If you are not connecting an agent or MCP client,
-you can ignore this contract. Administrators enabling native actions should use
+Apply this contract when connecting an Agentforce, REST, or MCP client. Administrators enabling native actions should use
 [Agentforce actions](../../developer-guides/agentforce-and-mcp/agentforce-actions.md).
 
 > [!NOTE]
@@ -57,7 +56,7 @@ Structured fields are the source of truth. Transport-specific prose cannot chang
 meaning. The four diagnosis fields are bounded, disclosure-safe guidance for a completed evaluation;
 they are not raw logs or administrator-only diagnostics.
 
-## Adapter failure
+## Handle adapter errors
 
 An adapter failure returns `success=false`, a safe message of at most 1,000 characters, and one type:
 

@@ -115,7 +115,7 @@ reported `Invalid contextElement` failure, incomplete runs, and persistent spinn
 - component disconnect/reconnect without stale handlers or duplicate work;
 - LWS and Locker with the package's `rhc` namespace;
 - Chromium and Firefox;
-- administrator and restricted-permission personas;
+- administrator and restricted-user permission assignments;
 - post-install and post-upgrade rendering.
 
 The builder canvas must remain inert: it may show configuration guidance, but it must not run a
@@ -126,7 +126,7 @@ put a loading overlay on the record page.
 The source automatic fixture is `Release_On_Load`, with exactly one Check of each type. Its seeded
 Account yields three passes and the expected recent-activity failure. The installed fixture is
 `Subscriber_On_Load`, with four expected passes. Both reject Unable and System Error results.
-The restricted browser persona receives Card User, not the broader User permission set.
+The restricted browser user receives Card User, not the broader User permission set.
 Each browser/scenario run retains its own JSON verdict and evidence directory. Skipped,
 failed, and flaky/retry-recovered tests block the gate; later runs cannot overwrite earlier
 results.
@@ -259,9 +259,9 @@ returns exit code zero and reports zero violations.
 
 ## Upgrade and data-preservation gates
 
-Each upgrade org starts with one exact reviewed released base from `upgradeBases`. For the 2.0.10.1
-release matrix, that base is 2.0.9.2. Before upgrading, the workflow creates
-subscriber-owned Check Sets and Checks and records their identities and values. It then:
+Each upgrade org starts with the exact reviewed release declared in `upgradeBases`. Before upgrading,
+the workflow creates subscriber-owned Check Sets and Checks and records their identities and values.
+It then:
 
 1. deploys only the subscriber-owned preservation fixture and proves the stable package global
    Apex API can execute it;
@@ -278,9 +278,8 @@ subscriber-owned Check Sets and Checks and records their identities and values. 
 A clean install cannot satisfy the upgrade gate. An upgrade that succeeds but loses configuration
 or fails an entry point is a failed release.
 
-The optional subscriber workflow offers the stages declared by `expectedStages`; the 2.0.10.1
-matrix contains `clean-install` and `upgrade-2.0.9.2`. Each authorized stage creates two fresh orgs
-(LWS and Locker). Daily quotas may require the staged plan in the
+The optional subscriber workflow offers only the stages declared by `expectedStages`. Each
+authorized stage creates two fresh orgs (LWS and Locker). Daily quotas may require the staged plan in the
 [scratch org lifecycle](./scratch-org-lifecycle.md). Shared workflow
 concurrency prevents release workflows from overlapping but does not reserve Dev Hub quota.
 

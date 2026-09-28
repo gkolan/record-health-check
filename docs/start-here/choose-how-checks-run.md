@@ -23,7 +23,7 @@ Choose the person or process that needs to start evaluation, then follow the lin
 
 Do not create new `@future` integrations. Move existing work to Queueable Apex.
 
-## These actions do not start a run
+## Actions that prepare or display results
 
 - Saving a business record without an open Record Health Check card or configured automation
 - Saving a Record Health Check Custom Metadata record

@@ -1,194 +1,106 @@
-# Account Team Covers Open Opportunity Owners
+# Check whether the Account Team covers open Opportunity owners
 
 > [!NOTE]
-> On this page, compare Account Team members with open Opportunity owners and flag the Account when
-> at least one owner is missing from the Account Team before a sales handoff.
->
-> **Setup reference**
->
-> Use the [Compare-two-queries reference](../../reference/evaluation/compare-two-queries.md) for the complete setup fields and behavior.
+> **Setup reference**: [Compare Two Queries configuration](../../reference/evaluation/compare-two-queries.md)
 
-> [!IMPORTANT]
-> This example is not installed by the package. Create the Check Set and Check in your org by
-> following the steps below.
+Create a Check that compares open Opportunity Owner IDs with Account Team Member User IDs. It
+passes only when every visible open Opportunity owner appears on the visible Account Team.
 
-## Scenario
+## Why this pattern fits
 
-A sales manager prepares an Account for a team handoff.
+This requirement compares two lists on related records. **Compare two queries** can verify complete
+list coverage without custom Apex.
 
-- Different users own the Account's open Opportunities.
-- The manager currently compares the **Account Team** with each open Opportunity owner to find coverage gaps.
+## Before you configure it
 
-> [!TIP]
-> **Why use Record Health Check**
->
-> Record Health Check compares open Opportunity owners with Account Team members and flags a
-> coverage gap. Found and Expected show the two User ID lists so an authorized manager can determine
-> which owner must be added before the handoff.
+- Confirm Account Teams are enabled and your process requires Opportunity owners to be explicit
+  Account Team members.
+- Confirm intended users can read open Opportunities, their owners, and Account Team Members.
+- Decide how empty lists should behave. This example fails when either required list is empty.
+- Save new configuration inactive and validate it before activation.
 
-## Before you start
+## Step 1: Create or choose the Check Set
 
-- Enable Account Teams in the test org.
-- Confirm that your approved handoff process requires every open Opportunity owner to be an Account
-  Team member.
-- Install Record Health Check and assign **Record Health Check Admin** to the administrator creating
-  the Check Set and Check.
-- Confirm that intended users can read Account, Opportunity, Account Team Member, and the owner/user
-  fields used in the queries.
+Use **Account Record Alignment**, or create an Account Check Set that runs on click and remains
+inactive until validation succeeds.
 
-## What you will learn
+## Step 2: Create the Check
 
-| Skill                                 | How this example teaches it                                          |
-| ------------------------------------- | -------------------------------------------------------------------- |
-| Compare two lists of Salesforce users | The queries return Account Team members and open Opportunity Owners. |
-| Require complete list coverage        | Every Opportunity Owner must appear on the Account Team.             |
-| Test missing coverage                 | Removing one team member demonstrates a clear failing result.        |
+Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**, and
+enter:
 
-## Why use Compare two queries
+| Salesforce field                | Value                                                                                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Label                           | Account Team Covers Opportunity Owners                                                                              |
+| Record Health Check Name        | `Account_Team_Covers_Opportunity_Owners`                                                                            |
+| Check Set                       | Account Record Alignment                                                                                            |
+| Check Title                     | Account Team covers Opportunity owners                                                                              |
+| Evaluation Type                 | Compare two queries                                                                                                 |
+| Source Query                    | `SELECT OwnerId FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false`                               |
+| Source Query Field              | `OwnerId`                                                                                                           |
+| Comparison Query                | `SELECT UserId FROM AccountTeamMember WHERE AccountId = {!record.Id}`                                               |
+| Comparison Query Field          | `UserId`                                                                                                            |
+| How To Read Query Results       | Compare as lists                                                                                                    |
+| Comparison Operator             | Lists contain all                                                                                                   |
+| If Query Finds No Records       | Fail                                                                                                                |
+| Failure Severity                | Warning                                                                                                             |
+| Message When Failed             | On `{!record.Name fallback="this Account"}`, one or more open Opportunity owners are missing from the Account Team. |
+| Message When Unable To Evaluate | Unable to compare Opportunity owners with Account Team Members.                                                     |
+| Fix Message                     | Review missing owners and update only the records required by your handoff policy.                                  |
+| Evaluation Order                | `10`                                                                                                                |
+| Active                          | Unchecked until validation succeeds                                                                                 |
 
-| Evaluation Type           | Why it fits                                                                                                                                                      |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Compare two queries**   | Best fit. One query lists open Opportunity owners. The other lists Account Team members. **Lists contain all** confirms that every owner is on the Account Team. |
-| **Verify with a query**   | Verify with a query can return one list, but this check needs to compare both lists.                                                                             |
-| **Verify with a formula** | An Account formula cannot review Account Team members and related Opportunity owners.                                                                            |
+The Source list contains Opportunity Owner IDs. The Comparison list contains Account Team User IDs.
+**Lists contain all** verifies that the Account Team contains every source value. Leave action
+fields blank unless you have tested an org-specific Account Team destination.
 
-## Why not use a Validation Rule or Report
+## Step 3: Validate and activate
 
-- **Validation Rule:** Account Team membership and Opportunity ownership are stored on different records. A Validation Rule cannot compare both lists.
+1. Run the [configuration-validation Flow](../../build-checks/validate-configuration.md).
+2. Confirm the list direction and empty-list policy, then correct every error.
+3. Activate the Check and Check Set only after validation succeeds.
+4. Test from the Account page with **Record Health Check Card User**.
 
-- **Report:** A report can monitor many Accounts. It does not place the answer directly on the Account being handed off.
+## Step 4: Test the result
 
-## Confirm direction, empty results, and test data
+| Open Opportunity owners | Account Team members | Expected result                                |
+| ----------------------- | -------------------- | ---------------------------------------------- |
+| None                    | Any                  | Warning under this example's empty-list policy |
+| A                       | A                    | Pass                                           |
+| A, B                    | A                    | Warning                                        |
+| A, B                    | A, B, C              | Pass                                           |
 
-Source is the required set of open Opportunity Owner IDs. Comparison is the coverage available
-from Account Team User IDs. For example, Source `[005A, 005B]` and Comparison `[005A, 005B, 005C]`
-pass **Lists contain all**. Reversing the queries incorrectly asks whether every Account Team member
-owns an open Opportunity.
-
-**Applies To → When a count query matches** first decides whether the Check applies. Its no-open-
-Opportunity path can skip the Check. **If Query Finds No Records → Fail** applies later when the
-required or coverage list is empty during evaluation. Keep those decisions distinct.
-
-Enable Account Teams from **Setup → Account Settings**, then add team members from the Account's
-Account Team related list. Found and Expected are User IDs, not names. Add an Account Team related-
-list action URL if users need a direct fix. Do not use this unchanged for Queue-owned Opportunities
-or an org where Account Teams are disabled.
-
-Add **Max Query Rows**, add the card to the Account Lightning page, activate the intended
-assignment, and test as a user with **Record Health Check Card User**.
-
-## Step 1: Create the Check Set
-
-In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
-create this Check Set:
-
-| Setup field                      | Value                                                             |
-| -------------------------------- | ----------------------------------------------------------------- |
-| **Label**                        | Account Record Alignment                                          |
-| **Record Health Check Set Name** | `Account_Record_Alignment`                                        |
-| **Object**                       | `Account`                                                         |
-| **Card Title**                   | Account Record Alignment                                          |
-| **Card Subtitle**                | Confirm open Opportunity owners are on the Account Team.          |
-| **When Checks Run**              | When the user clicks Run                                          |
-| **Summary Display**              | Show below checks                                                 |
-| **Reveal Mode**                  | One by one                                                        |
-| **Passed Checks**                | Show each passed check                                            |
-| **Skipped Checks**               | Show each skipped check                                           |
-| **Found/Expected Display**       | Show on demand                                                    |
-| **Stop after a system error**    | Unchecked                                                         |
-| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event**       | Unchecked                                                         |
-| **Active**                       | Checked                                                           |
-
-## Step 2: Configure the Check
-
-In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
-
-| Setup field                    | API name                                                                                                                            | Value                                                                                 |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| **Developer Name**             | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                                     | `Account_Team_Covers_Opportunity_Owners`                                              |
-| **Label**                      | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                                  | Account Team Covers Opportunity Owners                                                |
-| **Check Set**                  | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)                | `Account_Record_Alignment`                                                            |
-| **Check Title**                | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                        | Account Team Covers Opportunity Owners                                                |
-| **Evaluation Type**            | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                            | Compare two queries                                                                   |
-| **Source Query**               | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c)                                     | `SELECT OwnerId FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Source Query Field**         | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)                     | `OwnerId`                                                                             |
-| **Comparison Query**           | [`ComparisonQuery__c`](../../reference/custom-metadata/check-fields.md#comparison-query-comparisonquery__c)                         | `SELECT UserId FROM AccountTeamMember WHERE AccountId = {!record.Id}`                 |
-| **Comparison Query Field**     | [`ComparisonQueryField__c`](../../reference/custom-metadata/check-fields.md#comparison-query-field-comparisonqueryfield__c)         | `UserId`                                                                              |
-| **How To Read Query Results**  | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c)        | Compare as lists                                                                      |
-| **Comparison Operator**        | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)                | Lists contain all                                                                     |
-| **If Query Finds No Records**  | [`NoRowsResult__c`](../../reference/custom-metadata/check-fields.md#if-query-finds-no-records-norowsresult__c)                      | Fail                                                                                  |
-| **Applies To**                 | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                           | When a count query matches                                                            |
-| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../reference/custom-metadata/check-fields.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false` |
-| **Count Must Be**              | [`ApplicabilityCountOperator__c`](../../reference/custom-metadata/check-fields.md#count-must-be-applicabilitycountoperator__c)      | Greater than                                                                          |
-| **Count Value**                | [`ApplicabilityCountThreshold__c`](../../reference/custom-metadata/check-fields.md#count-value-applicabilitycountthreshold__c)      | `0`                                                                                   |
-
-## Optional configuration
-
-These values improve presentation. Change them for your process, or leave an optional field blank.
-
-| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                                           |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Warning                                                                                                                                                         |
-| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | On `{!record.Name fallback="this record"}`, one or more open Opportunity owners are missing from the Account Team. Review the missing users before the handoff. |
-| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks that the Account Team includes every open Opportunity owner.                                                                                             |
-| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Relationship coverage                                                                                                                                           |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the query results. Confirm the user can read every object and field named in both queries.                                                    |
-| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                                                     |
-| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Compare the missing Opportunity owners with the approved Account Team and update the appropriate records.                                                       |
-| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | Leave blank                                                                                                                                                     |
-| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | Leave blank; Account Team availability and navigation depend on org setup                                                                                       |
-| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `10`                                                                                                                                                            |
-| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked only after confirming this example matches your business process                                                                                        |
-| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                                       |
-
-Comparison display text, event publishing, and prerequisite behavior are optional. Expected-value, value-to-find, Formula-result, and Apex fields do not apply to Compare two queries.
-
-For **Lists contain all**, the Comparison/Expected list must contain every value from the
-Source/Found list. That is why **Source Query** returns the required open Opportunity owner IDs and
-**Comparison Query** returns the Account Team user IDs that must cover them. Do not reverse these
-queries.
+Repeat as a restricted user. Both lists reflect the running user's visible records.
 
 ## What the user sees
 
-The Opportunity Owner and Account Team lists produce these health results and card values:
+The card compares the two visible query results using the configured list or numeric operator.
 
-| Health result or card value | What the user sees                                                                                       |
-| --------------------------- | -------------------------------------------------------------------------------------------------------- |
-| **`PASS`**                  | Every open Opportunity owner appears on the Account Team.                                                |
-| **`FAIL`**                  | One or more open Opportunity owners is missing from the Account Team, so the card shows Needs attention. |
-| **`SKIPPED`**               | The Account has no open Opportunities, so there are no required owners to compare.                       |
-| **Found**                   | Found represents the User IDs returned for open Opportunity owners.                                      |
-| **Expected**                | Expected represents the Account Team User IDs that must contain every open Opportunity owner.            |
+| Result detail | Meaning                                                                              |
+| ------------- | ------------------------------------------------------------------------------------ |
+| **`PASS`**    | The source and comparison results satisfy the configured operator.                   |
+| **`FAIL`**    | The results do not satisfy the operator, and the card shows the configured guidance. |
+| **`SKIPPED`** | The Check does not apply or a configured prerequisite did not pass.                  |
+| **Found**     | The normalized result returned by the source query.                                  |
+| **Expected**  | The normalized result returned by the comparison query.                              |
 
-## Security and access
+## If it does not work
 
-Record Health Check builds the Opportunity Owner and Account Team lists with the running user's Salesforce access.
+| What you see                                    | Check this first                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| The relationship passes in the wrong direction  | Source must be Opportunity `OwnerId`; Comparison must be Account Team `UserId` |
+| All Accounts fail                               | Confirm Account Teams are enabled and team rows are visible                    |
+| Accounts with no open Opportunities should skip | Change the no-row policy only after confirming the intended business behavior  |
+| Unable to Check                                 | Confirm access to both objects, relationship fields, and user ID fields        |
 
-- The result includes only open Opportunity `OwnerId` values and Account Team Member `UserId` values the running user can access.
+## Technical reference
 
-- Hidden Opportunities remove required owners from the first list; hidden Account Team rows remove coverage from the second list.
-
-- Missing Opportunity, OwnerId, AccountTeamMember, or UserId permission can show **Unable to evaluate**.
-
-- Use a sales manager whose Opportunity and Account Team visibility matches the intended handoff process.
-
-## Step 3: Test the Check
-
-1. Enable Account Teams in a test org. Create an open Opportunity owned by a user who is not on the Account Team and confirm Warning.
-2. Add that user to the Account Team, rerun, and confirm a pass.
-3. Close all Opportunities and confirm the Check is skipped.
-4. Repeat the missing-team-member test as a user with restricted Account Team access and confirm the list comparison follows that user's sharing access.
-
-## Failures and remedies
-
-| What the user sees                     | What to check                                                                                             |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records.                      |
-| Empty results behave incorrectly       | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**.                         |
-| **Unable to evaluate**                 | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
+- [Compare two queries](../../reference/evaluation/compare-two-queries.md)
+- [Query grammar and limits](../../reference/evaluation/bulk-query-grammar.md)
+- [Check fields and API names](../../reference/custom-metadata/check-fields.md)
 
 ## Related
 
-- [← Prev: Product continuity](./open-pipeline-product-continuity.md)
-- [Browse Compare two queries examples](./README.md)
+- [Previous: Product continuity](./open-pipeline-product-continuity.md)
+- [Compare two queries examples](./README.md)
+- [Next: Apex examples](../apex/README.md)

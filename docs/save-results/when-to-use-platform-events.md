@@ -1,7 +1,7 @@
 # Decide when to use Platform Events
 
 > [!NOTE]
-> On this page, decide whether a separate Flow, Apex trigger, or external integration needs a Check
+> Decide whether a separate Flow, Apex trigger, or external integration needs a Check
 > Set summary or individual Check results after a health-check run completes successfully.
 
 > [!TIP]
@@ -104,7 +104,7 @@ Receiving-process failure is monitored and recovered separately from the origina
 - A way for a separate process to build history, notifications, exports, analytics, or other automation
   without coupling to the health-check call itself.
 
-## What these events are not
+## Platform Event scope
 
 - They are not the result returned directly to Lightning, Flow, or Apex.
 - They are not a guaranteed or permanent audit log; Salesforce retains high-volume platform events
@@ -219,7 +219,7 @@ Receiving integrations should store or inspect `ContractVersion__c`, not infer t
 `FrameworkVersion__c`. A Record Health Check release can change implementation behavior without changing the event
 schema; an incompatible event-field change requires a new contract version.
 
-## What is never included on an event
+## Event data boundaries
 
 The Set Run and Check Result events intentionally omit:
 

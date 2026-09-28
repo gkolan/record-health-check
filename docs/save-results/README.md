@@ -87,7 +87,7 @@ integration must be safe when that happens.
 - For an external Pub/Sub API integration, keep Replay ID as the event-stream position. It does not
   replace `EventId__c` as the application's duplicate key.
 
-## Failure and recovery policy
+## Recovery policy
 
 Plan how receiving automation responds before activating it.
 

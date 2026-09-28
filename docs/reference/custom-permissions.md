@@ -1,7 +1,7 @@
 # Custom Permissions
 
 Record Health Check packages exactly one Custom Permission: **Record Health Check Run**.
-Package versions before 2.0.7.2 also included a separate View Diagnostics Custom Permission, which
+Package versions before current package also included a separate View Diagnostics Custom Permission, which
 is no longer packaged.
 
 A Custom Permission is a Salesforce access flag, not a Permission Set. Administrators normally
@@ -11,7 +11,7 @@ assignment of the packaged Admin or Diagnostics Viewer Permission Set. Profile g
 Permission Sets, and Permission Set Group membership alone do not authorize diagnostics.
 Their authorization behavior is independent of business-record access.
 
-If **Diagnostics Viewer** or the **Record Health Check** list view is absent from Setup, use the alternatives below and in [Permission Sets](./permission-sets.md). See [documentation and installed version](../install/choose-a-package-version.md#documentation-and-installed-version) when comparing source examples with an installed package.
+If **Diagnostics Viewer** or the **Record Health Check** list view is absent from Setup, use the alternatives below and in [Permission Sets](./permission-sets.md). See [documentation and installed version](../install/choose-a-package-version.md#documentation-and-installed-package) when comparing source examples with an installed package.
 
 ## Installed Custom Permissions
 

@@ -1,8 +1,8 @@
 # Account Check Builder Guide: configuration and results
 
-Use this page to understand the 25 Account examples, compare their configuration with Salesforce Setup, and adapt them to your own requirements. The examples retain their existing API names for package upgrades; their titles and Evaluation Order describe the current rules.
+Review the 25 Account examples, compare their configuration with Salesforce Setup, and adapt them to your own requirements. The examples retain their existing API names for package upgrades; their titles and Evaluation Order describe the current rules.
 
-> On this page, find each Check's configuration, Found and Expected values, demo result, and steps for testing it in your sandbox.
+> Find each Check's configuration, Found and Expected values, demo result, and steps for testing it in your sandbox.
 
 These examples match the Check definitions in this checkout; use [the matching scratch-org setup](../install/install-demo-in-a-scratch-org.md) before comparing exact results.
 
@@ -182,22 +182,22 @@ between individual proposals can cancel each other out.
 
 ### Check 250: Account activity meets the operating cadence
 
-| Check field      | Value                                                                                                                                                                                                                                                                                          |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Check API name   | `Example_Guide_Recent_Activity`                                                                                                                                                                                                                                                                |
-| Evaluation Order | 250                                                                                                                                                                                                                                                                                            |
-| Evaluation Type  | Apex                                                                                                                                                                                                                                                                                           |
-| Description      | The 2.0.10 Apex reference declares typed parameters, counts completed Tasks and Events in the 60-day period, isolates per-record evaluation, and returns typed evidence plus safe display guidance. It passes at two activities; the class does not decide whether an activity was meaningful. |
-| Apex Class       | `AccountHasRecentActivityCheck`                                                                                                                                                                                                                                                                |
-| Apex Parameters  | `{"daysBack": 60, "minimumActivities": 2}`                                                                                                                                                                                                                                                     |
-| Applies When     | Every Account                                                                                                                                                                                                                                                                                  |
-| Found            | `Completed activities: 2`                                                                                                                                                                                                                                                                      |
-| Expected         | `Minimum: 2 in 60 days`                                                                                                                                                                                                                                                                        |
-| Demo result      | Pass                                                                                                                                                                                                                                                                                           |
-| Failure Severity | Warning                                                                                                                                                                                                                                                                                        |
-| Failure Message  | `Fewer than two completed Account activities are documented for {!record.Name fallback="this Account"} in the last 60 days.`                                                                                                                                                                   |
-| Fix Instructions | Review the completed Tasks and Events and their outcomes. The metadata fallback contains an inline Account link. Log only work that occurred, or change the approved cadence.                                                                                                                  |
-| Action           | The Apex display hook opens the Account; metadata retains the create-Task fallback                                                                                                                                                                                                             |
+| Check field      | Value                                                                                                                                                                                                                                                                                   |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Check API name   | `Example_Guide_Recent_Activity`                                                                                                                                                                                                                                                         |
+| Evaluation Order | 250                                                                                                                                                                                                                                                                                     |
+| Evaluation Type  | Apex                                                                                                                                                                                                                                                                                    |
+| Description      | The Apex reference declares typed parameters, counts completed Tasks and Events in the 60-day period, isolates per-record evaluation, and returns typed evidence plus safe display guidance. It passes at two activities; the class does not decide whether an activity was meaningful. |
+| Apex Class       | `AccountHasRecentActivityCheck`                                                                                                                                                                                                                                                         |
+| Apex Parameters  | `{"daysBack": 60, "minimumActivities": 2}`                                                                                                                                                                                                                                              |
+| Applies When     | Every Account                                                                                                                                                                                                                                                                           |
+| Found            | `Completed activities: 2`                                                                                                                                                                                                                                                               |
+| Expected         | `Minimum: 2 in 60 days`                                                                                                                                                                                                                                                                 |
+| Demo result      | Pass                                                                                                                                                                                                                                                                                    |
+| Failure Severity | Warning                                                                                                                                                                                                                                                                                 |
+| Failure Message  | `Fewer than two completed Account activities are documented for {!record.Name fallback="this Account"} in the last 60 days.`                                                                                                                                                            |
+| Fix Instructions | Review the completed Tasks and Events and their outcomes. The metadata fallback contains an inline Account link. Log only work that occurred, or change the approved cadence.                                                                                                           |
+| Action           | The Apex display hook opens the Account; metadata retains the create-Task fallback                                                                                                                                                                                                      |
 
 The demo setup includes a ready Account that passes, a needs-review Account that fails, and an
 empty Account that fails with Found `0`. See [Recent Account activity](./apex/recent-activity.md)
@@ -217,7 +217,7 @@ The current demo produces **7 Passed, 17 Failed, 0 Skipped, and 1 Unable to Eval
 
 ## What the user sees
 
-### Failure guidance and actions
+### Guide users to the next action
 
 This table contains the Check-specific response. It does not repeat the shared Unable to Evaluate
 guidance.
@@ -263,7 +263,7 @@ Test each Check with the same Salesforce access assigned to its intended users.
 | Skipped            | Remove the data named in **Applies When**. Confirm the skipped message explains why the Check does not apply.                                                                                               |
 | Unable to Evaluate | Test with a user who intentionally lacks access to one required object or field. Confirm the result gives administrator guidance without exposing data the user cannot read. Restore access after the test. |
 | Sharing            | Keep one relevant related record outside the test user's sharing access. Confirm Found reflects only records that user can access.                                                                          |
-| API identity       | Installed examples retain legacy API names. In Setup, use the Check title and description to identify the current requirement. Copy the Qualified API Name rather than typing it from memory.               |
+| API identity       | Installed examples use stable API names. In Setup, use the Check title and description to identify the requirement. Copy the Qualified API Name rather than typing it from memory.                          |
 
 ## Adapt the examples to your org
 

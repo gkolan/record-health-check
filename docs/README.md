@@ -3,17 +3,23 @@
 Record Health Check shows whether a Salesforce record meets requirements configured by an
 administrator. It reports what it finds; it does not block saves or change the record.
 
-Start with the latest released package. When working from repository source, use [matching documentation and examples](./install/choose-a-package-version.md#documentation-and-installed-version).
+Start with the latest released package. When working from repository source, use [matching documentation and examples](./install/choose-a-package-version.md#documentation-and-installed-package).
 
-Developing or reviewing 2.0.10? The [2.0.10 reference](./reference/release-2.0.10.md) documents its complete plugin, evidence, display, diagnostics, preview, readiness, security, and compatibility contracts.
+The [current contract](./reference/current-contract.md) documents the complete plugin, evidence,
+display, diagnostics, preview, readiness, security, and compatibility boundaries.
+
+Need to confirm what actually ships? The generated [source inventory](./reference/source-inventory.md)
+lists every Permission Set, Custom Permission, exposed Lightning component, invocable action,
+packaged object, Platform Event field, and public request option directly from source.
 
 ## New here? Follow these steps
 
 1. [See what Record Health Check does](./start-here/what-it-does.md).
-2. [Install it in a sandbox](./install/install-in-a-sandbox.md).
-3. [Explore a working installed example](./install/explore-installed-examples.md).
-4. [Create your first Check](./step-by-step-guide/create-your-first-check.md).
-5. [Configure the Lightning record-page component](./lightning-record-page/README.md).
+2. [See the card and learn how to read it](./start-here/see-it-in-action.md).
+3. [Install it in a sandbox](./install/install-in-a-sandbox.md).
+4. [Explore a working installed example](./install/explore-installed-examples.md).
+5. [Create your first Check](./step-by-step-guide/create-your-first-check.md).
+6. [Configure the Lightning record-page component](./lightning-record-page/README.md).
 
 Want the complete learning sequence? Open the [step-by-step guide](./step-by-step-guide/README.md).
 
@@ -36,6 +42,7 @@ Want the complete learning sequence? Open the [step-by-step guide](./step-by-ste
 | [Reference](./reference/README.md)                         | Find the complete feature catalog, statuses, contracts, limits, merge syntax, and exact evaluation rules |
 | [Developer guides](./developer-guides/README.md)           | Use Apex, asynchronous execution, Agentforce, MCP, or Pub/Sub                                            |
 | [Contributing](./contributing/README.md)                   | Change, test, document, or review the package source                                                     |
+| [Verification standards](./quality-gates/README.md)        | Verify source, generated documentation, package behavior, and release evidence                           |
 
 ## Choose how to build a Check
 

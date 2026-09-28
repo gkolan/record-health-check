@@ -4,7 +4,7 @@ Use this guide when a Lightning card result is missing, wrong, or unclear and yo
 authorized `[RHC]` evidence shown in the browser console.
 
 > [!NOTE]
-> On this page, diagnose problems with the Lightning card, Check configuration, Salesforce access,
+> Diagnose problems with the Lightning card, Check configuration, Salesforce access,
 > Flow, Apex, background jobs, and Platform Events. Start with the result users see, collect only the
 > evidence you are authorized to view, and turn diagnostics off when the investigation is complete.
 >
@@ -253,7 +253,7 @@ The console prints a redaction reminder inside each technical support-report gro
 IDs, queries, source values, and customer data can still be present; “support report” does not mean
 “safe to publish without review.”
 
-## When browser evidence is not enough
+## Add Salesforce evidence
 
 Use [Salesforce debug logs](./salesforce-debug-logs.md) only when the card diagnosis and reviewed
 browser-console support report do not identify the failed phase and corrective action.
@@ -310,4 +310,4 @@ through the [Security policy](../../.github/SECURITY.md), not through a public i
 
 - [Install and verify](../install/install-in-a-sandbox.md): first install and permission assignment
 - [Configuration guide: Check Set fields](../build-checks/configure-check-sets-and-checks.md#step-3-configure-the-check-set): every Check Set field
-- [Configuration guide: Troubleshooting](../build-checks/configure-check-sets-and-checks.md#step-11-troubleshoot-the-configuration): when a check fails or cannot run
+- [Configuration guide: Troubleshooting](../build-checks/configure-check-sets-and-checks.md#step-12-troubleshoot-the-configuration): when a check fails or cannot run

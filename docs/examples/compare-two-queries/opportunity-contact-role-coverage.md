@@ -1,185 +1,104 @@
-# Open Opportunities Have Contact Roles
+# Check whether open Opportunities have Contact Roles
 
 > [!NOTE]
-> On this page, compare two SOQL counts to show whether every open Opportunity has at least one
-> Contact Role.
->
-> **Setup reference**
->
-> Use the [Compare-two-queries reference](../../reference/evaluation/compare-two-queries.md) for the complete setup fields and behavior.
+> **Setup reference**: [Compare Two Queries configuration](../../reference/evaluation/compare-two-queries.md)
 
-> [!IMPORTANT]
-> This example is not installed by the package. Create the Check Set and Check in your org by
-> following the steps below.
+Create a Check that compares the number of open Opportunities with Contact Roles against the total
+number of open Opportunities. Equal counts mean every open Opportunity is covered.
 
-## Scenario
+## Why this pattern fits
 
-A seller opens an Account before forecast review.
+One aggregate query counts distinct covered Opportunities and another counts all open
+Opportunities. **Compare two queries** can compare those values without Apex.
 
-- Every open Opportunity must identify at least one Contact Role so sellers know who is involved in the buying decision.
-- A deal without a buyer, evaluator, or stakeholder leaves the forecast without customer relationship context.
-- Opening every Opportunity separately makes missing Contact Roles easy to overlook.
+## Before you configure it
 
-> [!TIP]
-> **Why use Record Health Check**
->
-> Record Health Check compares the number of open Opportunities with Contact Roles with the total number of open Opportunities. The seller sees the covered and total counts on the Account, so missing Contact Roles can be found without opening every Opportunity.
+- Confirm your process requires at least one Contact Role on every open Opportunity.
+- Confirm intended users can read Opportunity and Opportunity Contact Role records and fields.
+- Decide whether Accounts with no open Opportunities should pass. Both counts are zero here, so
+  they pass.
+- Save new configuration inactive and validate it before activation.
 
-## What you will learn
+## Step 1: Create or choose the Check Set
 
-| Skill                                | How this example teaches it                                                  |
-| ------------------------------------ | ---------------------------------------------------------------------------- |
-| Produce two related-record counts    | One query counts open Opportunities; the other counts covered Opportunities. |
-| Compare coverage with demand         | The Check checks whether Contact Role coverage keeps pace with pipeline.     |
-| Interpret **Found** and **Expected** | Users can see both sides of the coverage decision.                           |
+Use or create an Account Check Set named **Account Record Alignment**. Run it on click, show
+Found/Expected on demand, and leave it inactive until validation succeeds.
 
-## Why use Compare two queries
+## Step 2: Create the Check
 
-| Evaluation Type           | Why it fits                                                                                                                                                                |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Compare two queries**   | Best fit. One query counts open Opportunities with Contact Roles. The other counts all open Opportunities. Matching counts mean every open Opportunity has a Contact Role. |
-| **Verify with a query**   | Verify with a query can return one count, but this check needs both counts.                                                                                                |
-| **Verify with a formula** | An Account formula cannot review its related Opportunities and Contact Roles.                                                                                              |
+Open **Setup → Custom Metadata Types → Record Health Check → Manage Records**, select **New**, and
+enter:
 
-## Why not use a Validation Rule or Report
+| Salesforce field          | Value                                                                                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Label                     | Open Opportunities Have Contact Roles                                                                                                                       |
+| Record Health Check Name  | `Open_Opportunities_Have_Contact_Roles`                                                                                                                     |
+| Check Set                 | Account Record Alignment                                                                                                                                    |
+| Check Title               | Open Opportunities have Contact Roles                                                                                                                       |
+| Evaluation Type           | Compare two queries                                                                                                                                         |
+| Source Query              | `SELECT COUNT_DISTINCT(OpportunityId) coveredCount FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false` |
+| Source Query Field        | `coveredCount`                                                                                                                                              |
+| Comparison Query          | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false`                                                                       |
+| How To Read Query Results | One row or aggregate                                                                                                                                        |
+| Comparison Operator       | Equals                                                                                                                                                      |
+| Failure Severity          | Info                                                                                                                                                        |
+| Message When Failed       | `{!record.Name fallback="This Account"}` has one or more open Opportunities with no Contact Roles.                                                          |
+| Fix Message               | Add the appropriate stakeholder Contact Roles before forecast review.                                                                                       |
+| Action Label              | Review opportunities                                                                                                                                        |
+| Action URL                | `/lightning/r/Account/{!record.Id}/related/Opportunities/view`                                                                                              |
+| Evaluation Order          | `10`                                                                                                                                                        |
+| Active                    | Unchecked until validation succeeds                                                                                                                         |
 
-- **Validation Rule:** Opportunity Contact Roles are child records. A Validation Rule cannot reliably require a Contact Role when an Opportunity is saved.
+The Source result is **Found** and the Comparison result is **Expected**. The distinct count avoids
+counting an Opportunity twice when it has several Contact Roles.
 
-- **Report:** A report can find gaps across the pipeline. It does not place the answer directly on the Account being prepared for forecast review.
+## Step 3: Validate and activate
 
-## Before you start
+1. Run the [configuration-validation Flow](../../build-checks/validate-configuration.md).
+2. Correct every error and review the zero-opportunity behavior.
+3. Activate the Check and Check Set only after validation succeeds.
+4. Test from the Account page with **Record Health Check Card User**.
 
-- Install Record Health Check.
-- Assign **Record Health Check Admin** to the administrator creating the Check Set and Check.
-- Confirm that intended users can read Account, Opportunity, Opportunity Contact Role, and the
-  fields used in both queries.
-- Test the example in a sandbox with the same sharing access intended users have.
+## Step 4: Test the result
 
-## Read the aggregates and prepare test data
+| Open Opportunities | Opportunities with a Contact Role | Expected result |
+| ------------------ | --------------------------------- | --------------- |
+| 0                  | 0                                 | Pass            |
+| 1                  | 0                                 | Info            |
+| 1                  | 1                                 | Pass            |
+| 3                  | 2                                 | Info            |
+| 3                  | 3                                 | Pass            |
 
-`COUNT_DISTINCT(OpportunityId) coveredCount` counts distinct Opportunities with at least one
-Contact Role and names the aggregate `coveredCount`; enter that alias in **Source Query Field**.
-Bare `COUNT()` on the Comparison side needs no Comparison Query Field. **Equals** passes when Found,
-the covered count, equals Expected, the total open-Opportunity count.
-
-From an Opportunity, add a Contact Role in the **Contact Roles** related list. Test one Account with
-two open Opportunities where only one has a role, then add the missing role and rerun. Do not use
-this unchanged if Contact Roles are not part of the process or required roles vary by stage.
-
-Review `OpportunityContactRole` under **Setup → Object Manager**, configure **Max Query Rows** and
-the intended no-row behavior, add the card to the Account Lightning page, and activate the correct
-assignment. Test sharing with a representative restricted user holding **Record Health Check
-User**; do not broaden production sharing for the test.
-
-## Step 1: Create the Check Set
-
-In **Setup → Custom Metadata Types → Record Health Check Set → Manage Records**, select **New** and
-create this Check Set:
-
-| Setup field                      | Value                                                             |
-| -------------------------------- | ----------------------------------------------------------------- |
-| **Label**                        | Account Record Alignment                                          |
-| **Record Health Check Set Name** | `Account_Record_Alignment`                                        |
-| **Object**                       | `Account`                                                         |
-| **Card Title**                   | Account Record Alignment                                          |
-| **Card Subtitle**                | Confirm open Opportunities have Contact Roles.                    |
-| **When Checks Run**              | When the user clicks Run                                          |
-| **Summary Display**              | Show below checks                                                 |
-| **Reveal Mode**                  | One by one                                                        |
-| **Passed Checks**                | Show each passed check                                            |
-| **Skipped Checks**               | Show each skipped check                                           |
-| **Found/Expected Display**       | Show on demand                                                    |
-| **Stop after a system error**    | Unchecked                                                         |
-| **Show Diagnostics**             | Unchecked; enable temporarily only for authorized troubleshooting |
-| **Publish User Run Event**       | Unchecked                                                         |
-| **Active**                       | Checked                                                           |
-
-## Step 2: Configure the Check
-
-In **Setup → Custom Metadata Types → Record Health Check → Manage Records**, create the Check:
-
-| Setup field                    | API name                                                                                                                            | Value                                                                                                                                                       |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Developer Name**             | [`DeveloperName`](../../reference/custom-metadata/check-fields.md#developer-name-developername)                                     | `Open_Opportunities_Have_Contact_Roles`                                                                                                                     |
-| **Label**                      | [`MasterLabel`](../../reference/custom-metadata/check-fields.md#label-masterlabel)                                                  | Open Opportunities Have Contact Roles                                                                                                                       |
-| **Check Set**                  | [`Record_Health_Check_Set__c`](../../reference/custom-metadata/check-fields.md#check-set-record_health_check_set__c)                | `Account_Record_Alignment`                                                                                                                                  |
-| **Check Title**                | [`CheckTitle__c`](../../reference/custom-metadata/check-fields.md#check-title-checktitle__c)                                        | Open Opportunities Have Contact Roles                                                                                                                       |
-| **Evaluation Type**            | [`EvaluationType__c`](../../reference/custom-metadata/check-fields.md#evaluation-type-evaluationtype__c)                            | Compare two queries                                                                                                                                         |
-| **Source Query**               | [`SourceQuery__c`](../../reference/custom-metadata/check-fields.md#source-query-sourcequery__c)                                     | `SELECT COUNT_DISTINCT(OpportunityId) coveredCount FROM OpportunityContactRole WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false` |
-| **Source Query Field**         | [`SourceQueryField__c`](../../reference/custom-metadata/check-fields.md#source-query-field-sourcequeryfield__c)                     | `coveredCount`                                                                                                                                              |
-| **Comparison Query**           | [`ComparisonQuery__c`](../../reference/custom-metadata/check-fields.md#comparison-query-comparisonquery__c)                         | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false`                                                                       |
-| **How To Read Query Results**  | [`QueryResultHandling__c`](../../reference/custom-metadata/check-fields.md#how-to-read-query-results-queryresulthandling__c)        | One row or aggregate                                                                                                                                        |
-| **Comparison Operator**        | [`ComparisonOperator__c`](../../reference/custom-metadata/check-fields.md#comparison-operator-comparisonoperator__c)                | Equals                                                                                                                                                      |
-| **Applies To**                 | [`ApplicabilityMode__c`](../../reference/custom-metadata/check-fields.md#applies-to-applicabilitymode__c)                           | When a count query matches                                                                                                                                  |
-| **Applies When (Count Query)** | [`ApplicabilityCountQuery__c`](../../reference/custom-metadata/check-fields.md#applies-when-count-query-applicabilitycountquery__c) | `SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id} AND IsClosed = false`                                                                       |
-| **Count Must Be**              | [`ApplicabilityCountOperator__c`](../../reference/custom-metadata/check-fields.md#count-must-be-applicabilitycountoperator__c)      | Greater than                                                                                                                                                |
-| **Count Value**                | [`ApplicabilityCountThreshold__c`](../../reference/custom-metadata/check-fields.md#count-value-applicabilitycountthreshold__c)      | `0`                                                                                                                                                         |
-
-## Optional configuration
-
-These values improve presentation. Change them for your process, or leave an optional field blank.
-
-| Setup field                         | API name                                                                                                                                   | Value                                                                                                                                                          |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Failure Severity**                | [`FailureSeverity__c`](../../reference/custom-metadata/check-fields.md#failure-severity-failureseverity__c)                                | Info                                                                                                                                                           |
-| **Message When Failed**             | [`FailureMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-failed-failuremessage__c)                               | `{!record.Name fallback="this record"}` has one or more open Opportunities with no Contact Roles. Add the appropriate stakeholders before the forecast review. |
-| **Check Description**               | [`CheckDescription__c`](../../reference/custom-metadata/check-fields.md#check-description-checkdescription__c)                             | Checks that every open Opportunity has at least one Contact Role.                                                                                              |
-| **Category**                        | [`Category__c`](../../reference/custom-metadata/check-fields.md#category-category__c)                                                      | Relationship coverage                                                                                                                                          |
-| **Message When Unable To Evaluate** | [`UnableToEvaluateMessage__c`](../../reference/custom-metadata/check-fields.md#message-when-unable-to-evaluate-unabletoevaluatemessage__c) | Unable to compare the query results. Confirm the user can read every object and field named in both queries.                                                   |
-| **Prerequisite Check**              | [`PrerequisiteCheck__c`](../../reference/custom-metadata/check-fields.md#prerequisite-check-prerequisitecheck__c)                          | Leave blank                                                                                                                                                    |
-| **Fix Message**                     | [`FixMessage__c`](../../reference/custom-metadata/check-fields.md#fix-message-fixmessage__c)                                               | Review open Opportunities and add the missing Contact Roles.                                                                                                   |
-| **Action Label**                    | [`ActionLabel__c`](../../reference/custom-metadata/check-fields.md#action-label-actionlabel__c)                                            | `Review opportunities`                                                                                                                                         |
-| **Action URL**                      | [`ActionUrl__c`](../../reference/custom-metadata/check-fields.md#action-url-actionurl__c)                                                  | `/lightning/r/Account/{!record.Id}/related/Opportunities/view`                                                                                                 |
-| **Evaluation Order**                | [`EvaluationOrder__c`](../../reference/custom-metadata/check-fields.md#evaluation-order-evaluationorder__c)                                | `10`                                                                                                                                                           |
-| **Active**                          | [`IsActive__c`](../../reference/custom-metadata/check-fields.md#active-isactive__c)                                                        | Checked only after confirming this example matches your business process                                                                                       |
-| **Publish User Result Event**       | [`PublishUserResultEvent__c`](../../reference/custom-metadata/check-fields.md#publish-user-result-event-publishuserresultevent__c)         | Unchecked                                                                                                                                                      |
-
-Comparison display text, event publishing, and prerequisite behavior are optional. Expected-value, value-to-find, Formula-result, and Apex fields do not apply to Compare two queries.
-
-The Source Query uses `COUNT_DISTINCT(OpportunityId)`. If one Opportunity has several Contact
-Roles, it is still counted once. The Comparison Query counts every open Opportunity once. The Check
-passes only when those two counts are equal.
+Repeat with intended sharing because both counts reflect records visible to the running user.
 
 ## What the user sees
 
-The card turns the two aggregate query results into these user-facing values:
+The card compares the two visible query results using the configured list or numeric operator.
 
-| Health result or card value | What the user sees                                                                                                    |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **`PASS`**                  | Every open Opportunity has at least one Contact Role.                                                                 |
-| **`FAIL`**                  | One or more open Opportunities has no Contact Role, so the card shows Needs attention.                                |
-| **`SKIPPED`**               | The Account has no open Opportunities to review, so count-query applicability skips the Check.                        |
-| **Found**                   | Found shows how many open Opportunities have at least one Contact Role.                                               |
-| **Expected**                | Expected shows the total number of open Opportunities. The difference between Expected and Found is the coverage gap. |
+| Result detail | Meaning                                                                              |
+| ------------- | ------------------------------------------------------------------------------------ |
+| **`PASS`**    | The source and comparison results satisfy the configured operator.                   |
+| **`FAIL`**    | The results do not satisfy the operator, and the card shows the configured guidance. |
+| **`SKIPPED`** | The Check does not apply or a configured prerequisite did not pass.                  |
+| **Found**     | The normalized result returned by the source query.                                  |
+| **Expected**  | The normalized result returned by the comparison query.                              |
 
-## Security and access
+## If it does not work
 
-Record Health Check runs both coverage counts with the running user's Salesforce access.
+| What you see                          | Check this first                                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Found is larger than expected         | Confirm `COUNT_DISTINCT(OpportunityId)` and alias `coveredCount`                            |
+| Accounts with no pipeline should skip | Add an approved applicability or prerequisite rule; this example intentionally passes 0 = 0 |
+| Counts differ from a report           | Run the report with the same user and matching filters                                      |
+| Unable to Check                       | Confirm access to both objects, relationship fields, and queried fields                     |
 
-- The result includes only open Opportunities and Opportunity Contact Roles the running user can access.
+## Technical reference
 
-- Hidden Opportunities or Contact Roles can lower either side of the comparison. Equal visible counts describe the user's view, not records the user cannot access.
-
-- Missing Opportunity or OpportunityContactRole permission can show **Unable to evaluate**.
-
-- Compare the result for a seller and a manager whose Opportunity visibility differs.
-
-## Step 3: Test the Check
-
-1. Create two open Opportunities and add a Contact Role to only one. Run the check and confirm Info with Found `1` and Expected `2`.
-2. Add a Contact Role to the second Opportunity, rerun, and confirm a pass.
-3. Close all Opportunities and confirm the Check is skipped.
-4. Repeat the incomplete-coverage test as a user with restricted Opportunity Contact Role access and confirm the visible counts follow that user's sharing access.
-
-## Failures and remedies
-
-| What the user sees                     | What to check                                                                                             |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| A count or list is lower than expected | Confirm the query filters and the running user's sharing access to matching records.                      |
-| Empty results behave incorrectly       | Review **If Query Finds No Records** and, when used, **If Field Value Is Empty**.                         |
-| **Unable to evaluate**                 | Confirm the object and field API names, SOQL syntax, and the running user's object and field permissions. |
+- [Compare two queries](../../reference/evaluation/compare-two-queries.md)
+- [Aggregate query grammar](../../reference/evaluation/bulk-query-grammar.md)
+- [Check fields and API names](../../reference/custom-metadata/check-fields.md)
 
 ## Related
 
-- [← Prev: Case review capacity](../query/high-priority-case-capacity.md) · [Next: Product continuity →](./open-pipeline-product-continuity.md)
-- [Browse Compare two queries examples](./README.md)
+- [Compare two queries examples](./README.md)
+- [Next: Product continuity](./open-pipeline-product-continuity.md)

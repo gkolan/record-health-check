@@ -21,7 +21,11 @@ const ignoredDirectories = new Set([
   "tasks",
   "internal"
 ]);
-const ignoredPathPrefixes = [];
+const documentationVersionFiles = new Set([
+  "README.md",
+  "scripts/release/check_documentation_boundary.mjs",
+  "scripts/release/check_product_version_language.mjs"
+]);
 const ignoredFiles = new Set([
   "LICENSE",
   "NOTICE",
@@ -56,15 +60,6 @@ function walk(directory) {
       .relative(root, entryPath)
       .split(path.sep)
       .join("/");
-    if (
-      ignoredPathPrefixes.some(
-        (prefix) =>
-          relativePath === prefix.slice(0, -1) ||
-          relativePath.startsWith(prefix)
-      )
-    ) {
-      continue;
-    }
     if (entry.isDirectory()) {
       if (/^v(?:1|2)(?:[._-]|$)/i.test(entry.name)) {
         failures.push(
@@ -76,6 +71,7 @@ function walk(directory) {
     }
     if (
       ignoredFiles.has(entry.name) ||
+      documentationVersionFiles.has(relativePath) ||
       /code-analyzer-results-.*\.json$/.test(entry.name)
     ) {
       continue;
@@ -108,5 +104,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  "Verified repository language: no product generation labels are present."
+  "Verified repository language: product-generation labels appear only in explicit documentation-version boundaries."
 );

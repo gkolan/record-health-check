@@ -1,11 +1,11 @@
 # Operate Record Health Check in production
 
 > [!NOTE]
-> On this page, keep Record Health Check reliable after go-live by reviewing Platform Event usage,
+> Keep Record Health Check reliable after go-live by reviewing Platform Event usage,
 > limiting diagnostics, backing up Check configuration, monitoring receiving automation, and
 > retesting after Salesforce changes.
 
-Use this page after [Install and verify](../install/install-in-a-sandbox.md) and
+Start production operations after [Install and verify](../install/install-in-a-sandbox.md) and
 [Configure Check Sets and Checks](../build-checks/configure-check-sets-and-checks.md) have already produced a working
 Check Set. This guide covers the recurring work needed in a live org, not the initial setup.
 

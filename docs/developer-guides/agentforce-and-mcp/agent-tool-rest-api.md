@@ -1,13 +1,14 @@
 # Agent tool REST API
 
-This guide is for integration developers.
+Use this guide when an approved hosted service must call the versioned Record Health Check REST
+boundary.
 
 > [!NOTE]
 > Use this API only as the Salesforce boundary for an approved Agentforce or MCP service identity.
 > Native in-org Agentforce actions remain the preferred user-context integration.
 
 > [!IMPORTANT]
-> **Audience: Salesforce and integration developers.** This is not an Agentforce Builder Setup
+> Use this page when implementing the Salesforce REST boundary. This is not an Agentforce Builder Setup
 > guide. Card and Flow administrators should use the Lightning or Flow pages instead.
 
 ## Choose this integration

@@ -110,7 +110,7 @@ body:
     attributes:
       label: Package version or installed 04t ID
       description: Provide the package version or installed 04t ID. For an unpackaged source deployment, enter Not applicable; do not include an Org ID.
-      placeholder: "2.0.0.6 or 04t…"
+      placeholder: "package candidate or 04t…"
     validations:
       required: true
   - type: input

@@ -1,0 +1,433 @@
+---
+const examples = [
+  {
+    order: 4,
+    title: 'Score strategic-account readiness before executive review',
+    context: 'Combine relationship, pipeline, activity, and billing evidence into one explainable readiness score.',
+    evaluationType: 'Verify with Apex',
+    whatItChecks:
+      'A Strategic Account earns 25 points each for Contact coverage, open pipeline, recent activity, and a complete billing address. The Check compares the combined score with an administrator-controlled passing threshold.',
+    whyItFits:
+      'Apex can combine evidence from several objects, apply a rolling time window, and calculate a weighted score in one evaluation.',
+    foundExpression: 'readinessScore',
+    foundValue: 'A calculated readiness score from 0 to 100',
+    expectedExpression: 'minScore = 80',
+    expectedValue: 'The configured minScore parameter, currently 80',
+    decisionExplanation: 'Pass at 80 or above. Needs attention below 80. Skip when the Account is not Strategic.',
+    configuration: [
+      ['Check Set', 'Account_Apex_Readiness'],
+      ['Apex Class', 'AccountStrategicReadinessCheck'],
+      ['Apex Parameters (JSON)', '{"minScore": 80, "activityDaysBack": 60}'],
+      ['Applies To', 'When a formula is true'],
+      ['Applies When', 'ISPICKVAL(Type, "Strategic")'],
+      ['Found / Expected', 'Calculated score / configured minimum'],
+      ['Failure Severity', 'Critical'],
+    ],
+    configurationHighlights: ['Apex Class', 'Apex Parameters (JSON)', 'Applies When'],
+    outcomes: [
+      ['Pass', 'The weighted score meets or exceeds minScore.'],
+      ['Needs attention', 'The score is below the configured minimum.'],
+      ['Skipped', 'The Account Type is not Strategic, so Apex does not run.'],
+    ],
+    href: '/developer-guides/apex-check-examples/strategic-readiness/',
+  },
+  {
+    order: 3,
+    title: 'Protect product continuity across open pipeline',
+    context: 'Detect whether a current sale includes at least one product the customer has purchased before.',
+    evaluationType: 'Compare two queries',
+    whatItChecks:
+      'The first query collects Product IDs from open Opportunity Products. The second collects Product IDs from closed-won Opportunity Products. The Check passes when the two visible product lists overlap.',
+    whyItFits:
+      'Compare Two Queries evaluates the relationship between two independently selected record sets while keeping open pipeline and purchase history distinct.',
+    foundExpression: 'Source query → Product2Id',
+    foundValue: 'Product IDs on open Opportunity Products',
+    expectedExpression: 'Comparison query → Product2Id',
+    expectedValue: 'Product IDs previously purchased on closed-won Opportunities',
+    decisionExplanation: 'Pass when at least one Product ID appears in both lists. Skip when either query returns no rows.',
+    configuration: [
+      ['Check Set', 'Account_Record_Alignment'],
+      ['Source Query', 'SELECT Product2Id FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsClosed = false'],
+      ['Source Query Field', 'Product2Id'],
+      ['Comparison Query', 'SELECT Product2Id FROM OpportunityLineItem WHERE Opportunity.AccountId = {!record.Id} AND Opportunity.IsWon = true'],
+      ['Comparison Query Field', 'Product2Id'],
+      ['Read Results', 'Compare as lists'],
+      ['Comparison Operator', 'Lists overlap'],
+      ['If Either Query Finds No Records', 'Skip'],
+      ['Failure Severity', 'Info'],
+    ],
+    configurationHighlights: [
+      'Source Query',
+      'Comparison Query',
+      'Comparison Operator',
+    ],
+    outcomes: [
+      ['Pass', 'At least one Product ID appears in both lists.'],
+      ['Needs attention', 'Both lists have values, but there is no overlap.'],
+      ['Skipped', 'Open pipeline or visible purchase history has no rows.'],
+    ],
+    href: '/examples/compare-two-queries/open-pipeline-product-continuity/',
+  },
+  {
+    order: 2,
+    title: 'Keep the high-priority support backlog within capacity',
+    context: 'Count open, high-priority Cases for an Account without blocking Case updates.',
+    evaluationType: 'Verify with a query',
+    whatItChecks:
+      'An aggregate query counts visible Cases that are open, related to the current Account, and stored with High priority. The result is compared with the service team’s approved capacity of three.',
+    whyItFits:
+      'A Query Check fits because one aggregate value from related Cases answers the question. COUNT() also returns zero cleanly, while sharing and field access keep the result aligned with what the running user can see.',
+    foundExpression: 'COUNT()',
+    foundValue: 'COUNT() of visible, open, High-priority Cases',
+    expectedExpression: '3',
+    expectedValue: 'The service-team capacity limit: 3',
+    decisionExplanation: 'Pass when the count is 3 or lower. Needs attention when the visible backlog is greater than 3.',
+    configuration: [
+      ['Check Set', 'Account_Related_Record_Review'],
+      ['Source Query', "SELECT COUNT() FROM Case WHERE AccountId = {!record.Id} AND IsClosed = false AND Priority = 'High'"],
+      ['Source Query Field', 'Leave blank for COUNT()'],
+      ['Read Results', 'One row or aggregate'],
+      ['Comparison Operator', 'Less than or equal'],
+      ['Expected Value', 'Fixed value: 3'],
+      ['Max Query Rows', '200'],
+      ['Failure Severity', 'Warning'],
+    ],
+    configurationHighlights: ['Source Query', 'Comparison Operator', 'Expected Value'],
+    outcomes: [
+      ['Pass', 'The running user can see three or fewer matching Cases.'],
+      ['Needs attention', 'The visible backlog is greater than three.'],
+      ['Access-aware', 'Sharing and field access can reduce the visible count.'],
+    ],
+    href: '/examples/query/high-priority-case-capacity/',
+  },
+  {
+    order: 1,
+    title: 'Keep branch billing aligned with headquarters',
+    context: 'Confirm that a branch Account uses the same Billing City as its parent Account.',
+    evaluationType: 'Verify with a formula',
+    whatItChecks:
+      'For child Accounts, the Check compares Billing City on the current Account with Billing City on its parent. Both values must be populated and equal, so two blank cities cannot create a false pass.',
+    whyItFits:
+      'A Formula Check can read both the current Account and its formula-reachable parent. The applicability formula limits the evaluation to branch Accounts that have a parent.',
+    foundExpression: 'BillingCity',
+    foundValue: 'BillingCity on the branch Account',
+    expectedExpression: 'Parent.BillingCity',
+    expectedValue: 'BillingCity on the parent Account',
+    decisionExplanation: 'Pass when both cities are populated and equal. Skip when the Account has no parent.',
+    configuration: [
+      ['Check Set', 'Account_Data_Quality'],
+      ['Pass Condition', 'AND(NOT(ISBLANK(BillingCity)), NOT(ISBLANK(Parent.BillingCity)), BillingCity = Parent.BillingCity)'],
+      ['Applies To', 'When a formula is true'],
+      ['Applies When', 'NOT(ISBLANK(ParentId))'],
+      ['Display: Found Formula', 'BillingCity'],
+      ['Display: Expected Formula', 'Parent.BillingCity'],
+      ['Failure Severity', 'Warning'],
+    ],
+    configurationHighlights: [
+      'Pass Condition',
+      'Applies When',
+    ],
+    outcomes: [
+      ['Pass', 'Both cities are populated and the branch matches its parent.'],
+      ['Needs attention', 'Either city is blank or the two values do not match.'],
+      ['Skipped', 'The Account has no parent and is not a branch.'],
+    ],
+    href: '/examples/account-check-builder-guide/#check-30-billing-address-matches-the-parent-bill-to-account',
+  },
+];
+---
+
+<div class="examples not-content">
+  {
+    examples.sort((first, second) => first.order - second.order).map((example, index) => (
+      <details class="example-card" open={index === 0}>
+        <summary>
+          <span class="summary-number">{String(index + 1).padStart(2, '0')}</span>
+          <span class="summary-copy">
+            <strong>{example.title}</strong>
+            <span>{example.context}</span>
+          </span>
+          <span class="evaluation-type">{example.evaluationType}</span>
+        </summary>
+
+        <div class="example-body">
+          <div class="concept-grid">
+            <section class="concept-panel fit-note">
+              <h3>Why {example.evaluationType}</h3>
+              <p>{example.whyItFits}</p>
+              <p>{example.decisionExplanation}</p>
+            </section>
+
+            <section class="concept-panel value-panel">
+              <h3>Found and expected</h3>
+              <dl class="value-pair">
+                <div>
+                  <dt>Found</dt>
+                  <dd><code>{example.foundExpression}</code></dd>
+                  <dd class="value-description">{example.foundValue}</dd>
+                </div>
+                <div>
+                  <dt>Expected</dt>
+                  <dd><code>{example.expectedExpression}</code></dd>
+                  <dd class="value-description">{example.expectedValue}</dd>
+                </div>
+              </dl>
+            </section>
+          </div>
+
+          <section class="configuration">
+            <h3>Key configuration</h3>
+            <dl>
+              {
+                example.configuration
+                  .filter(([label]) => example.configurationHighlights.includes(label))
+                  .map(([label, value]) => (
+                    <div>
+                      <dt>{label}</dt>
+                      <dd><code>{value}</code></dd>
+                    </div>
+                  ))
+              }
+            </dl>
+          </section>
+
+          <a class="complete-example" href={example.href}>View full configuration <span aria-hidden="true">→</span></a>
+        </div>
+      </details>
+    ))
+  }
+</div>
+
+<style>
+  @layer starlight.components {
+    .examples {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .example-card {
+      margin: 0;
+      border-radius: 0.8rem;
+      background: color-mix(in srgb, var(--sl-color-gray-6) 42%, var(--sl-color-bg));
+      overflow: hidden;
+    }
+
+    summary {
+      display: grid;
+      grid-template-columns: auto auto minmax(0, 1fr) auto;
+      gap: 1rem;
+      align-items: center;
+      min-height: 6.25rem;
+      padding: 1.2rem 1.35rem;
+      cursor: pointer;
+    }
+
+    summary::marker,
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: '›';
+      color: var(--sl-color-gray-2);
+      font-size: 1.25rem;
+      line-height: 1;
+      transition: transform 160ms ease;
+    }
+
+    .example-card[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .summary-number {
+      color: var(--sl-color-text-accent);
+      font-size: var(--sl-text-xs);
+      font-weight: 750;
+      letter-spacing: 0.08em;
+    }
+
+    .summary-copy {
+      display: grid;
+      gap: 0.3rem;
+    }
+
+    .summary-copy strong {
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-lg);
+      line-height: 1.3;
+    }
+
+    .summary-copy > span {
+      max-width: 68ch;
+      color: var(--sl-color-gray-3);
+      font-size: var(--sl-text-sm);
+      line-height: 1.45;
+    }
+
+    .evaluation-type {
+      border-radius: 999px;
+      padding: 0.35rem 0.65rem;
+      background: var(--sl-color-gray-5);
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-xs);
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .example-body {
+      display: grid;
+      gap: 1.25rem;
+      padding: 0 1.35rem 1.5rem 4.25rem;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .concept-panel,
+    .configuration {
+      margin: 0;
+    }
+
+    .concept-panel {
+      padding: 1rem;
+      border-radius: 0.65rem;
+      background: var(--sl-color-bg);
+    }
+
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h3 {
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-sm);
+    }
+
+    p {
+      margin-top: 0.45rem;
+      color: var(--sl-color-gray-2);
+      font-size: var(--sl-text-sm);
+      line-height: 1.6;
+    }
+
+    .value-pair {
+      display: grid;
+      gap: 0.8rem;
+      margin: 0.8rem 0 0;
+    }
+
+    .value-pair > div {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .value-pair dd {
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-sm);
+      line-height: 1.45;
+    }
+
+    .value-pair code {
+      color: var(--sl-color-text-accent);
+      font-size: var(--sl-text-base);
+      font-weight: 700;
+    }
+
+    .value-pair .value-description {
+      color: var(--sl-color-gray-2);
+    }
+
+    .configuration dl {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+      gap: 0.5rem;
+      margin: 0.75rem 0 0;
+    }
+
+    .configuration dl > div {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+      padding: 0.7rem 0.75rem;
+      border-radius: 0.5rem;
+      background: var(--sl-color-bg);
+    }
+
+    dt {
+      color: var(--sl-color-gray-3);
+      font-size: var(--sl-text-xs);
+      font-weight: 650;
+    }
+
+    dd {
+      min-width: 0;
+      margin: 0;
+    }
+
+    code {
+      padding: 0;
+      background: transparent;
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-xs);
+      overflow-wrap: anywhere;
+      white-space: normal;
+    }
+
+    .complete-example {
+      grid-column: 1 / -1;
+      width: max-content;
+      color: var(--sl-color-text-accent);
+      font-size: var(--sl-text-sm);
+      font-weight: 650;
+      text-underline-offset: 0.2em;
+    }
+
+    @media (max-width: 63.99rem) {
+      .concept-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 49.99rem) {
+      summary {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .summary-number {
+        display: none;
+      }
+
+      .summary-copy,
+      .evaluation-type {
+        grid-column: 2;
+      }
+
+      .evaluation-type {
+        width: max-content;
+      }
+
+      .example-body {
+        padding-inline-start: 1.35rem;
+      }
+
+      .configuration dl {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 29.99rem) {
+      summary {
+        gap: 0.65rem;
+        padding-inline: 1rem;
+      }
+
+      .example-body {
+        padding-inline: 1rem;
+      }
+    }
+  }
+</style>

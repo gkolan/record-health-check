@@ -1,6 +1,6 @@
 # Glossary
 
-Use this page to look up Record Health Check and Salesforce terms.
+Look up Record Health Check and Salesforce terms.
 
 > [!NOTE]
 > Use this page when a term in Setup, Apex, Flow, a result, or a Platform Event needs a plain-language

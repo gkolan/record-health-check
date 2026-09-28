@@ -102,7 +102,7 @@ an installed administrator or a source-validation user. In particular:
 - do not assume the package test principal has a packaged Permission Set;
 - do not assign that Permission Set to the current user in `@TestSetup` and call the later
   `USER_MODE` success proof complete; permission evaluation can remain different in package creation;
-- do not create a fresh User persona in an unlocked-package test to escape the problem, because
+- do not create a fresh User in an unlocked-package test to escape the problem, because
   subscriber User triggers, Flows, validation, and other automation can run in the packaging org;
 - use the repository's existing test-only authorization seam only to select the already-authorized
   service path, never to bypass the data-access behavior under test; and

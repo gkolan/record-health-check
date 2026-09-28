@@ -1,7 +1,7 @@
 # Query Checks
 
 > [!NOTE]
-> On this page, configure one Query Check that turns SOQL results into a count, a single value, a
+> Configure one Query Check that turns SOQL results into a count, a single value, a
 > decision across several rows, or a list-membership check.
 >
 > **Reference**

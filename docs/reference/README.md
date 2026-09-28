@@ -6,20 +6,21 @@ outcome, return to the [documentation home](../README.md) and choose a task-base
 
 ## Choose a reference area
 
-| Folder                                                         | What you can find there                                                                                                                      |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Feature catalog](./feature-catalog.md)                        | Every shipped capability, its supported behavior, and the detailed guide that owns it                                                        |
-| [Version 2.0.10](./release-2.0.10.md)                          | Complete contract for the plugin, evidence, display, diagnostics, preview, readiness, limits, and compatibility changes introduced in 2.0.10 |
-| [Permission Sets](./permission-sets.md)                        | The six installed access bundles and the ways they authorize runs, diagnostics, and events                                                   |
-| [Custom Permissions](./custom-permissions.md)                  | The separate run and diagnostics authorization gates and which installed Permission Sets grant them                                          |
-| [Configuration](./configuration/README.md)                     | Names, display formatting, and field limits                                                                                                  |
-| [Merge syntax](./merge-syntax/README.md)                       | Token namespaces, properties, fallbacks, and SOQL usage                                                                                      |
-| [Evaluation](./evaluation/README.md)                           | Exact Formula, Query, Compare Two Queries, and bulk-query behavior                                                                           |
-| [Custom Metadata](./custom-metadata/README.md)                 | Check Set and Check configuration field dictionaries                                                                                         |
-| [Platform Event metadata](./platform-event-metadata/README.md) | Fields published by the three Record Health Check Platform Events                                                                            |
-| [Results](./results/README.md)                                 | Card labels, API statuses, and Reason Codes                                                                                                  |
-| [Platform](./platform/README.md)                               | Compatibility, localization, limitations, and Salesforce-specific edge cases                                                                 |
-| [Contracts](./contracts/README.md)                             | Versioned integration boundaries                                                                                                             |
+| Folder                                                         | What you can find there                                                                                        |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [Feature catalog](./feature-catalog.md)                        | Every shipped capability, its supported behavior, and the detailed guide that owns it                          |
+| [Public contract](./current-contract.md)                       | Complete plugin, evidence, display, diagnostics, preview, readiness, limit, and compatibility contract         |
+| [Source inventory](./source-inventory.md)                      | Package contents generated directly from metadata and Apex source                                              |
+| [Permission Sets](./permission-sets.md)                        | The seven installed access bundles and the ways they authorize runs, diagnostics, events, and readiness review |
+| [Custom Permissions](./custom-permissions.md)                  | The Run Custom Permission and the separate Permission Set assignment used for diagnostics authorization        |
+| [Configuration](./configuration/README.md)                     | Names, display formatting, and field limits                                                                    |
+| [Merge syntax](./merge-syntax/README.md)                       | Token namespaces, properties, fallbacks, and SOQL usage                                                        |
+| [Evaluation](./evaluation/README.md)                           | Exact Formula, Query, Compare Two Queries, and bulk-query behavior                                             |
+| [Custom Metadata](./custom-metadata/README.md)                 | Check Set and Check configuration field dictionaries                                                           |
+| [Platform Event metadata](./platform-event-metadata/README.md) | Fields published by the three Record Health Check Platform Events                                              |
+| [Results](./results/README.md)                                 | Card labels, API statuses, and Reason Codes                                                                    |
+| [Platform](./platform/README.md)                               | Compatibility, localization, limitations, and Salesforce-specific edge cases                                   |
+| [Contracts](./contracts/README.md)                             | Versioned integration boundaries                                                                               |
 
 Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term is unfamiliar.
 
@@ -28,9 +29,10 @@ Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term 
 | I need to know…                                                           | Reference                                                                              |
 | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | What the package supports                                                 | [Complete feature catalog](./feature-catalog.md)                                       |
-| What changed in 2.0.10                                                    | [Version 2.0.10 reference](./release-2.0.10.md)                                        |
+| What the public contract guarantees                                       | [Public contract](./current-contract.md)                                               |
 | Which field to use in Setup                                               | [Custom Metadata](./custom-metadata/README.md)                                         |
 | Which Permission Set to assign                                            | [Permission Sets](./permission-sets.md)                                                |
+| What a readiness receipt stores and who can read it                       | [Readiness receipts](./readiness-receipts.md)                                          |
 | What the Run Custom Permission controls, and how diagnostics access works | [Custom Permissions](./custom-permissions.md)                                          |
 | Which fields a Platform Event publishes                                   | [Platform Event metadata](./platform-event-metadata/README.md)                         |
 | Why a result says `FAIL`, `ERROR`, or `UNABLE_TO_EVALUATE`                | [Result statuses and card labels](./results/statuses-and-labels.md)                    |
@@ -47,6 +49,7 @@ Use the [glossary](./glossary.md) when a Record Health Check or Salesforce term 
 - [Architecture](../architecture/README.md)
 - [Custom Metadata](./custom-metadata/README.md)
 - [Permission Sets](./permission-sets.md)
+- [Readiness receipts](./readiness-receipts.md)
 - [Custom Permissions](./custom-permissions.md)
 - [Platform Event metadata](./platform-event-metadata/README.md)
 - [Developer guides](../developer-guides/README.md)

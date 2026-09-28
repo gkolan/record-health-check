@@ -5,7 +5,7 @@
 > current transaction continues.
 
 > [!IMPORTANT]
-> **Audience: Salesforce developers.** If an administrator can build the process in Flow, stop and
+> Use this page when implementing an Apex caller. If the process can be built in Flow, stop and
 > use [Run Record Health Check from Flow](../flow-guides/run-a-check.md). Writing the Apex caller requires **Author Apex**
 > and the organization's normal code review, tests, and deployment process.
 
@@ -141,17 +141,22 @@ IDs. The factories are:
 
 Options are applied with chainable methods:
 
-| Method                      | Default              | Purpose                                                                                                          |
-| --------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `withResultMode(...)`       | `EVALUATION`         | Choose `EVALUATION`, `EVALUATION_WITH_DISPLAY`, or `SUMMARY`                                                     |
-| `withEventPublication(...)` | `NONE`               | Choose `NONE`, `ACTIONABLE`, or `ALL` publication                                                                |
-| `withRunId(...)`            | Generated when blank | Supply text that connects this call with related jobs or results                                                 |
-| `withExecutionOrigin(...)`  | `APEX_API`           | Record whether Apex, Batch, Queueable, Scheduled, Future, Agent, or a Record Health Check class started the work |
+| Method                               | Default              | Purpose                                                                                                          |
+| ------------------------------------ | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `withResultMode(...)`                | `EVALUATION`         | Choose `EVALUATION`, `EVALUATION_WITH_DISPLAY`, or `SUMMARY`                                                     |
+| `withEventPublication(...)`          | `NONE`               | Choose `NONE`, `ACTIONABLE`, or `ALL` publication                                                                |
+| `withRunId(...)`                     | Generated when blank | Supply text that connects this call with related jobs or results                                                 |
+| `withExecutionOrigin(...)`           | `APEX_API`           | Record whether Apex, Batch, Queueable, Scheduled, Future, Agent, or a Record Health Check class started the work |
+| `withDiagnosticContractVersion(...)` | Not requested        | Request the authorized diagnostic `2.0` projection; omit it for the normal response contract                     |
 
 An Apex request publishes nothing unless the code explicitly selects a publication mode. Metadata
 fields still decide whether a requested event is enabled.
 Execution origin reports where the request started. It does not grant or prove access. Record
 Health Check Flow actions and Lightning components set their own origin automatically.
+
+Diagnostic contract `2.0` is opt-in. The running user must also have authorized diagnostic access;
+requesting the version does not grant permission. Read the result with `response.diagnostics()`.
+See [Authorized diagnostics](../reference/current-contract.md#authorized-diagnostics).
 
 > [!TIP]
 > Start with the default `EVALUATION` result mode and `NONE` publication mode. Add display data or

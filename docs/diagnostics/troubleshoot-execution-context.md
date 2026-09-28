@@ -52,7 +52,7 @@ Health Check Run** Custom Permission.
 **Exit condition:** Both outcomes are explainable from the documented access difference, or the
 intended automation principal produces the approved result without elevated access.
 
-## Scenario 2: `$User` ownership formula differs or never evaluates
+## Scenario 2: `$User` ownership formula returns a different result
 
 **Signal:** A Check author expects `OwnerId = $User.Id` to behave differently for the page user and
 automation user.

@@ -1,7 +1,7 @@
 # Install and verify in a sandbox
 
 > [!NOTE]
-> On this page, install Record Health Check, assign the intended access, place the card on a
+> Install Record Health Check, assign the intended access, place the card on a
 > Lightning record page, and verify the experience as a regular user.
 
 Use this guide when you want Record Health Check in a Salesforce org you already use. You will
@@ -34,7 +34,7 @@ The package adds the Record Health Check card, the configuration used to define 
 sets, and APIs for future automation. It also includes four active Example Check Set records:
 
 - **Example: Account Check Builder Guide** is active, with 25 Checks.
-- **Example: Account Relationship & Risk** keeps the original Account example from earlier releases.
+- **Example: Account Relationship & Risk** evaluates a complete Account relationship and risk scenario.
 - **Example: Contact Relationship Readiness**
 - **Example: Opportunity Deal Readiness**
 
@@ -48,10 +48,10 @@ Accounts, Contacts, Opportunities, or other business data.
 
 Choose the destination that matches the org where you are signed in:
 
-| Destination                     | Use it when                                         | Install                                                                   |
-| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
-| Sandbox                         | You are installing or verifying the current release | [Install in Sandbox](https://recordhealthcheck.com/install/sandbox)       |
-| Production or Developer Edition | You are installing the current release              | [Install in Production](https://recordhealthcheck.com/install/production) |
+| Destination                     | Use it when                                           | Install                                                                   |
+| ------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------- |
+| Sandbox                         | You are installing or verifying the published package | [Install in Sandbox](https://recordhealthcheck.com/install/sandbox)       |
+| Production or Developer Edition | You are installing the published package              | [Install in Production](https://recordhealthcheck.com/install/production) |
 
 Both links route to the latest Record Health Check package version. The different login domains
 send the same package version to the appropriate Salesforce environment.
@@ -73,16 +73,17 @@ is listed.
 
 ## Step 2: Choose who can use it
 
-The package includes permission sets so people receive only the access their work requires.
+The package includes seven permission sets so people receive only the access their work requires.
 
-If **Diagnostics Viewer** is absent from Setup, assign **Record Health Check Admin** alongside the runner permission set. An org-owned Permission Set cannot grant diagnostics.
-
-| Permission set                             | Assign it to                                                                                            | What it allows                                                                                 |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| **Record Health Check Card User**          | People who use only the Lightning record-page card                                                      | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
-| **Record Health Check User**               | People or automation that also use Flow, Agent, REST, Apex, Queueable, Batch, or Scheduled entry points | All packaged ways to run Record Health Check; do not assign it merely to display the card      |
-| **Record Health Check Admin**              | People who configure Check Sets or investigate unexpected results                                       | User access plus package configuration and diagnostic access                                   |
-| **Record Health Check Diagnostics Viewer** | An affected Card User or User who must reproduce an issue                                               | Diagnostic visibility only; assign it temporarily alongside the existing runner Permission Set |
+| Permission set                              | Assign it to                                                                                                 | What it allows                                                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| **Record Health Check Card User**           | People who use only the Lightning record-page card                                                           | Card execution, its App Builder Check Set picker, and explicitly enabled card lifecycle events |
+| **Record Health Check User**                | People or automation that also use Flow, Agentforce, REST, Apex, Queueable, Batch, or Scheduled entry points | All packaged ways to run Record Health Check; do not assign it merely to display the card      |
+| **Record Health Check Admin**               | People who configure Check Sets or investigate unexpected results                                            | User access plus package configuration and diagnostic access                                   |
+| **Record Health Check MCP Integration**     | A dedicated integration user that calls the versioned REST adapter                                           | REST adapter and package metadata access without card, Flow, Agentforce, or diagnostic access  |
+| **Record Health Check Diagnostics Viewer**  | An affected Card User or User who must reproduce an issue                                                    | Diagnostic visibility only; assign it temporarily alongside the existing runner Permission Set |
+| **Record Health Check Error Log Publisher** | A trusted runner whose Check Set publishes restricted error details                                          | Create and Read access to the restricted Log Platform Event; assign it with a runner set       |
+| **Record Health Check Readiness Auditor**   | A reviewer who inspects saved readiness receipts                                                             | Read-only receipt access without Preview, execution, cleanup, or configuration access          |
 
 To give a non-admin access after choosing **Install for Admins Only**:
 
@@ -94,9 +95,15 @@ To give a non-admin access after choosing **Install for Admins Only**:
 Repeat those steps with **Record Health Check Admin** only for Check administrators. Assign
 **Record Health Check Diagnostics Viewer** temporarily alongside Card User or User when that runner
 must reproduce an issue without receiving Admin access.
+
+The MCP Integration, Error Log Publisher, and Readiness Auditor sets are specialized assignments;
+do not give them to ordinary card users. See [Permission Sets](../reference/permission-sets.md) for
+the complete access comparison and version availability.
+
 The **Issue**, **Where**, and **Why** diagnosis requires both **Show Diagnostics** on the Check Set
 and a direct **Record Health Check Admin** or **Record Health Check Diagnostics Viewer** assignment.
 The card-user and standard-user permission sets do not authorize diagnostics.
+
 A person can be a Salesforce non-admin and still run Record Health Check; the **Record Health Check
 Card User** permission set provides card access, while the person's existing Salesforce access
 still controls which records and fields the checks can read.
@@ -171,7 +178,7 @@ At this point, the installation is proven. The Example Check Set is still teachi
 organization's policy. Review it before wider use, or [create your first Check](../step-by-step-guide/create-your-first-check.md)
 around a decision your users actually make.
 
-## If the result is not what you expected
+## Resolve an unexpected result
 
 | What you see                                                     | What to check first                                                                                                                                                          |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

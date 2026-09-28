@@ -1,7 +1,7 @@
 # Validate and preview an AI draft
 
 > [!NOTE]
-> On this page, validate an inactive 2.0.10 Check draft against a real Check Set and representative
+> Validate an inactive Check draft against a real Check Set and representative
 > sandbox records before deciding whether to save or activate it.
 
 The **Record Health Check Preview** component validates a detached Check without saving it. Preview
@@ -10,7 +10,7 @@ record IDs. It never publishes user-result, user-run, or error-log events.
 
 ## Before you begin
 
-- Work in a sandbox with Record Health Check 2.0.10 installed.
+- Work in a sandbox with Record Health Check installed.
 - Assign **Record Health Check Admin** (`rhc__Record_Health_Check_Admin`) directly to the reviewer.
   The reviewer also needs the package run permission supplied by that Permission Set.
 - Save the parent Check Set first with **Active** unchecked. A detached Check can be unsaved, but
@@ -110,5 +110,5 @@ process, then test the saved inactive Check before activation.
 
 - [Draft Check configuration with AI](./README.md)
 - [Requirement template](./requirement-template.md)
-- [Record Health Check 2.0.10](../../reference/release-2.0.10.md)
+- [Record Health Check](../../reference/current-contract.md)
 - [Check fields](../../reference/custom-metadata/check-fields.md)

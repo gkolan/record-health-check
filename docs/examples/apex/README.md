@@ -1,7 +1,7 @@
 # Apex Check examples
 
 > [!NOTE]
-> On this page, choose an Apex example when a Formula or Query Check cannot express the Salesforce
+> Choose an Apex example when a Formula or Query Check cannot express the Salesforce
 > requirement clearly.
 
 > [!IMPORTANT]
@@ -9,7 +9,7 @@
 > Writing or deploying any other Apex class is a developer task. If you do not have a reviewed,
 > deployed class, choose Formula, Query, or Compare Two Queries instead.
 
-Use this page to select an example before creating a **Verify with Apex** Check. Record Health Check
+Choose an example before creating a **Verify with Apex** Check. Record Health Check
 calls an Apex class written for the requirement. The
 class receives the record IDs being checked and any values entered in **Apex Parameters (JSON)**.
 It must return one result for every record ID.
@@ -71,7 +71,7 @@ handling an optional installed product. It also requires a developer to create, 
 deploy the class.
 
 Start with [Recent Account activity](./recent-activity.md) for the complete, installed example. It
-shows the class, its test behavior, every Check field, and what an administrator sees. Its 2.0.10
+shows the class, its test behavior, every Check field, and what an administrator sees. Its
 contract also demonstrates bounded typed parameters, typed evidence projection, per-record recovery
 through the record evaluator, and presentation-only display overrides with metadata fallback.
 

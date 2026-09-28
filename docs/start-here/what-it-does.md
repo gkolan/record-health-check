@@ -1,7 +1,7 @@
 # What Record Health Check does
 
 > [!NOTE]
-> On this page, understand what the Record Health Check card evaluates, what each result means, and
+> Understand what the Record Health Check card evaluates, what each result means, and
 > when advisory guidance fits better than save-time enforcement.
 
 Record Health Check places guidance directly on a Salesforce record page. When someone opens an

@@ -198,4 +198,4 @@ saved record.
 - [Troubleshoot Record Health Check](../diagnostics/browser-console.md)
 - [Save individual Check results](./save-individual-results.md)
 - [Choose whether to publish result events](./when-to-use-platform-events.md)
-- [Failure and recovery policy](./README.md#failure-and-recovery-policy)
+- [Recovery policy](./README.md#recovery-policy)

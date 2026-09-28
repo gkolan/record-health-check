@@ -1,7 +1,7 @@
 # Configure the Lightning record-page component
 
 > [!NOTE]
-> On this page, choose whether the Record Health Check card runs when a record page opens or waits
+> Choose whether the Record Health Check card runs when a record page opens or waits
 > for the user to select Run, then understand what users see and when optional Platform Events can
 > be published.
 
@@ -31,7 +31,7 @@ Builder palettes.
 - A view of the current run's Check Set and Check results using the current user's Salesforce access.
 - An optional event publisher only when the user explicitly clicks Run or Rerun.
 
-## What the component is not
+## Component scope
 
 - It is not a result-history store.
 - It does not block record save or automatically remediate failures.

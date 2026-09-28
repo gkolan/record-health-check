@@ -1,7 +1,7 @@
 # Apex classes that resolve merge tokens (L2)
 
 > [!IMPORTANT]
-> **Audience: package contributors and Salesforce developers.** This class-level reference is not a
+> Use this page when reviewing the package's merge-token classes. This class-level reference is not a
 > Setup or Flow walkthrough. Administrators should use the Flow, configuration, and evaluation
 > guides; subscriber developers should use the public Apex API or Apex Check contract.
 
@@ -10,7 +10,7 @@
 > For the token names and syntax an administrator can use, see
 > [Merge tokens](../../reference/merge-syntax/README.md).
 
-This page is part of the [Apex class reference](./README.md).
+Use the [Apex class reference](./README.md) to place these merge-token classes in the full package structure.
 
 ## Merge-token classes (L2)
 

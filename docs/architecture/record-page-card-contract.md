@@ -1,16 +1,15 @@
 # Record-page card behavior contract
 
-This page describes two behaviors of the Record Health Check Lightning card that are easy to
-remove by accident: the card rereads Check Set configuration before every run, and the card body
+Preserve two Record Health Check Lightning card behaviors: the card rereads Check Set configuration
+before every run, and the card body
 always renders. Both exist because of failure modes that are invisible when reading the component
 in isolation. Each one names the source that implements it, the reason it exists, and the test that
 fails when it is removed, so a reviewer or an automated agent can confirm the behavior instead of
 trusting this description.
 
-The audience is contributors to this repository and automated agents changing the
-`recordHealthCheck` Lightning Web Component. Administrators should read
-[Is refreshing the page the same as selecting Rerun?](../faqs/setup-and-troubleshooting.md)
-instead.
+Use this contract when changing or reviewing the `recordHealthCheck` Lightning Web Component.
+For the Setup behavior rather than the source contract, read
+[Is refreshing the page the same as selecting Rerun?](../faqs/setup-and-troubleshooting.md).
 
 ## Contract 1: Configuration is reread before every run
 

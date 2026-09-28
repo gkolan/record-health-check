@@ -217,7 +217,7 @@ Test these cases in a sandbox:
 In an Apex test, publish test events and call `Test.getEventBus().deliver()` before asserting the
 saved records.
 
-See the shared [failure and recovery policy](./README.md#failure-and-recovery-policy) when ordered
+See the shared [recovery policy](./README.md#recovery-policy) when ordered
 Apex-trigger recovery or external replay is required.
 
 ## Related
