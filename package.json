@@ -72,7 +72,7 @@
     "check:docs:semantics": "node scripts/release/check_documentation_semantics.mjs",
     "check:docs:links": "node scripts/release/check_documentation_external_links.mjs",
     "check:docs:links:live": "node scripts/release/check_documentation_external_links.mjs --live",
-    "check:docs:site": "node --test scripts/lib/documentation-site.test.mjs && npm run build --prefix site && npm run check:links --prefix site && npm run check:rendered --prefix site",
+    "check:docs:site": "node --test scripts/lib/documentation-site.test.mjs && npm run build --prefix site && npm run check:links --prefix site && npm run check:rendered --prefix site && npm run check:seo --prefix site",
     "audit:docs:render": "npm run build --prefix site && node site/scripts/audit-rendered-pages.mjs",
     "dev:docs:site": "npm run dev --prefix site",
     "check:field-limits": "python3 scripts/release/generate_field_size_registry.py --check",

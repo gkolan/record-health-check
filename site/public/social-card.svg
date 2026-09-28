@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Docs.RecordHealthCheck</title>
+  <desc id="description">Documentation for Record Health Check on Salesforce</desc>
+  <rect width="1200" height="630" fill="#07151f" />
+  <path d="M0 510 C250 420 420 610 700 490 C910 400 1050 430 1200 350 L1200 630 L0 630 Z" fill="#0d2b35" />
+  <circle cx="1040" cy="110" r="170" fill="#113843" />
+  <circle cx="1040" cy="110" r="110" fill="#164b55" />
+  <path d="M972 112l44 44 92-105" fill="none" stroke="#5ee1cf" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="84" y="155" fill="#5ee1cf" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="2">SALESFORCE DOCUMENTATION</text>
+  <text x="84" y="280" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700">Docs.RecordHealthCheck</text>
+  <text x="84" y="365" fill="#c7d8df" font-family="Arial, Helvetica, sans-serif" font-size="38">Install. Configure. Operate. Extend.</text>
+  <text x="84" y="455" fill="#89a7b2" font-family="Arial, Helvetica, sans-serif" font-size="28">Clear guidance for every Salesforce record.</text>
+</svg>

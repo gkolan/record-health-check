@@ -10,6 +10,7 @@
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
     "check:links": "node scripts/check-internal-links.mjs",
     "check:rendered": "node scripts/check-rendered-output.mjs",
+    "check:seo": "node scripts/check-seo.mjs",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview"
   },
   "dependencies": {

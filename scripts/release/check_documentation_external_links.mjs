@@ -16,6 +16,7 @@ const failures = [];
 const reviewedLiveExceptions = [];
 const allowedHosts = new Set([
   "developer.salesforce.com",
+  "docs.recordhealthcheck.com",
   "github.com",
   "help.salesforce.com",
   "login.salesforce.com",

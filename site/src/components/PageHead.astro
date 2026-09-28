@@ -1,0 +1,118 @@
+---
+const { entry, head } = Astro.locals.starlightRoute;
+
+const siteUrl = new URL("https://docs.recordhealthcheck.com");
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
+const socialImageUrl = new URL("/social-card.png", siteUrl).href;
+const title = entry.data.title;
+const description = entry.data.description;
+const isNotFound = Astro.url.pathname === "/404" || Astro.url.pathname === "/404/";
+const sourcePath = entry.data.sourcePath;
+const sourceUrl = sourcePath
+  ? `https://github.com/gkolan/record-health-check/blob/docs-v3/${sourcePath}`
+  : undefined;
+const baseHead = head.filter(({ tag, attrs }) => {
+  if (tag !== "meta") return true;
+  return ![
+    "og:image",
+    "og:image:alt",
+    "og:image:height",
+    "og:image:type",
+    "og:image:width",
+    "og:type"
+  ].includes(String(attrs?.property ?? "")) &&
+    ![
+      "robots",
+      "twitter:card",
+      "twitter:description",
+      "twitter:image",
+      "twitter:image:alt",
+      "twitter:title"
+    ].includes(String(attrs?.name ?? ""));
+});
+
+const structuredData = isNotFound
+  ? undefined
+  : Astro.url.pathname === "/"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Record Health Check documentation",
+        alternateName: "Docs.RecordHealthCheck",
+        url: canonicalUrl,
+        description,
+        inLanguage: "en-US",
+        publisher: {
+          "@type": "Organization",
+          name: "Record Health Check",
+          url: "https://github.com/gkolan/record-health-check"
+        }
+      }
+    : {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        headline: title,
+        description,
+        url: canonicalUrl,
+        mainEntityOfPage: canonicalUrl,
+        inLanguage: "en-US",
+        isPartOf: {
+          "@type": "WebSite",
+          name: "Record Health Check documentation",
+          url: siteUrl.href
+        },
+        author: {
+          "@type": "Organization",
+          name: "Record Health Check",
+          url: "https://github.com/gkolan/record-health-check"
+        },
+        publisher: {
+          "@type": "Organization",
+          name: "Record Health Check",
+          url: "https://github.com/gkolan/record-health-check"
+        },
+        ...(sourceUrl ? { sameAs: sourceUrl } : {})
+      };
+---
+
+{baseHead.map(({ tag: Tag, attrs, content }) => <Tag {...attrs} set:html={content} />)}
+
+<meta
+  name="robots"
+  content={isNotFound
+    ? "noindex, nofollow"
+    : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"}
+/>
+{
+  !isNotFound && (
+    <>
+      <meta property="og:image" content={socialImageUrl} />
+      <meta property="og:type" content={Astro.url.pathname === "/" ? "website" : "article"} />
+      <meta property="og:image:type" content="image/png" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta
+        property="og:image:alt"
+        content="Record Health Check documentation for Salesforce"
+      />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={socialImageUrl} />
+      <meta
+        name="twitter:image:alt"
+        content="Record Health Check documentation for Salesforce"
+      />
+      <link
+        rel="alternate"
+        type="text/plain"
+        href="/llms.txt"
+        title="Agent-readable documentation index"
+      />
+      <script
+        type="application/ld+json"
+        set:html={JSON.stringify(structuredData).replaceAll("<", "\\u003c")}
+      />
+    </>
+  )
+}

@@ -1,0 +1,67 @@
+name: Deploy documentation to Cloudflare Pages
+
+on:
+  push:
+    branches: ["docs-?"]
+    paths:
+      - ".github/workflows/deploy-docs-cloudflare.yml"
+      - "assets/**"
+      - "docs/**"
+      - "site/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: docs-cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  verify-and-deploy:
+    name: Verify and deploy documentation
+    runs-on: ubuntu-latest
+    environment:
+      name: documentation-production
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        run: npm ci --prefix site
+
+      - name: Prepare canonical content
+        run: npm run prepare:content --prefix site
+
+      - name: Run documentation site contracts
+        run: node --test scripts/lib/documentation-site.test.mjs
+
+      - name: Build static site
+        run: npm run build --prefix site
+
+      - name: Verify links, rendered output, and SEO
+        run: |
+          npm run check:links --prefix site
+          npm run check:rendered --prefix site
+          npm run check:seo --prefix site
+
+      - name: Audit production dependencies
+        run: npm audit --prefix site --omit=dev --audit-level=high
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site/dist --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }} --branch=${{ github.ref_name }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

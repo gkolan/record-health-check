@@ -7,6 +7,7 @@ const sourceRoot = path.join(repositoryRoot, "docs");
 const contentRoot = path.join(repositoryRoot, "site/src/content/docs");
 const publicAssets = path.join(repositoryRoot, "site/public/assets");
 const sourceAssets = path.join(repositoryRoot, "site/src/assets");
+const publicRoot = path.join(repositoryRoot, "site/public");
 
 async function listMarkdownFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -78,9 +79,90 @@ function extractDescription(markdown, title) {
     paragraph.push(line.trim());
   }
 
-  return (paragraph.join(" ") || `Learn about ${title}.`).replace(
-    /\[([^\]]+)\]\([^)]+\)/g,
-    "$1"
+  const plainText = (paragraph.join(" ") || `Learn about ${title}.`)
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[`*_~]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (plainText.length <= 160) return plainText;
+  const shortened = plainText
+    .slice(0, 157)
+    .replace(/\s+\S*$/, "")
+    .trimEnd();
+  return `${shortened}…`;
+}
+
+function agentIndex(sourceFiles) {
+  const grouped = new Map();
+  for (const sourcePath of sourceFiles) {
+    const outputPath = outputPathFor(sourcePath);
+    const route = routeForOutputPath(outputPath);
+    const section = route.split("/").filter(Boolean)[0] ?? "home";
+    const items = grouped.get(section) ?? [];
+    items.push({ route, sourcePath });
+    grouped.set(section, items);
+  }
+
+  const featured = [
+    ["Start here", "/start-here/"],
+    ["Build Checks", "/build-checks/"],
+    ["Examples", "/examples/"],
+    ["Developer guides", "/developer-guides/"],
+    ["Reference", "/reference/"],
+    ["Public contract", "/reference/current-contract/"],
+    ["Agentforce and MCP", "/developer-guides/agentforce-and-mcp/"]
+  ];
+
+  const index = [
+    "# Record Health Check documentation",
+    "",
+    "> Install, configure, operate, and extend Record Health Check for Salesforce.",
+    "",
+    "The canonical public documentation is static HTML at https://docs.recordhealthcheck.com/. Source Markdown is maintained in the public Record Health Check repository.",
+    "",
+    "## Primary documentation",
+    "",
+    ...featured.map(
+      ([label, route]) =>
+        `- [${label}](https://docs.recordhealthcheck.com${route})`
+    ),
+    "",
+    "## Machine-readable resources",
+    "",
+    "- [Complete documentation corpus](https://docs.recordhealthcheck.com/llms-full.txt)",
+    "- [XML sitemap](https://docs.recordhealthcheck.com/sitemap-index.xml)",
+    "- [GitHub source](https://github.com/gkolan/record-health-check/tree/docs-v3/docs)",
+    ""
+  ].join("\n");
+
+  return { grouped, index };
+}
+
+async function writeAgentDiscovery(sourceFiles) {
+  const { grouped, index } = agentIndex(sourceFiles);
+  const full = [index.trimEnd(), "", "# Complete documentation corpus", ""];
+
+  for (const section of [...grouped.keys()].sort()) {
+    full.push(`## ${section}`, "");
+    for (const item of grouped.get(section)) {
+      const markdown = await readFile(item.sourcePath, "utf8");
+      full.push(
+        `Source: https://docs.recordhealthcheck.com${item.route}`,
+        "",
+        markdown.trim(),
+        ""
+      );
+    }
+  }
+
+  await mkdir(publicRoot, { recursive: true });
+  await writeFile(path.join(publicRoot, "llms.txt"), index);
+  await writeFile(
+    path.join(publicRoot, "llms-full.txt"),
+    `${full.join("\n")}\n`
   );
 }
 
@@ -230,6 +312,7 @@ await cp(
   path.join(repositoryRoot, "assets/img/RHC_LOGO.png"),
   path.join(sourceAssets, "RHC_LOGO.png")
 );
+await writeAgentDiscovery(sourceFiles);
 console.log(
   `Prepared ${sourceFiles.length + 2} canonical documentation pages.`
 );

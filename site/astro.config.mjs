@@ -38,6 +38,7 @@ export default defineConfig({
       customCss: ["./src/styles/custom.css"],
       head: plausibleHead,
       components: {
+        Head: "./src/components/PageHead.astro",
         Header: "./src/components/SiteHeader.astro",
         Hero: "./src/components/SiteHero.astro",
         PageTitle: "./src/components/ArticleTitle.astro",

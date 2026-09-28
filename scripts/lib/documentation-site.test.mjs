@@ -68,6 +68,53 @@ test("Plausible analytics is optional and configured at deployment time", async 
   assert.match(siteReadme, /outbound link/i);
 });
 
+test("every public page has social, search, and agent discovery metadata", async () => {
+  const [astroConfig, pageHead, prepareContent, rootPackage, sitePackage] =
+    await Promise.all([
+      readRepositoryFile("site/astro.config.mjs"),
+      readRepositoryFile("site/src/components/PageHead.astro"),
+      readRepositoryFile("site/scripts/prepare-content.mjs"),
+      readRepositoryFile("package.json"),
+      readRepositoryFile("site/package.json")
+    ]);
+
+  assert.match(
+    astroConfig,
+    /Head:\s*["']\.\/src\/components\/PageHead\.astro["']/
+  );
+  assert.match(pageHead, /name="robots"/);
+  assert.match(pageHead, /property="og:image"/);
+  assert.match(pageHead, /name="twitter:card"/);
+  assert.match(pageHead, /application\/ld\+json/);
+  assert.match(pageHead, /href="\/llms\.txt"/);
+  assert.match(prepareContent, /writeAgentDiscovery\(sourceFiles\)/);
+  assert.match(sitePackage, /"check:seo":\s*"node scripts\/check-seo\.mjs"/);
+  assert.match(rootPackage, /npm run check:seo --prefix site/);
+});
+
+test("GitHub Actions verifies and deploys the static site to Cloudflare Pages", async () => {
+  const workflow = await readRepositoryFile(
+    ".github/workflows/deploy-docs-cloudflare.yml"
+  );
+
+  assert.match(workflow, /branches:\s*\[["']docs-\?["']\]/);
+  assert.match(workflow, /npm run check:seo --prefix site/);
+  assert.match(workflow, /cloudflare\/wrangler-action@v4/);
+  assert.match(workflow, /pages deploy site\/dist/);
+  assert.match(workflow, /--branch=\$\{\{ github\.ref_name \}\}/);
+  assert.match(workflow, /secrets\.CLOUDFLARE_API_TOKEN/);
+  assert.match(workflow, /secrets\.CLOUDFLARE_ACCOUNT_ID/);
+  assert.match(workflow, /vars\.CLOUDFLARE_PAGES_PROJECT/);
+});
+
+test("canonical documentation links may reference the published documentation host", async () => {
+  const externalLinkCheck = await readRepositoryFile(
+    "scripts/release/check_documentation_external_links.mjs"
+  );
+
+  assert.match(externalLinkCheck, /["']docs\.recordhealthcheck\.com["']/);
+});
+
 test("landing page keeps decorative chrome restrained", async () => {
   const [astroConfig, homePage, footer, styles] = await Promise.all([
     readRepositoryFile("site/astro.config.mjs"),
