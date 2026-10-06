@@ -27,7 +27,8 @@ import {
 
 import {
   assertReuseOptions,
-  assertRetainedReleaseOrg
+  assertRetainedReleaseOrg,
+  securityRetrieveDirectory
 } from "../lib/release-org-reuse.mjs";
 
 const { values } = parseArgs({
@@ -202,9 +203,7 @@ function assertExistingReleasePair(alias, devHub, runtimeMatrix, securityMode) {
     version: releaseVersion(runtimeMatrix),
     records
   });
-  const directory = fs.mkdtempSync(
-    path.join(os.tmpdir(), "rhc-retained-security-")
-  );
+  const directory = securityRetrieveDirectory(paths.repoRoot);
   try {
     run("sf", [
       "project",

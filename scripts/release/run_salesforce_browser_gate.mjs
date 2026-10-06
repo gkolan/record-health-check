@@ -277,6 +277,15 @@ try {
       );
       fs.mkdirSync(evidence.output, { recursive: true });
       fs.mkdirSync(evidence.html, { recursive: true });
+      for (const file of fs.readdirSync(evidence.output, { recursive: true })) {
+        if (file.endsWith(".md")) {
+          const context = path.join(evidence.output, file);
+          fs.writeFileSync(
+            context,
+            redactBrowserEvidence(fs.readFileSync(context, "utf8"), environment)
+          );
+        }
+      }
       fs.writeFileSync(evidence.json, sanitized);
       fs.writeFileSync(
         path.join(evidence.html, "index.html"),

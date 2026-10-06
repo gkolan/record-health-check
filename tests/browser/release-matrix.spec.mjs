@@ -126,6 +126,23 @@ test("renders manual and on-load cards without a component or page-loading failu
   await runButton.click();
   await expectRunCompleted(manualCard, 25);
 
+  const activityRow = manualCard.locator(".rhc-row").filter({
+    hasText: "Account activity meets the 60-day cadence"
+  });
+  await expect(activityRow).toHaveCount(1);
+  await expect(activityRow.locator(".rhc-cmp__key")).toHaveText([
+    "Found",
+    "Expected"
+  ]);
+  await expect(
+    manualCard
+      .locator(".rhc-row")
+      .locator(".rhc-cmp__key")
+      .filter({
+        hasNotText: /^(Found|Expected)$/
+      })
+  ).toHaveCount(0);
+
   // The load slot hands over and disappears; it must not outlive the load.
   await expect(components.locator(".rhc-card-loading")).toHaveCount(0);
 

@@ -1,8 +1,12 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
   assertReuseOptions,
-  assertRetainedReleaseOrg
+  assertRetainedReleaseOrg,
+  securityRetrieveDirectory
 } from "./release-org-reuse.mjs";
 
 test("a retained pair can perform clean installation and upgrade without creating or deleting an org", () => {
@@ -64,3 +68,19 @@ for (const [name, change] of [
   test(`rejects ${name} before any reset or installation`, () =>
     assert.throws(() => assertRetainedReleaseOrg({ ...existing, ...change })));
 }
+
+test("Security settings retrieve stays inside the Salesforce project", () => {
+  const project = fs.mkdtempSync(path.join(os.tmpdir(), "rhc-project-"));
+  const directory = securityRetrieveDirectory(project);
+  try {
+    assert.equal(path.dirname(directory), project);
+    assert.equal(
+      path.basename(directory).startsWith("."),
+      false,
+      "CLI skips hidden retrieve directories"
+    );
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+    fs.rmSync(project, { recursive: true, force: true });
+  }
+});

@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+
 /** Restricts reuse to retained release pairs or the existing upgrade-only path. */
 export function assertReuseOptions({
   reuseExistingOrg,
@@ -40,4 +43,8 @@ export function assertRetainedReleaseOrg({
       "Existing org must match one active release-pair receipt on the selected Dev Hub."
     );
   }
+}
+
+export function securityRetrieveDirectory(projectRoot) {
+  return fs.mkdtempSync(path.join(projectRoot, "rhc-retained-security-"));
 }

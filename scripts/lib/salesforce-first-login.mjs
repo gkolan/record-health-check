@@ -47,6 +47,21 @@ export async function completeScratchUserFirstLogin(
   await expect
     .poll(
       async () => {
+        for (const frame of page.frames()) {
+          try {
+            if (
+              await frame
+                .getByText("Scheduled Maintenance", { exact: true })
+                .isVisible()
+            ) {
+              await frame
+                .getByRole("link", { name: "Got it", exact: true })
+                .click({ timeout });
+            }
+          } catch (error) {
+            if (!frame.isDetached()) throw error;
+          }
+        }
         const visible = await current.isVisible();
         state = firstLoginState(page.url(), visible);
         return state;
