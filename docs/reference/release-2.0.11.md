@@ -46,6 +46,11 @@ Format precedence over plugin formats. Automatic retains plugin formatting and s
 comparison content. The earlier 2.0.11.2 candidate predates both fixes. The stable public installer
 continues to select 2.0.10.1 until an owner promotes and publishes a replacement.
 
+Subsequent source work clears categories on all packaged example Checks and adds a CI/package
+preflight guard against restoring them. **2.0.11.3 does not contain this correction and must not be
+promoted as the final candidate.** A replacement build and its installed-package verification remain
+pending the release owner’s decision.
+
 The retained LWS and Locker subscriber orgs each completed clean installation and upgrade from
 exact base 2.0.10.1. Every phase passed all 20 subscriber Apex test methods across four classes,
 live MCP, and Chromium/Firefox card, rerun, App Builder and restricted Card User scenarios. The

@@ -122,7 +122,7 @@
     >An approved channel-partner hierarchy</value></values>
     <values>
         <field>Category__c</field>
-        <value xsi:type="xsd:string">COMPLIANCE</value>
+        <value xsi:nil="true" />
     </values>
   <values>
     <field>ComparisonDisplayMode__c</field>

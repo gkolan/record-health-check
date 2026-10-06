@@ -188,6 +188,14 @@ example, repository-only documentation or release tooling), add the equivalent e
 self-test and state the specific reason Custom Metadata is not applicable. Do not use this exception
 merely to avoid creating user-verification coverage.
 
+## Packaged example category contract
+
+Never set `Category__c` on any packaged `Record_Health_Check.Example_*` record, active or
+inactive, or on example integration fixtures. Leave it explicitly null or omit it. Subscriber-owned
+Checks may use categories.
+`check:demo-outcome-coverage` enforces this rule in CI and package preflight; do not bypass or
+weaken it to build a package.
+
 ## Record-page card contract
 
 Two behaviors of the `recordHealthCheck` LWC are easy to remove by accident, because both look

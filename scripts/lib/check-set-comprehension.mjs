@@ -262,7 +262,9 @@ export function comprehensionFindings(sets, checks) {
 
   const tierB = new Set(TIER_B_SETS);
   for (const { api, set, fields, values = new Map() } of checks) {
-    const required = [...TIER_A, ...(tierB.has(set) ? TIER_B : [])];
+    const required = [...TIER_A, ...(tierB.has(set) ? TIER_B : [])].filter(
+      (field) => field !== "Category__c" || !api.startsWith("Example_")
+    );
     const missing = required.filter((field) => !fields.has(field));
     if (missing.length > 0) {
       findings.push(`${api} (in ${set}) is missing ${missing.join(", ")}`);

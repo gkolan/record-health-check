@@ -90,7 +90,7 @@
     </values>
     <values>
         <field>Category__c</field>
-        <value xsi:type="xsd:string">CONSISTENCY</value>
+        <value xsi:nil="true" />
     </values>
     <values>
         <field>ComparisonDisplayMode__c</field>
