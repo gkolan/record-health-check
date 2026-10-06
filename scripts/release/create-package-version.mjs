@@ -113,23 +113,9 @@ function assertSourceUnchanged() {
   }
 }
 
-let attempt;
-let response;
-if (values.resume) {
-  attempt = JSON.parse(fs.readFileSync(attemptPath, "utf8"));
-  if (
-    attempt.gitCommit !== gitCommit ||
-    attempt.packageBranch !== branch ||
-    attempt.package2Id !== releases.package2Id ||
-    attempt.version !== versionNumber ||
-    attempt.devHubAlias !== values["dev-hub"] ||
-    (attempt.createRequestId && attempt.createRequestId !== values.resume)
-  ) {
-    throw new Error(
-      "Resume request does not match the saved candidate attempt and current commit."
-    );
-  }
-  response = runJson(
+// `sf package version create report` returns a one-element list.
+function createReport(requestId) {
+  const result = runJson(
     "sf",
     [
       "package",
@@ -137,12 +123,59 @@ if (values.resume) {
       "create",
       "report",
       "--package-create-request-id",
-      values.resume,
+      requestId,
       "--target-dev-hub",
       values["dev-hub"]
     ],
     { cwd: paths.packageRoot }
   ).result;
+  if (!Array.isArray(result)) return result;
+  if (result.length !== 1) {
+    throw new Error(
+      `Expected one creation request for ${requestId}; Salesforce returned ${result.length}.`
+    );
+  }
+  return result[0];
+}
+
+// Inputs that determine the built package. A resume only reads request status,
+// so it may run from a later commit when none of these changed since submission.
+const PACKAGE_INPUTS = [
+  "packages/record-health-check/force-app",
+  "packages/record-health-check/sfdx-project.json",
+  "packages/record-health-check/config",
+  "config/package-releases.json",
+  "config/release-runtime-matrix.json"
+];
+
+function resumableFrom(submittedCommit) {
+  if (submittedCommit === gitCommit) return true;
+  const git = (...args) =>
+    tryRun("git", args, { cwd: paths.repoRoot }).status === 0;
+  return (
+    /^[0-9a-f]{40}$/.test(String(submittedCommit)) &&
+    git("merge-base", "--is-ancestor", submittedCommit, "HEAD") &&
+    git("diff", "--quiet", submittedCommit, "HEAD", "--", ...PACKAGE_INPUTS)
+  );
+}
+
+let attempt;
+let response;
+if (values.resume) {
+  attempt = JSON.parse(fs.readFileSync(attemptPath, "utf8"));
+  if (
+    !resumableFrom(attempt.gitCommit) ||
+    attempt.packageBranch !== branch ||
+    attempt.package2Id !== releases.package2Id ||
+    attempt.version !== versionNumber ||
+    attempt.devHubAlias !== values["dev-hub"] ||
+    (attempt.createRequestId && attempt.createRequestId !== values.resume)
+  ) {
+    throw new Error(
+      "Resume request does not match the saved candidate attempt, or package inputs changed since it was submitted."
+    );
+  }
+  response = createReport(values.resume);
 } else {
   if (fs.existsSync(attemptPath)) {
     throw new Error(
@@ -279,7 +312,7 @@ while (true) {
     !/^08c[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(response.Id) ||
     response.Package2Id !== releases.package2Id ||
     response.Branch !== branch ||
-    response.Tag !== tag ||
+    response.Tag !== `${attempt.gitCommit}:${versionNumber}` ||
     (values.resume && response.Id !== values.resume) ||
     (attempt.createRequestId && response.Id !== attempt.createRequestId)
   ) {
@@ -322,20 +355,7 @@ while (true) {
   }
   console.log(`Package request ${response.Id}: ${response.Status}`);
   await setTimeout(Math.min(30_000, deadline - Date.now()));
-  response = runJson(
-    "sf",
-    [
-      "package",
-      "version",
-      "create",
-      "report",
-      "--package-create-request-id",
-      attempt.createRequestId,
-      "--target-dev-hub",
-      values["dev-hub"]
-    ],
-    { cwd: paths.packageRoot }
-  ).result;
+  response = createReport(attempt.createRequestId);
 }
 
 const createdVersion = packageVersionString(response);

@@ -48,7 +48,11 @@ const mode = process.env.FIXTURE_MODE;
 const result = { Id: "${requestId}", Package2Id: "0Hoak0000004kKPCAY", Package2VersionId: "05i000000000001AAA", SubscriberPackageVersionId: "${candidateId}", VersionNumber: "2.0.11.2", Branch: "2.0.11", Tag: "${commit}:2.0.11.2", Status: "Success", HasPassedCodeCoverageCheck: true };
 if (name === "git") {
   if (args[0] === "branch") console.log("2.0.11");
-  if (args[0] === "rev-parse") console.log("${commit}");
+  // "later-head" models a resume after a tooling-only commit; "later-source" changes package inputs.
+  const head = /^later-/.test(mode) && fs.existsSync(process.env.FIXTURE_LOG + ".submitted") ? "${"b".repeat(40)}" : "${commit}";
+  if (args[0] === "rev-parse") console.log(head);
+  if (args[0] === "merge-base") process.exit(args[2] === "${commit}" ? 0 : 1);
+  if (args[0] === "diff") process.exit(mode === "later-source" ? 1 : 0);
   if (args[0] === "status" && mode === "dirty-after-preflight" && fs.existsSync(process.env.FIXTURE_LOG + ".preflight")) console.log(" M file");
 } else if (name === "npm") {
   fs.writeFileSync(process.env.FIXTURE_LOG + ".preflight", "done");
@@ -65,7 +69,10 @@ if (name === "git") {
     if (mode === "wrong-version") result.VersionNumber = "2.0.11.1";
     if (mode === "failed") result.Status = "Error";
     if (mode === "finalizing") result.Status = "FinalizingPackageVersion";
-    response = result;
+    // The real CLI returns create reports as a one-element list (observed 2026-10-06).
+    response = args[3] === "report" ? [result] : result;
+    if (args[3] !== "report") fs.writeFileSync(process.env.FIXTURE_LOG + ".submitted", "yes");
+    if (/^later-/.test(mode) && args[3] !== "report") { result.Status = "Queued"; result.SubscriberPackageVersionId = null; }
     if (mode === "lost-response" && args[3] !== "report") { console.log("connection lost"); process.exit(1); }
   } else throw new Error("Unexpected command " + args.join(" "));
   console.log(JSON.stringify({ status: 0, result: response }));
@@ -188,5 +195,29 @@ test("resume rejects a different request returned by Salesforce", (t) => {
   const f = fixture(t);
   f.run("queued");
   assert.notEqual(f.run("wrong-request", ["--resume", requestId]).status, 0);
+  assert.equal(creates(f).length, 1);
+});
+
+test("resume may run from a later commit only when package inputs are unchanged", (t) => {
+  const f = fixture(t);
+  assert.notEqual(f.run("later-head").status, 0, "submission stays queued");
+  const resumed = f.run("later-head", ["--resume", requestId]);
+  assert.equal(resumed.status, 0, resumed.stderr);
+  assert.equal(creates(f).length, 1);
+  const evidence = JSON.parse(
+    fs.readFileSync(
+      path.join(f.packageDir, `.package-evidence/${candidateId}-create.json`),
+      "utf8"
+    )
+  );
+  assert.equal(evidence.gitCommit, commit, "evidence names the built commit");
+});
+
+test("resume refuses a later commit that changed package inputs", (t) => {
+  const f = fixture(t);
+  f.run("later-source");
+  const resumed = f.run("later-source", ["--resume", requestId]);
+  assert.notEqual(resumed.status, 0);
+  assert.match(resumed.stderr, /package inputs changed/);
   assert.equal(creates(f).length, 1);
 });

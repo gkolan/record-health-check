@@ -215,7 +215,10 @@ even when the first CLI response was lost. `--wait` controls minutes spent polli
 `--wait 0` submits and records the request without waiting for completion. Neither option skips
 Salesforce validation or package Apex coverage.
 
-Resume from the same clean commit, working copy and Dev Hub alias:
+Resume from the same clean commit, working copy and Dev Hub alias. A later clean commit on the same
+branch may resume only when it descends from the submitted commit and leaves every package input
+unchanged (for example, a fix to release tooling). Evidence still names the submitted commit, so
+promote from a checkout of that commit:
 
 ```bash
 npm run package:create -- --dev-hub <dev-hub> --release-ready --resume <08c-request-id>
