@@ -6,7 +6,7 @@ global class RecordHealthCheckResultDisplay {
   /** Versioned structured rendering; null for evaluation-only responses. */
   global RecordHealthCheckDisplayContent displayContent;
   @AuraEnabled
-  /** Optional validated structured evidence for the interactive card. */
+  /** Optional validated structured evidence for typed evaluation callers. */
   global RecordHealthCheckEvidenceEnvelope evidence;
   @AuraEnabled
   /** Rendered outcome message. */

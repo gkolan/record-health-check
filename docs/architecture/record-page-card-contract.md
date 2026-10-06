@@ -33,6 +33,12 @@ Check, and the reader has just pressed a button, so the wait is expected.
 | Record-save refresh                             | `_scheduleRecordRefresh` in `recordHealthCheck.js`         |
 | Server response, deliberately not cacheable     | `getCheckDefinitions` in `RecordHealthCheckController.cls` |
 
+Definition response validation and namespace-aware prerequisite resolution live in the pure
+`healthCheckDefinitions.js` helper. `_loadDefinitions` owns request lifecycle, server-verified
+entitlement, state updates, and scheduling. It captures entitlement before validation so malformed
+responses retain useful detail for authorized administrators. The extraction preserves validation
+order and never reuses definitions from an earlier run.
+
 **Supporting behaviors that must survive a refactor.**
 
 - The `preserveRows` argument to `_loadDefinitions` keeps the previous rows, the **Rerun** label,
@@ -197,23 +203,24 @@ which holds the request open deliberately.
 - [Configure the Lightning component](../lightning-record-page/configure-the-component.md)
 - [Setup and troubleshooting FAQ](../faqs/setup-and-troubleshooting.md)
 
-## Nullable evidence transport
+## Card-only result transport
 
 The card calls `RecordHealthCheckController.evaluateCheckJson`, which delegates to the existing
 typed `evaluateCheck` method and serializes its display plus the five card evaluation fields
 (`recordId`, `checkQualifiedApiName`, `status`, `severity`, and `reasonCode`). Raw machine operands
-are excluded. Null object properties are omitted, while null array cells retain their positions.
-`healthCheckModel.normalizeResult`
-decodes that JSON before validating the result. Aura otherwise removes null entries from nested
-Apex lists: a valid one-column evidence row `[[null]]` arrives as `[[]]` and correctly fails the
-browser's row-width validation. Do not pad malformed rows or weaken that validation to compensate.
+and structured evidence are excluded from the card-specific response. Null object properties are
+omitted. `healthCheckModel.normalizeResult` decodes the JSON before validating the result. The
+card keeps the verdict, message, Found/Expected comparison, remediation, and authorized diagnostics;
+it never renders evidence summaries, tables, Show details/Show all, or downloads. Evidence remains
+available to authorized callers through the typed evaluation APIs and is tested there independently.
 
 The Preview controller already returns JSON text. Public Apex, REST and native action contracts
 retain their existing typed or JSON responses; the new adapter changes only the card transport.
 The adapter preserves authorization, Check membership, source validation and per-Check execution.
 
-The LWC regression `preserves typed null cells through serialized Apex responses` verifies a rendered
-null cell and the retained evidence summary. `RHCControllerEvidenceTransportTest` verifies PASS and
-FAIL through the saved typed-null fixture and confirms that the adapter rejects an unauthorized
-caller. It also guards omitted raw operands and text nodes without null link properties. The
-malformed serialized-response and malformed evidence-row tests must continue to pass.
+The LWC regressions verify that PASS and FAIL retain the comparison while no structured evidence
+controls or summary appear, even if an older server includes evidence in the display payload.
+`RHCControllerEvidenceTransportTest` verifies PASS and FAIL through the saved typed-null fixture,
+confirms the adapter omits evidence, and rejects an unauthorized caller. It also guards omitted raw
+operands and text nodes without null link properties. `RHCEvidenceFixtureTest` continues to verify
+typed null cells and evidence validity through the public evaluation API.

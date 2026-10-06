@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-09-25",
+  "verifiedAt": "2026-10-06",
   "apex": {
     "verifiedAt": "2026-09-12",
     "sourceVersion": "2.0.11",
@@ -15,14 +15,15 @@
     "testRunId": "707RL00001gk8bXYAQ",
     "packageCoveragePercent": 97,
     "packageVersion": "2.0.10.1",
-    "subscriberPackageVersionId": "04tak000000h2wDAAQ"
+    "subscriberPackageVersionId": "04tak000000h2wDAAQ",
+    "sourceSnapshotSha256": null
   },
   "lwc": {
-    "verifiedAt": "2026-09-25",
-    "testCount": 407,
-    "linesPercent": 98.53,
-    "statementsPercent": 98.55,
-    "functionsPercent": 99.21,
-    "branchesPercent": 93.25
+    "verifiedAt": "2026-10-06",
+    "testCount": 403,
+    "linesPercent": 98.93,
+    "statementsPercent": 98.95,
+    "functionsPercent": 99.15,
+    "branchesPercent": 93.88
   }
 }

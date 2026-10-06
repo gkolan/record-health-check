@@ -14,10 +14,12 @@ import {
   prerequisiteIdentity
 } from "./healthCheckModel";
 
-const MAX_CONCURRENT_EVALUATIONS = 5;
+// Measured on 2.0.11.1 (LWS, 25 Checks): each call takes ~0.3 s, so Rerun time
+// scales with Checks / limit. Eight keeps per-page load modest while cutting waves.
+export const MAX_CONCURRENT_EVALUATIONS = 8;
 
 // Lightning pages can host this component more than once. A runner-local limit
-// lets every instance open five requests, so three components can create fifteen
+// lets every instance open eight requests, so three components can create 24
 // simultaneous Apex transactions. Keep one scheduler per loaded module/page so
 // all instances share the same conservative browser-to-Apex budget.
 let pageScheduler = { active: 0, queue: [] };

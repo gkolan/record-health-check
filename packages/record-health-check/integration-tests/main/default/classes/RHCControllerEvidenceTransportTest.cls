@@ -1,13 +1,13 @@
-/** Preserves nullable evidence cells across the imperative JSON transport. */
+/** Keeps structured evidence out of the record-page JSON transport. */
 @IsTest
 private class RHCControllerEvidenceTransportTest {
   @IsTest
-  static void passEvidencePreservesTypedNull() {
+  static void passCardOmitsEvidence() {
     verifyTransport(0, 'PASS');
   }
 
   @IsTest
-  static void failEvidencePreservesTypedNull() {
+  static void failCardOmitsEvidence() {
     verifyTransport(1, 'FAIL');
   }
 
@@ -142,29 +142,9 @@ private class RHCControllerEvidenceTransportTest {
       'The transport must preserve the business verdict.'
     );
     Map<String, Object> display = (Map<String, Object>) result.get('display');
-    Map<String, Object> evidence = (Map<String, Object>) display.get(
-      'evidence'
-    );
-    Assert.areEqual(
-      'COMPLETE',
-      evidence.get('completeness'),
-      'Valid nullable evidence must remain complete.'
-    );
-    List<Object> rows = (List<Object>) evidence.get('rows');
-    Assert.areEqual(
-      1,
-      rows.size(),
-      'The single evidence row must survive serialization.'
-    );
-    List<Object> row = (List<Object>) rows[0];
-    Assert.areEqual(
-      1,
-      row.size(),
-      'Null cells must retain their column positions.'
-    );
-    Assert.isNull(
-      row[0],
-      'A numeric null must remain null rather than becoming an absent cell.'
+    Assert.isFalse(
+      display.containsKey('evidence'),
+      'The record-page adapter must not transmit structured evidence rows.'
     );
   }
 }

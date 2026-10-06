@@ -9,10 +9,26 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { createApp } from "../src/app.js";
+import { agentToolResponseSchema } from "../src/contract.js";
 import { ServiceError } from "../src/errors.js";
 import { ConcurrencyLimitError } from "../src/limiter.js";
 import { SalesforceClient } from "../src/salesforce-client.js";
 import { testConfig } from "./helpers.js";
+
+const earlyDenial = z
+  .object({ httpStatus: z.literal(403), body: agentToolResponseSchema })
+  .strict()
+  .parse(
+    JSON.parse(
+      readFileSync(
+        new URL(
+          "../../../contracts/agent-tool/1/examples/early-authorization-denial.json",
+          import.meta.url
+        ),
+        "utf8"
+      )
+    )
+  );
 
 const servers: Array<ReturnType<typeof createServer>> = [];
 
@@ -48,6 +64,60 @@ afterEach(async () => {
 });
 
 describe("MCP Streamable HTTP", () => {
+  it.each([
+    ["run_record_health_check", "RUN_CHECK"],
+    ["run_record_health_check_set", "RUN_CHECK_SET"]
+  ])(
+    "preserves early Run permission denial through %s",
+    async (tool, operation) => {
+      const fetcher = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          Response.json({
+            access_token: "test-token",
+            instance_url: "https://instance.salesforce.test"
+          })
+        )
+        .mockResolvedValueOnce(
+          Response.json(earlyDenial.body, { status: earlyDenial.httpStatus })
+        );
+      const config = testConfig();
+      const logger = { log: vi.fn() };
+      const client = await connectClient(
+        createApp(
+          config,
+          new SalesforceClient(config, logger, fetcher),
+          logger
+        ),
+        "early-denial"
+      );
+      try {
+        const result = await client.callTool({
+          name: tool,
+          arguments: {
+            recordId: "001000000000001AAA",
+            qualifiedApiName: "Check_One",
+            correlationId: "caller-supplied"
+          }
+        });
+        expect(result.isError).toBe(true);
+        expect(result.structuredContent).toEqual({
+          contractVersion: "1.0",
+          correlationId: "caller-supplied",
+          success: false,
+          errorType: "AUTHORIZATION",
+          errorMessage: "Salesforce authorization failed."
+        });
+        expect(fetcher).toHaveBeenCalledTimes(2);
+        expect(
+          JSON.parse(fetcher.mock.calls[1]?.[1]?.body as string)
+        ).toMatchObject({ operation });
+      } finally {
+        await client.close();
+      }
+    }
+  );
+
   it("advertises OAuth protected-resource metadata and challenges unauthenticated clients", async () => {
     const config = testConfig({
       authMode: "jwt",

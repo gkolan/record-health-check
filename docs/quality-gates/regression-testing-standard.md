@@ -204,6 +204,25 @@ it; fatal transaction/security failures require their own precedence tests.
 - Preserve ignored reports and validate source gates from a clean Git-derived copy when local
   evidence affects a gate. Explicitly validate ignored specs; a skipped file is not a checked file.
 
+### Bind coverage claims to source
+
+The exact Apex inventory runner records `sourceSnapshotSha256` and rejects local source changes
+during the run. The fingerprint covers package source, integration and subscriber fixtures, namespace
+fixtures, package project configuration, and the test-overlay policy. It identifies local inputs;
+separate deployment evidence must establish that the org executed those inputs. It does not replace
+exact test-inventory reconciliation or installed-package evidence.
+
+When publishing Apex coverage, copy the fingerprint from the matching run's evidence into
+`config/quality-metrics.json` only after reconciling source, deployment, run identity, and coverage.
+Never calculate a fingerprint from today's checkout and attach it to an older run. For legacy runs
+whose source cannot be recovered, retain `sourceSnapshotSha256: null`. The metrics gate reports
+`historical-unbound` for those runs and `historical-source-mismatch` when a recorded fingerprint
+differs. Both require an explicit historical notice in the README. `source-matched` describes only
+the local source comparison; it does not execute Apex or prove the org's deployed source.
+
+The source-snapshot and evidence-status tests in `scripts/lib/apex-source-evidence.test.mjs` guard
+this repository-only reporting behavior. Custom Metadata fixtures cannot establish source provenance.
+
 ## Review findings without weakening the contract
 
 Treat analyzer findings as hypotheses. Inspect the exact source and engine logs even when the tool

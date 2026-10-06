@@ -359,12 +359,14 @@ presentation must not change those verdicts.
 `RecordHealthCheck.evaluate`, using EVALUATION_WITH_DISPLAY and disabling event publication.
 Its assertions cover all eight business results, typed null preservation, malformed-summary removal,
 authorized cross-record rows, and redacted counts. `RHCControllerEvidenceTransportTest` additionally
-checks the card JSON adapter, preserving the one-column null row and runner authorization. On a single-record card, the cross-record fixture
-has only the current authorized row; a two-record request is needed to verify the second row.
+checks that the card JSON adapter omits evidence rows and preserves runner authorization. A
+two-record typed API request is needed to verify the second authorized cross-record row.
 
 After deploying integration metadata, use the `RHC_Evidence_Projection` administrator list view to
 inspect the four Checks. Assign the Set to a disposable Account page and run the card on both
-records. Inspect the evidence details against the table, accounting for the single-record scope.
+records. Confirm the card shows PASS or FAIL, its message and comparison, but no evidence summary,
+table, Show details, Show all, or download controls. Inspect the evidence projection through the
+authorized typed API and the `RHCEvidenceFixtureTest` assertions, not the card.
 For recovery, change Number of Employees from 1 to 0 and rerun: the verdict must become PASS while
 the same evidence-validity rules remain. Delete the disposable Accounts/page assignment afterward;
 retain the intentionally malformed integration definitions. Record the actual persistent and browser
@@ -380,13 +382,14 @@ JSON envelope to exactly 262,145 UTF-8 bytes. Valid cells remain within their in
 The TRUNCATED case adds empty authorized rows to reach 101; UNKNOWN adds denied provenance.
 
 Use one Account with Site `RHC_EVIDENCE_FIXTURE` and Number of Employees 0, then change the count to 1.
-Run one byte Set at a time on the card. Expect PASS then FAIL, with 12 returned evidence rows in both
-runs. COMPLETE and TRUNCATED candidates must report TRUNCATED after trimming, with total/omitted
+Run one byte Set at a time on the card. Expect PASS then FAIL without evidence controls. The typed
+API must return 12 evidence rows in both runs. COMPLETE and TRUNCATED candidates must report
+TRUNCATED after trimming, with total/omitted
 counts 13/1 and 101/89 respectively. UNKNOWN must retain UNKNOWN and null total/omitted counts.
 Every final envelope must fit within 262,144 bytes. Keep these Sets separate: combining large
 payloads would also exercise the shared response budget and obscure the individual boundary.
 
 `RHCEvidenceByteFixtureTest` verifies the saved fixture plugin at the projector boundary and through
 the public evaluation API, separately for PASS and FAIL. Both layers matter: the shared response
-allocator is another safeguard and could mask a projector-only overflow. Record browser rendering and
-persistent administrator results separately; the automated tests are the byte-count authority.
+allocator is another safeguard and could mask a projector-only overflow. Record card verdicts and
+typed API results separately; the automated tests are the byte-count authority.

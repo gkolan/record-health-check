@@ -129,7 +129,6 @@ export function normalizeResult(result, check) {
         actionLabel: result.display?.actionLabel,
         actionUrl: result.display?.actionUrl,
         displayContent: result.display?.displayContent,
-        evidence: result.display?.evidence,
         adminDetail: result.display?.adminDetail
       }
     : result;

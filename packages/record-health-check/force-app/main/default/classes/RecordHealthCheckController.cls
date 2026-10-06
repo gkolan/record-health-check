@@ -164,13 +164,8 @@ public with sharing class RecordHealthCheckController {
   }
 
   /**
-   * Preserves null evidence cells and exposes only card evaluation/display fields.
-   * @param checkSetQualifiedApiName Exact parent Check Set QualifiedApiName.
-   * @param checkQualifiedApiName Exact Check QualifiedApiName.
-   * @param recordId Record to evaluate.
-   * @param runId Optional client correlation identifier.
-   * @param source Exact browser execution source.
-   * @return JSON card result, with null object properties omitted.
+   * Returns card-only evaluation/display JSON without structured evidence rows.
+   * Runner authorization and exact Check membership are preserved by evaluateCheck.
    */
   @AuraEnabled
   public static String evaluateCheckJson(
@@ -187,6 +182,11 @@ public with sharing class RecordHealthCheckController {
       runId,
       source
     );
+    // The record-page card has no evidence viewer. Keep evidence in the typed
+    // evaluation APIs, but do not send its potentially large rows to the LWC.
+    if (item.display != null) {
+      item.display.evidence = null;
+    }
     return JSON.serialize(
       new Map<String, Object>{
         'evaluation' => new Map<String, Object>{

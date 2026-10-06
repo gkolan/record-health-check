@@ -15,13 +15,16 @@ import getCheckDefinitions from "@salesforce/apex/RecordHealthCheckController.ge
 import getCheckSetAvailabilityForRecord from "@salesforce/apex/RecordHealthCheckController.getCheckSetAvailabilityForRecord";
 import evaluateCheck from "@salesforce/apex/RecordHealthCheckController.evaluateCheckJson";
 import completeRun from "@salesforce/apex/RecordHealthCheckController.completeRun";
-import {
-  checkIdentity,
-  checkNamespace,
-  parseAuraError
-} from "./healthCheckModel";
+import { checkIdentity, parseAuraError } from "./healthCheckModel";
 import { annotateCheck, buildSummaryGroups } from "./healthCheckPresentation";
 import { HealthCheckRunner } from "./healthCheckRunner";
+import {
+  validateDefinitions,
+  DEFAULT_RUN_BUTTON_DISPLAY,
+  DEFAULT_CARD_HEADING_DISPLAY,
+  CARD_HEADING_DISPLAYS,
+  RUN_BUTTON_DISPLAYS
+} from "./healthCheckDefinitions";
 import {
   buildInactiveCheckStat,
   componentErrorPresentation,
@@ -34,16 +37,10 @@ import {
 } from "./healthCheckDiagnostics";
 
 const RECORD_REFRESH_DEBOUNCE_MS = 250;
+// Lightning record pages keep working after first paint, so an unbounded idle
+// wait can postpone run-on-load Checks for seconds. Yield, but not forever.
+const IDLE_TIMEOUT_MS = 1000;
 const ESTIMATED_TOOLTIP_HEIGHT = 180;
-const DEFAULT_RUN_BUTTON_DISPLAY = "LABEL_AND_ICON";
-const DEFAULT_CARD_HEADING_DISPLAY = "TITLE_AND_SUBTITLE";
-const CARD_HEADING_DISPLAYS = ["TITLE_AND_SUBTITLE", "TITLE_ONLY", "HIDE"];
-const RUN_BUTTON_DISPLAYS = [
-  "LABEL_AND_ICON",
-  "LABEL_ONLY",
-  "ICON_ONLY",
-  "HIDE"
-];
 const SLDS_ICON_NAME = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/;
 
 function isLightningAppBuilderContext() {
@@ -163,7 +160,6 @@ export default class RecordHealthCheck extends LightningElement {
   // the visibleChecks getter re-annotates. Lives outside `checks` because the
   // runner rebuilds that array on every result; expand state must survive that.
   @track _expandedNames = emptyExpandedState();
-  _evidenceBlobUrls = new Set();
 
   // Run orchestration (result buffer, reveal pointer, concurrency pool, run id,
   // and the run token that discards stale in-flight results) lives in the runner;
@@ -256,10 +252,6 @@ export default class RecordHealthCheck extends LightningElement {
     this._cancelScheduledRecordRefresh();
     this._cancelScheduledAutomaticRun();
     this._runner.invalidate();
-    for (const url of this._evidenceBlobUrls) {
-      window.URL.revokeObjectURL(url);
-    }
-    this._evidenceBlobUrls.clear();
     this._definitionLoadInProgress = false;
     this._definitionsResolved = false;
 
@@ -357,7 +349,8 @@ export default class RecordHealthCheck extends LightningElement {
     }
     if (shellConfig?.runMode === "Automatic") {
       this._prepareDeferredAutomaticShell(shellConfig);
-      this._scheduleAutomaticLoad();
+      // The initial idle boundary has already passed; waiting again only delays results.
+      this._loadDefinitions("RUN_ON_LOAD");
       return;
     }
     this._loadDefinitions();
@@ -715,118 +708,16 @@ export default class RecordHealthCheck extends LightningElement {
       if (loadToken !== this._loadToken || !this._connected) {
         return;
       }
-      if (!response || typeof response !== "object") {
-        throw this._clientDefinitionError(
-          "The server returned an invalid health-check definition response."
-        );
-      }
-      // Preserve the server-verified entitlement before any client-side
-      // validation can fail, so authorized administrators receive useful
-      // detail for truncated or malformed definition responses too.
-      this._canViewDetails = response.canViewDetails === true;
-      if (!Array.isArray(response.checks)) {
-        throw this._clientDefinitionError(
-          "The server returned an invalid health-check definition response."
-        );
-      }
-      // Older servers can still return a truncated definition response. Block
-      // it here so an upgrade mismatch cannot silently run only part of a Set.
-      if (response.checksOmittedByLimit === true) {
-        const configured =
-          typeof response.totalAvailableCheckCount === "number"
-            ? response.totalAvailableCheckCount
-            : "more than the supported number of";
-        const error = new Error(
-          `FRAMEWORK_MAX_CHECKS_EXCEEDED: configured=${configured}, ceiling=${this.frameworkMaxChecks}. No Checks were run.`
-        );
-        error.reasonCode = "FRAMEWORK_MAX_CHECKS_EXCEEDED";
-        throw error;
-      }
-
-      const seenQualifiedNames = new Set();
-      for (const def of response.checks) {
-        if (!def || !def.developerName) {
-          throw this._clientDefinitionError(
-            "A health-check definition is missing its developer name."
-          );
-        }
-        if (!def.qualifiedApiName) {
-          throw this._clientDefinitionError(
-            "A health-check definition is missing its qualified API name."
-          );
-        }
-        if (seenQualifiedNames.has(def.qualifiedApiName)) {
-          throw this._clientDefinitionError(
-            `Duplicate health-check qualified API name: ${def.qualifiedApiName}.`
-          );
-        }
-        seenQualifiedNames.add(def.qualifiedApiName);
-      }
-      const canonicalChecks = this._canonicalizeCheckIdentities(
-        response.checks
-      );
-
-      const cardHeadingDisplay =
-        typeof response.cardHeadingDisplay !== "string" ||
-        response.cardHeadingDisplay.trim() === ""
-          ? DEFAULT_CARD_HEADING_DISPLAY
-          : response.cardHeadingDisplay;
-      const runButtonDisplay =
-        response.runButtonDisplay || DEFAULT_RUN_BUTTON_DISPLAY;
-      this._requireMode(
-        response.triggerMode,
-        ["Automatic", "Manual"],
-        "When Checks Run"
-      );
-      this._requireMode(
-        runButtonDisplay,
-        RUN_BUTTON_DISPLAYS,
-        "Run Button Display"
-      );
-      if (response.triggerMode === "Manual" && runButtonDisplay === "HIDE") {
-        const configurationError = new Error(
-          "Run Button Display cannot be Hide when checks run only after a user clicks Run. Use a visible Run Button Display or run checks when the page opens."
-        );
-        configurationError.reasonCode = "INVALID_CONFIG";
-        throw configurationError;
-      }
-      this._requireMode(
+      // Capture server entitlement before validation can reject the response.
+      this._canViewDetails =
+        response !== null &&
+        typeof response === "object" &&
+        response.canViewDetails === true;
+      const {
+        checks: canonicalChecks,
         cardHeadingDisplay,
-        CARD_HEADING_DISPLAYS,
-        "Card Heading Display"
-      );
-      if (response.triggerMode === "Manual" && cardHeadingDisplay === "HIDE") {
-        const configurationError = new Error(
-          "Card Heading Display cannot be Hide when checks run only after a user clicks Run. Show the heading or run checks when the page opens."
-        );
-        configurationError.reasonCode = "INVALID_CONFIG";
-        throw configurationError;
-      }
-      this._requireMode(
-        response.revealMode,
-        ["OneAtATime", "AllAtOnce"],
-        "Reveal Mode"
-      );
-      this._requireMode(
-        response.successDisplayMode,
-        ["Show", "Hide"],
-        "Passed Checks Display"
-      );
-      this._requireMode(
-        response.skippedDisplayMode,
-        ["Show", "Hide"],
-        "Skipped Checks Display"
-      );
-      this._requireMode(
-        response.comparisonDisplay,
-        ["OnDemand", "FailuresOnly", "AllRows"],
-        "Found/Expected Display"
-      );
-      this._requireMode(
-        response.summaryDisplay || "BOTTOM",
-        ["TOP", "BOTTOM", "HIDE"],
-        "Summary Display"
-      );
+        runButtonDisplay
+      } = validateDefinitions(response, this.frameworkMaxChecks);
       this.displayTitle = response.displayTitle;
       this.displayDescription = response.displayDescription;
       this.cardHeadingDisplay = cardHeadingDisplay;
@@ -968,7 +859,9 @@ export default class RecordHealthCheck extends LightningElement {
 
   _scheduleIdleWork(runWhenIdle) {
     if (typeof window.requestIdleCallback === "function") {
-      const idleId = window.requestIdleCallback(runWhenIdle);
+      const idleId = window.requestIdleCallback(runWhenIdle, {
+        timeout: IDLE_TIMEOUT_MS
+      });
       return () => window.cancelIdleCallback(idleId);
     }
 
@@ -1101,83 +994,10 @@ export default class RecordHealthCheck extends LightningElement {
     );
   }
 
-  _requireMode(value, allowed, label) {
-    if (!allowed.includes(value)) {
-      throw Object.assign(
-        new Error(`${label} has an invalid configured value.`),
-        {
-          reasonCode: "INVALID_CONFIG"
-        }
-      );
-    }
-  }
-
   _isCardActionFocused() {
     return (
       this.template.activeElement?.matches?.("[data-card-action]") === true
     );
-  }
-
-  _clientDefinitionError(message) {
-    return Object.assign(new Error(message), {
-      reasonCode: "CLIENT_DEFINITION_INVALID"
-    });
-  }
-
-  _canonicalizeCheckIdentities(definitions) {
-    const byDeveloperName = new Map();
-    for (const definition of definitions) {
-      const candidates = byDeveloperName.get(definition.developerName) || [];
-      candidates.push(definition);
-      byDeveloperName.set(definition.developerName, candidates);
-    }
-
-    return definitions.map((definition) => {
-      const explicitQualifiedDependency =
-        definition.dependsOnCheckQualifiedApiName;
-      const developerNameDependency = definition.dependsOnCheckDeveloperName;
-      if (!explicitQualifiedDependency && !developerNameDependency) {
-        return { ...definition, dependsOnCheckQualifiedApiName: null };
-      }
-      if (explicitQualifiedDependency) {
-        return {
-          ...definition,
-          dependsOnCheckQualifiedApiName: explicitQualifiedDependency
-        };
-      }
-
-      const candidates = byDeveloperName.get(developerNameDependency) || [];
-      if (candidates.length === 0) {
-        return {
-          ...definition,
-          dependsOnCheckQualifiedApiName: developerNameDependency
-        };
-      }
-      if (candidates.length === 1) {
-        return {
-          ...definition,
-          dependsOnCheckQualifiedApiName: candidates[0].qualifiedApiName
-        };
-      }
-
-      const sourceNamespace = this._checkNamespace(definition);
-      const sameNamespace = candidates.filter(
-        (candidate) => this._checkNamespace(candidate) === sourceNamespace
-      );
-      if (sameNamespace.length !== 1) {
-        throw this._clientDefinitionError(
-          `Prerequisite Check "${developerNameDependency}" is ambiguous across namespaces.`
-        );
-      }
-      return {
-        ...definition,
-        dependsOnCheckQualifiedApiName: sameNamespace[0].qualifiedApiName
-      };
-    });
-  }
-
-  _checkNamespace(definition) {
-    return checkNamespace(definition);
   }
 
   _handleCompletionFailure(error) {
@@ -1333,79 +1153,6 @@ export default class RecordHealthCheck extends LightningElement {
     Object.assign(expandedNames, this._expandedNames);
     expandedNames[identity] = next;
     this._expandedNames = expandedNames;
-  }
-
-  handleToggleEvidence(event) {
-    const identity = event.currentTarget.dataset.check;
-    const current = this.checks.find(
-      (check) => checkIdentity(check) === identity
-    );
-    const nextExpanded = current?.evidenceExpanded !== true;
-    this.checks = this.checks.map((check) => {
-      if (checkIdentity(check) !== identity) {
-        return check;
-      }
-      return {
-        ...check,
-        evidenceExpanded: nextExpanded,
-        evidenceShowAll: nextExpanded ? check.evidenceShowAll : false
-      };
-    });
-    if (!nextExpanded) {
-      Promise.resolve().then(() => {
-        this.template
-          .querySelector(`[data-evidence-toggle="${identity}"]`)
-          ?.focus();
-      });
-    }
-  }
-
-  handleShowAllEvidence(event) {
-    const identity = event.currentTarget.dataset.check;
-    this.checks = this.checks.map((check) => {
-      return checkIdentity(check) === identity
-        ? { ...check, evidenceShowAll: true }
-        : check;
-    });
-  }
-
-  handleDownloadEvidence(event) {
-    const identity = event.currentTarget.dataset.check;
-    const check = this.checks.find(
-      (candidate) => checkIdentity(candidate) === identity
-    );
-    const evidence = check?.result?.evidence;
-    if (!evidence || evidence.version !== "1.0") {
-      return;
-    }
-    const blob = new Blob([JSON.stringify(evidence)], {
-      type: "application/json;charset=utf-8"
-    });
-    // Blob URLs are required for the bounded, user-initiated JSON export. LWS
-    // virtualizes this API; retain the URL only until the synchronous click.
-    // eslint-disable-next-line @locker/locker/distorted-url-create-object-url
-    const url = window.URL.createObjectURL(blob);
-    this._evidenceBlobUrls.add(url);
-    const link = [
-      ...this.template.querySelectorAll("[data-evidence-download]")
-    ].find((candidate) => candidate.dataset.check === identity);
-    if (!link) {
-      window.URL.revokeObjectURL(url);
-      this._evidenceBlobUrls.delete(url);
-      return;
-    }
-    const safeRunId = String(evidence.runId || "run").replace(
-      /[^A-Za-z0-9_-]/g,
-      "-"
-    );
-    link.href = url;
-    link.download = `rhc-evidence-${safeRunId}.json`;
-    link.click();
-    Promise.resolve().then(() => {
-      if (this._evidenceBlobUrls.delete(url)) {
-        window.URL.revokeObjectURL(url);
-      }
-    });
   }
 
   handleInlineLinkClick(event) {

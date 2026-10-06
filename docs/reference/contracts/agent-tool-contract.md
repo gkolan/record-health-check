@@ -72,6 +72,20 @@ An adapter failure has no health status or completed-evaluation diagnosis. It ca
 trace, query, formula, token, session ID, unrestricted exception, record field value, or
 administrator diagnostic.
 
+### Early permission denial and correlation
+
+REST checks the Run permission before reading the request body. Its HTTP `403` / `AUTHORIZATION`
+response therefore carries a server-generated correlation ID. MCP preserves that authorization
+category and returns its own effective request correlation ID with a generic safe message. It does
+not retry a permission denial. All completed evaluations and other mismatched responses remain
+subject to the exact correlation check. Native Agentforce actions do not cross this HTTP boundary.
+
+To verify both tools, call each with a dedicated non-production principal that has REST class access
+but lacks the Run permission: expect `success=false`, `errorType=AUTHORIZATION`, the caller's safe
+correlation ID, and no health status. Restore the intended permission assignment and rerun an existing
+known PASS Check or Check Set; expect the normal completed result. Use an owned test principal and
+preserve its original assignments.
+
 ## Identity and sensitivity
 
 The native action uses the configured Agentforce principal's Salesforce access. MCP uses a dedicated

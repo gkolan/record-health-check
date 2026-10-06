@@ -79,10 +79,21 @@ resolve every hidden manual-run Check Set before installation.
 
 ### Changed
 
+- The record-page card no longer exposes structured evidence summaries, Show details, Show all,
+  evidence tables, or downloads. Verdicts, comparisons, messages, and remediation remain. The
+  card-specific response omits evidence rows; typed evaluation APIs keep their evidence contract.
+
 - A Check Set that hides its card heading must run when the page opens. Manual Check Sets now reject
   a hidden heading as invalid configuration because the heading owns the Run/Rerun action. The setup
   error can be retried after correction without reloading the page, and verified administrators can
   see the exact rejected setting without exposing it to ordinary users.
+
+- Checks finish sooner. Run-on-load Check Sets wait at most one second for the record page to go
+  idle and no longer wait a second time before loading definitions. Up to eight Check evaluations
+  run at once across the page, up from five. Configuration is still reread before every run.
+
+- The separately distributed MCP server correctly reports early Salesforce permission denials as
+  `AUTHORIZATION` while preserving the caller's correlation ID.
 
 ## Version 2.0.10
 

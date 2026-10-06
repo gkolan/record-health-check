@@ -12,6 +12,10 @@ running a configuration whose only manual Run action is unreachable.
 - Unexpected controller failures are redacted for ordinary users while authorized diagnostics
   users retain actionable details.
 - Warning-only metadata findings remain visible without replacing valid evaluation results.
+- The record-page card keeps the verdict, message, Found/Expected comparison, and remediation, but
+  removes structured evidence summaries, Show details, Show all, evidence tables, and downloads.
+  The card-specific JSON response no longer transmits evidence rows; typed evaluation APIs retain
+  their evidence contract. This is a source change pending a new package and installed-card check.
 
 ## Upgrade action from 2.0.10.1
 
@@ -29,6 +33,19 @@ For each finding, make one of these changes:
 Rerun the audit until it reports zero findings, then upgrade a representative sandbox. The audit
 checks subscriber-owned Check Sets whether active or inactive so a later activation cannot
 reintroduce an unreachable action.
+
+## Current release preparation
+
+The configured next candidate is **2.0.11.2**. It includes subsequent source changes and has not
+been created or installed. The 2.0.11.1 results below remain evidence for that immutable older
+candidate; they do not verify 2.0.11.2. Fresh package-build, installation and upgrade results remain
+pending. The stable public installer continues to select 2.0.10.1 until an owner promotes and
+publishes a replacement.
+
+The separately distributed MCP server now preserves `AUTHORIZATION` when Salesforce rejects a
+caller before parsing the request body. It retains the caller's correlation ID and does not retry
+the denied request. Package creation now records the exact Salesforce request and supports resuming
+interrupted attempts without resubmission; see the [release runbook](../../.github/RELEASING.md).
 
 ## Regression and installed-package evidence
 

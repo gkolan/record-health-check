@@ -1,0 +1,10 @@
+{
+  "httpStatus": 403,
+  "body": {
+    "contractVersion": "1.0",
+    "correlationId": "server-generated-before-body-parse",
+    "success": false,
+    "errorType": "AUTHORIZATION",
+    "errorMessage": "You do not have permission to run Record Health Checks."
+  }
+}

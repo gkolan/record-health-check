@@ -20,6 +20,10 @@ import { packageVersionString } from "../lib/package-version.mjs";
 import { run, runJson, tryRun } from "../lib/run.mjs";
 import { assertScratchCapacity } from "../lib/salesforce-limits.mjs";
 import { selectUpgradeBase } from "../lib/release-upgrades.mjs";
+import {
+  planReleasePairReset,
+  writeReleasePairResetDeploy
+} from "../lib/release-pair-reset.mjs";
 
 const { values } = parseArgs({
   options: {
@@ -187,31 +191,20 @@ function installPackage(packageVersionId, alias) {
 }
 
 function resetReleasePairForUpgrade(alias, candidateId) {
-  const manifestDirectory = fs.mkdtempSync(
-    path.join(os.tmpdir(), "rhc-subscriber-delete-")
+  const deployDirectory = fs.mkdtempSync(
+    path.join(os.tmpdir(), "rhc-subscriber-reset-")
   );
   try {
-    run("sf", [
-      "project",
-      "generate",
-      "manifest",
-      "--source-dir",
-      paths.subscriberApp,
-      "--type",
-      "destroy",
-      "--output-dir",
-      manifestDirectory
-    ]);
-    fs.writeFileSync(
-      path.join(manifestDirectory, "package.xml"),
-      '<?xml version="1.0" encoding="UTF-8"?>\n<Package xmlns="http://soap.sforce.com/2006/04/metadata"><version>66.0</version></Package>\n'
-    );
+    // One transaction: delete Checks, reset record-page overrides and
+    // deactivate Flows, then delete the remaining harness components.
+    const plan = planReleasePairReset(paths.subscriberApp);
+    writeReleasePairResetDeploy(plan, deployDirectory);
     run("sf", [
       "project",
       "deploy",
       "start",
-      "--manifest",
-      path.join(manifestDirectory, "package.xml"),
+      "--metadata-dir",
+      deployDirectory,
       "--target-org",
       alias,
       "--test-level",
@@ -219,6 +212,42 @@ function resetReleasePairForUpgrade(alias, candidateId) {
       "--wait",
       "30"
     ]);
+    // A metadata delete of a deactivated Flow is rejected; delete its versions.
+    const emptyBody = path.join(deployDirectory, "empty.json");
+    fs.writeFileSync(emptyBody, "{}");
+    for (const flow of plan.flows) {
+      const versions =
+        runJson("sf", [
+          "data",
+          "query",
+          "--use-tooling-api",
+          "--target-org",
+          alias,
+          "--query",
+          `SELECT Id FROM Flow WHERE Definition.DeveloperName = '${flow}'`
+        ]).result?.records ?? [];
+      for (const { Id } of versions) {
+        run("sf", [
+          "api",
+          "request",
+          "rest",
+          `/services/data/v66.0/tooling/sobjects/Flow/${Id}`,
+          "--method",
+          "DELETE",
+          "--body",
+          emptyBody,
+          "--target-org",
+          alias
+        ]);
+      }
+    }
+    // Uninstall is rejected while any package Permission Set is assigned.
+    const unassign = path.join(deployDirectory, "unassign.apex");
+    fs.writeFileSync(
+      unassign,
+      "delete [SELECT Id FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = 'rhc'];\n"
+    );
+    run("sf", ["apex", "run", "--target-org", alias, "--file", unassign]);
     run("sf", [
       "package",
       "uninstall",
@@ -230,7 +259,7 @@ function resetReleasePairForUpgrade(alias, candidateId) {
       "30"
     ]);
   } finally {
-    fs.rmSync(manifestDirectory, { recursive: true, force: true });
+    fs.rmSync(deployDirectory, { recursive: true, force: true });
   }
 }
 

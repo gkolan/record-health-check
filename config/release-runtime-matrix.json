@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "candidateVersion": "2.0.11.1",
+  "candidateVersion": "2.0.11.2",
   "upgradeFromVersion": "2.0.10.1",
   "upgradeBases": [
     {
@@ -131,7 +131,7 @@
     "record-navigation",
     "component-disconnect-reconnect",
     "fresh-package-install",
-    "upgrade-2.0.10.1-to-2.0.11.1",
+    "upgrade-2.0.10.1-to-2.0.11.2",
     "post-install-lwc",
     "post-upgrade-lwc",
     "post-install-apex-api",
@@ -183,7 +183,7 @@
       "tests/browser/lifecycle.mjs"
     ],
     "fresh-package-install": ["scripts/release/verify-package-version.mjs"],
-    "upgrade-2.0.10.1-to-2.0.11.1": [
+    "upgrade-2.0.10.1-to-2.0.11.2": [
       "scripts/release/verify-package-version.mjs",
       "scripts/release/audit-2.0.11-upgrade.mjs",
       "tests/fixtures/upgrade-2.0.11/contract.json",

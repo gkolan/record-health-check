@@ -56,11 +56,12 @@ Before creating a release candidate:
 
 After creating the single candidate and before promotion:
 
-1. Run the subscriber release-pair workflow against its explicit `04t`.
-2. Confirm clean installation and the exact immediately-previous-release upgrade preserve
-   subscriber-owned Custom Metadata in both retained orgs.
-3. Run `npm run release:preflight` again from the final committed release source.
-4. Confirm the pull request's complete GitHub Actions **CI** workflow is green. Do not promote while
+1. If the owner authorizes optional subscriber validation, run the release-pair workflow against
+   the explicit `04t`. Record whether clean installation and the exact previous-release upgrade
+   preserve subscriber-owned Custom Metadata in both retained orgs. Otherwise mark these results
+   pending; local source checks do not prove installation or upgrade behavior.
+2. Run `npm run release:preflight` again from the final committed release source.
+3. Confirm the pull request's complete GitHub Actions **CI** workflow is green. Do not promote while
    CI is absent, pending, cancelled, or failing.
 
 Never discard deploy, test, package, or install output. Archive JSON results with the release.
@@ -186,7 +187,11 @@ npm run package:create -- --dev-hub <dev-hub> --release-ready
 Run the commands from a clean, committed release branch. `package:create` repeats the release
 preflight, checks Dev Hub capacity, requests code coverage, and records redacted creation evidence.
 The Salesforce package-version Branch field records the stable Git release branch; it does not
-include a commit suffix. Exact commit provenance lives in the ignored creation evidence. This
+include a commit suffix. The Tag field records `<commit>:<four-part-version>`. The command binds
+creation evidence to the returned `08c` request, exact package, branch, tag, version and `04t`; it
+does not infer the candidate from the latest item in a package list. It rejects an existing version
+across the entire package history and rechecks the clean commit before submission and evidence
+creation. Automatic CLI project-alias updates are disabled to preserve that committed source. This
 unlocked-package project does not declare managed-package `ancestorVersion` metadata; supported
 upgrade paths are verified by installing the exact released base IDs from the runtime matrix.
 The subscriber release-pair workflow treats installation into clean subscriber orgs as the
@@ -200,6 +205,30 @@ candidate to the configured package and the current `HEAD`. Promote from the sam
 the exact creation commit; promotion intentionally fails after advancing or merging the branch, or
 from another machine without the creation evidence.
 
+### Recover an interrupted creation
+
+Before submission, the command exclusively creates
+`packages/record-health-check/.package-evidence/<0Ho>-<version>-attempt.json`.
+Keep this journal and its adjacent CLI stdout, stderr and request-report files. Raw diagnostic files
+are local evidence; review them before sharing. A plain retry refuses to submit another candidate,
+even when the first CLI response was lost. `--wait` controls minutes spent polling (default 120);
+`--wait 0` submits and records the request without waiting for completion. Neither option skips
+Salesforce validation or package Apex coverage.
+
+Resume from the same clean commit, working copy and Dev Hub alias:
+
+```bash
+npm run package:create -- --dev-hub <dev-hub> --release-ready --resume <08c-request-id>
+```
+
+Resume reruns local preflight and reads the existing request; it does not consume package-create
+capacity. If submission lost the request ID, inspect `sf package version create list --target-dev-hub
+<dev-hub> --json` and identify the request by the journal's package ID, branch and exact
+`<commit>:<version>` tag before resuming. The wrapper verifies these identities again. Preserve a
+failed attempt: after reviewing the server error and fixing its cause, prepare a new committed build
+number under the normal quota policy. Do not delete the journal to force a retry. A successful request
+must report passing package coverage before the wrapper writes promotion evidence.
+
 The Node entry points work on Windows, macOS, and Linux. Pass `--dev-hub` explicitly; do not rely
 on the bash-only `VAR=value command` prefix.
 
@@ -210,10 +239,11 @@ Record the resulting `04t` ID and retain the redacted creation evidence. Subscri
 recommended when the release owner authorizes the required scratch orgs, but it is not a package
 creation or promotion prerequisite.
 
-## Verify before promote
+## Optional subscriber validation before promotion
 
-Dispatch **Subscriber release-pair validation** once with the exact candidate and explicit
-authorization for its LWS and Locker pair.
+When the release owner authorizes its LWS and Locker pair, dispatch **Subscriber release-pair
+validation** once with the exact candidate. This evidence is recommended, but it is not required
+for package creation or promotion.
 
 This runs:
 

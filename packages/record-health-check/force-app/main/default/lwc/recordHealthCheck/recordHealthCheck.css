@@ -1347,48 +1347,6 @@
   }
 }
 
-.rhc-evidence {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--slds-g-color-border-base-1, #c9c9c9);
-}
-
-.rhc-evidence__summary,
-.rhc-evidence__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.rhc-evidence__label,
-.rhc-evidence__group-heading {
-  font-weight: 700;
-}
-
-.rhc-evidence__actions,
-.rhc-evidence__region,
-.rhc-evidence__group + .rhc-evidence__group {
-  margin-top: 0.5rem;
-}
-
-.rhc-evidence__group-heading {
-  margin-bottom: 0.25rem;
-}
-
-.rhc-evidence__table-scroll {
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-.rhc-evidence__table-scroll table {
-  min-width: max-content;
-}
-
-.rhc-evidence__show-all {
-  margin-top: 0.5rem;
-}
-
 /* Keep the first status accent below the rounded card surface without clipping tooltips. */
 .rhc-body--bare-top {
   padding-top: var(--rhc-theme-card-radius);

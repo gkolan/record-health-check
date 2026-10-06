@@ -22,6 +22,13 @@ const component = fs.readFileSync(
   ),
   "utf8"
 );
+const definitionValidation = fs.readFileSync(
+  path.join(
+    root,
+    "packages/record-health-check/force-app/main/default/lwc/recordHealthCheck/healthCheckDefinitions.js"
+  ),
+  "utf8"
+);
 const componentMetadata = fs.readFileSync(
   path.join(
     root,
@@ -364,9 +371,14 @@ for (const requiredContract of [
     "metadata validation for hidden Manual headings"
   ],
   [
-    component,
+    definitionValidation,
     'response.triggerMode === "Manual" && cardHeadingDisplay === "HIDE"',
     "client-side hidden Manual heading defense"
+  ],
+  [
+    component,
+    "validateDefinitions(response, this.frameworkMaxChecks)",
+    "definition validation before applying component state"
   ],
   [
     component,

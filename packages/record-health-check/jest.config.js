@@ -8,6 +8,7 @@ module.exports = {
   collectCoverageFrom: [
     `${lwcRoot}/recordHealthCheck.js`,
     `${lwcRoot}/healthCheckDiagnostics.js`,
+    `${lwcRoot}/healthCheckDefinitions.js`,
     `${lwcRoot}/healthCheckModel.js`,
     `${lwcRoot}/healthCheckPresentation.js`,
     `${lwcRoot}/healthCheckRunner.js`
@@ -20,6 +21,9 @@ module.exports = {
       statements: 98
     },
     [`${lwcRoot}/recordHealthCheck.js`]: {
+      lines: 98
+    },
+    [`${lwcRoot}/healthCheckDefinitions.js`]: {
       lines: 98
     },
     [`${lwcRoot}/healthCheckDiagnostics.js`]: {

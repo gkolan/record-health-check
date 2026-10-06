@@ -13,6 +13,8 @@ import {
   verifyApexTestResult
 } from "../lib/apex-test-inventory.mjs";
 
+import { apexSourceSnapshot } from "../lib/apex-source-evidence.mjs";
+
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../.."
@@ -62,6 +64,8 @@ if (inventory.length === 0) {
   console.error("No Apex test classes were discovered; refusing to pass.");
   process.exit(1);
 }
+
+const sourceSnapshotSha256 = apexSourceSnapshot(root);
 
 const temporaryOutput = fs.mkdtempSync(
   path.join(os.tmpdir(), `rhc-apex-${values.topology}-`)
@@ -128,7 +132,13 @@ fs.copyFileSync(
 try {
   const verdict = verifyApexTestResult(inventory, result);
   verifyApexCommandExecution(execution, verdict);
+  if (apexSourceSnapshot(root) !== sourceSnapshotSha256) {
+    throw new Error(
+      "Local source changed during Apex execution; the run cannot establish a source snapshot."
+    );
+  }
   const evidence = {
+    sourceSnapshotSha256,
     topology: values.topology,
     scope: values.scope,
     targetOrg: values["target-org"],
