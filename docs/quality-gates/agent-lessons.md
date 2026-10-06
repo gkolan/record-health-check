@@ -240,6 +240,14 @@ A local Firefox workaround can be selected through `RHC_FIREFOX_EXECUTABLE_PATH`
 binary and wrapper are machine-specific, not a portable repository dependency. Reverify the need
 before applying it on a future machine.
 
+Salesforce can show a Scheduled Maintenance notice to either the administrator or restricted
+user before the expected page. The browser runner initializes both sessions through the shared
+first-login helper, acknowledges only that notice, and still requires Lightning Home. Detached
+frames during the redirect can be retried; other errors remain failures. Sanitize generated
+content-door `sid` and `lm` parameters as well as known credentials, including failure-context
+Markdown, before retaining or publishing browser evidence. Retained-org runtime settings retrieval
+follows the [scratch-org lifecycle](./scratch-org-lifecycle.md#rolling-two-release-org-window).
+
 The App Builder test recognizes a narrowly specified Firefox Salesforce-shell error shape and
 attaches the errors as evidence. Do not expand that exception to arbitrary errors, missing stacks or
 component failures. Successful Chromium execution does not establish Firefox or Locker behavior.

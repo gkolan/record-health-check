@@ -410,7 +410,9 @@ All rows, On demand (expand the passing row), and Failures only (passing values 
 Restore the copied Check and Set settings afterward. No verdict, count, message or remediation
 may change merely because visibility changed. The Jest block `fixed comparison labels respect
 Custom Metadata visibility` covers PASS and FAIL across these settings and absent/custom labels;
-live installed-package and LWS/Locker execution remains pending for this source change.
+the installed browser matrix separately asserts the activity row and forbids other comparison
+headings. The exhaustive visibility and placement combinations are covered by Jest and the
+manual configuration procedure above.
 
 ### Apex metadata formatting precedence
 
@@ -426,5 +428,6 @@ currency paths. `RecordHealthCheckApexResultFinalizerTest.configuredFormatWinsOv
 guards the legacy typed fallback. Subscriber-owned equivalents under `subscriber-app` use
 `Subscriber_Format_Precedence`, `RHCSubscriberFormatPlugin`, and `RHCSubscriberFormatTest`;
 never deploy these integration source fixtures to a subscriber org. The subscriber test verifies
-both Check and mixed-Set public API paths. Source Apex execution remains pending until the exact
-new package build executes its tests; installed-package green evidence must use that new candidate.
+both Check and mixed-Set public API paths. Package 2.0.11.3 passed its packaged tests, and the subscriber formatting regression passed
+on that exact candidate in LWS and Locker, after both clean installation and upgrade. See the
+release document for the completed runtime evidence.

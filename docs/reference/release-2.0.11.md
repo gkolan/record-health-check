@@ -36,16 +36,42 @@ reintroduce an unreachable action.
 
 ## Current release preparation
 
-Candidate **2.0.11.2**, whose ID is recorded in the [package project aliases](../../packages/record-health-check/sfdx-project.json), was created from `f988334` with
-97% package coverage and installed in the retained LWS test org for owner testing. It is unpromoted.
-That installation and its timing samples do not establish Locker, clean-install/upgrade, restricted
-persona, or the complete browser/API release matrix.
+Candidate **2.0.11.3**, whose immutable ID is recorded in the
+[package project aliases](../../packages/record-health-check/sfdx-project.json), was created from
+`3f68a358ad4365813cbebe9b71d0b9cec6420e0b` on October 6, 2026. Salesforce reports 97% package
+coverage, validation enabled, and an unpromoted version.
 
-The configured replacement candidate is **2.0.11.3**, pending creation. Its source adds fixed
-**Found / Expected** card headings and gives explicit Custom Metadata Value Format precedence over
-plugin formats. Automatic retains plugin formatting. Neither change is in 2.0.11.2. The stable
-public installer continues to select 2.0.10.1 until an owner promotes and publishes a replacement.
-Fresh package-build, installed-package and browser evidence must identify the replacement candidate.
+The candidate fixes **Found / Expected** card headings and gives explicit Custom Metadata Value
+Format precedence over plugin formats. Automatic retains plugin formatting and structured
+comparison content. The earlier 2.0.11.2 candidate predates both fixes. The stable public installer
+continues to select 2.0.10.1 until an owner promotes and publishes a replacement.
+
+The retained LWS and Locker subscriber orgs each completed clean installation and upgrade from
+exact base 2.0.10.1. Every phase passed all 20 subscriber Apex test methods across four classes,
+live MCP, and Chromium/Firefox card, rerun, App Builder and restricted Card User scenarios. The
+installed activity row explicitly showed **Found / Expected**. Each upgrade preserved all four
+subscriber Check Sets and ten Checks, passed compatibility recovery, and verified 204 expected
+demo outcomes. Both end-to-end verifier processes exited successfully.
+
+| Runtime | Phase         | Exact Apex run  | Business test methods |
+| ------- | ------------- | --------------- | --------------------: |
+| LWS     | Clean install | 707cU00000sxcL8 |                    20 |
+| LWS     | Upgrade       | 707cU00000sy05T |                    20 |
+| Locker  | Clean install | 707Ru00002FLY7s |                    20 |
+| Locker  | Upgrade       | 707Ru00002FLY1g |                    20 |
+
+Three setup methods are reconciled separately in each Salesforce result; they are not counted
+as business tests. The comparison-format regression first failed against 2.0.11.2 with Expected
+75% / Actual 0.75, then passed alone and in its mixed Set against the new candidate in both modes.
+All 41 source gates passed, and both Code Analyzer security reports contained zero violations
+with no engine processing errors.
+
+No new scratch org was created. No suitable namespaced source org was available, so the new
+packaged Apex tests ran through package creation; direct source-org and optional hosted source
+validation remain distinct, unexecuted evidence. The installed-package matrix above used only
+the retained subscriber pair. The verifier's live reset, metadata retrieval and maintenance-login
+corrections are recorded in the [release runbook](../../.github/RELEASING.md) and
+[browser lessons](../quality-gates/agent-lessons.md#lesson-9-browser-prerequisites-and-failures-must-be-classified-accurately).
 
 The separately distributed MCP server now preserves `AUTHORIZATION` when Salesforce rejects a
 caller before parsing the request body. It retains the caller's correlation ID and does not retry

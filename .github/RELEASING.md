@@ -318,8 +318,8 @@ permit it. Document data or configuration remediation separately.
 
 For an explicitly authorized clean-install/reset/upgrade rehearsal, reuse the existing release
 pair rather than creating orgs. `package:verify --release-pair --keep-org --reuse-existing-org`
-requires a matching active Dev Hub receipt, subscriber namespace, release and Lightning security
-mode. It never deletes a reused org. The org must have no package installed, or the owner must
+requires a matching active Dev Hub receipt and release, an org without its own namespace, and the
+actual Lightning security setting. It never deletes a reused org. The org must have no package installed, or the owner must
 select its one exact installed version with `--reset-installed-package <04t>`; the guarded reset
 removes the harness and that package before clean installation. Save owner-testing evidence before
 resetting. Run LWS and Locker sequentially, with their existing aliases and exact candidate ID.
