@@ -42,7 +42,14 @@ currency for Found, and for Expected when no Expected currency was configured. T
 regression `RHCSubscriberFormatTest` reproduced this against installed 2.0.11.3 in the retained LWS
 org: run `707cU00000sxsOW` kept the PASS and FAIL verdicts but returned a `null` Found currency instead
 of `EUR`. Do not promote 2.0.11.3. The 2.0.11.3 results below remain evidence for that candidate
-only; 2.0.11.4 package-build, installation and upgrade results are pending.
+only.
+
+Candidate **2.0.11.4** (`04tak000000nGjZAAU`) was created from
+`5905f999dfee391bd4ff029611023f157e60e8ee` on October 6, 2026. Salesforce reports 97% package
+coverage, validation enabled, and an unpromoted version. After upgrading the retained LWS org from
+2.0.11.3, run `707cU00000sytFY` passed all 25 subscriber test methods, including the three currency
+assertions that failed on 2.0.11.3. Clean installation, the 2.0.10.1 upgrade, Locker, browser,
+restricted-user, MCP and demo-outcome validation of 2.0.11.4 are pending.
 
 Candidate **2.0.11.3**, whose immutable ID is recorded in the
 [package project aliases](../../packages/record-health-check/sfdx-project.json), was created from
