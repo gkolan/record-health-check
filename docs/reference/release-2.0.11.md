@@ -44,7 +44,8 @@ org: run `707cU00000sxsOW` kept the PASS and FAIL verdicts but returned a `null`
 of `EUR`. Do not promote 2.0.11.3. The 2.0.11.3 results below remain evidence for that candidate
 only.
 
-Candidate **2.0.11.4** (`04tak000000nGjZAAU`) was created from
+Candidate **2.0.11.4**, whose immutable ID is recorded in the
+[package project aliases](../../packages/record-health-check/sfdx-project.json), was created from
 `5905f999dfee391bd4ff029611023f157e60e8ee` on October 6, 2026. Salesforce reports 97% package
 coverage, validation enabled, and an unpromoted version. After upgrading the retained LWS org from
 2.0.11.3, run `707cU00000sytFY` passed all 25 subscriber test methods, including the three currency
