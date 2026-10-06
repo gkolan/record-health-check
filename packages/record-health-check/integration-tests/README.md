@@ -393,3 +393,38 @@ payloads would also exercise the shared response budget and obscure the individu
 the public evaluation API, separately for PASS and FAIL. Both layers matter: the shared response
 allocator is another safeguard and could mask a projector-only overflow. Record card verdicts and
 typed API results separately; the automated tests are the byte-count authority.
+
+### Fixed Found / Expected card labels
+
+Use the existing `Example_Guide_Recent_Activity` Check in `Example_Account_Check_Builder_Guide`
+on `RHC Builder Ready Account` (PASS) and `RHC Builder Needs Review Account` (FAIL) from the
+demo setup. Preserve those independently declared outcomes while verifying the comparison headings. The plugin supplies
+`Required recent activity` to typed APIs, but the card must label the value **Expected**. Also open
+the Formula examples: their default condition must use **Expected**, never **Passes when** as a heading.
+
+On a saved copy of the integration Check, test `ComparisonDisplayMode__c` values `AUTOMATIC`,
+`FOUND_ONLY`, `EXPECTED_ONLY`, and `HIDDEN`. Rerun after each edit: show both sides, Found only,
+Expected only, or neither respectively. With `HIDDEN`, neither comparison value may appear in the
+expanded region or accessible row label. Repeat with the Set's Found/Expected placement set to
+All rows, On demand (expand the passing row), and Failures only (passing values stay hidden).
+Restore the copied Check and Set settings afterward. No verdict, count, message or remediation
+may change merely because visibility changed. The Jest block `fixed comparison labels respect
+Custom Metadata visibility` covers PASS and FAIL across these settings and absent/custom labels;
+live installed-package and LWS/Locker execution remains pending for this source change.
+
+### Apex metadata formatting precedence
+
+`RHC_Format_Precedence` contains paired PASS and FAIL Checks for explicit Ratio as percent
+and Automatic. `RHCFormatPrecedencePlugin` supplies Found 0.75 and Expected 0.75 (PASS) or
+0.80 (FAIL), plus NUMBER overrides. Use any accessible Account. With RATIO_PERCENT, expect
+Found 75% / Expected 75% or 80%; with AUTO, expect Found 0.75 / Expected 0.75 or 0.8.
+Run each Check alone and the mixed Set; all four verdicts and raw values must remain unchanged.
+Change the explicit format to RAW, rerun, and verify the stored spelling; restore it afterward.
+
+`RHCFormatPrecedenceTest` pins the resolver's ordinary, empty, structured-content, RAW and
+currency paths. `RecordHealthCheckApexResultFinalizerTest.configuredFormatWinsOverTypedPluginFormat`
+guards the legacy typed fallback. Subscriber-owned equivalents under `subscriber-app` use
+`Subscriber_Format_Precedence`, `RHCSubscriberFormatPlugin`, and `RHCSubscriberFormatTest`;
+never deploy these integration source fixtures to a subscriber org. The subscriber test verifies
+both Check and mixed-Set public API paths. Source Apex execution remains pending until the exact
+new package build executes its tests; installed-package green evidence must use that new candidate.

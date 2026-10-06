@@ -109,10 +109,25 @@ public with sharing class RecordHealthCheckPresentationResolver {
     RecordHealthCheckDisplayOverride presentation,
     Boolean foundSide
   ) {
+    String configuredFormat = validConfiguredFormat(
+      check.DisplayValueFormat__c
+    );
+    Boolean explicitFormat =
+      configuredFormat != RecordHealthCheckDisplayFormat.FORMAT_AUTO;
     if (
-      foundSide ? presentation?.found != null : presentation?.expected != null
+      !explicitFormat &&
+      (foundSide ? presentation?.found != null : presentation?.expected != null)
     ) {
       return;
+    }
+    // Structured plugin comparisons belong to Automatic. A named metadata
+    // format renders machine operands, so stale nodes cannot mask that value.
+    if (explicitFormat && result.displayContent != null) {
+      if (foundSide) {
+        result.displayContent.found = null;
+      } else {
+        result.displayContent.expected = null;
+      }
     }
     String overrideFormat = foundSide
       ? presentation?.foundFormat
@@ -120,15 +135,30 @@ public with sharing class RecordHealthCheckPresentationResolver {
     String overrideIsoCode = foundSide
       ? presentation?.foundCurrencyIsoCode
       : presentation?.expectedCurrencyIsoCode;
-    String formatName = String.isBlank(overrideFormat)
-      ? check.DisplayValueFormat__c
+    String formatName = explicitFormat || String.isBlank(overrideFormat)
+      ? configuredFormat
       : overrideFormat;
     if (String.isBlank(formatName)) {
       formatName = RecordHealthCheckDisplayFormat.FORMAT_AUTO;
     }
-    if (!RecordHealthCheckDisplayFormat.isFormatApiName(formatName)) {
+    if (
+      !String.isBlank(overrideFormat) &&
+      !RecordHealthCheckDisplayFormat.isFormatApiName(overrideFormat)
+    ) {
       recordInvalid(result, foundSide ? 'foundFormat' : 'expectedFormat');
       formatName = validConfiguredFormat(check.DisplayValueFormat__c);
+      overrideIsoCode = null;
+    }
+    if (explicitFormat) {
+      if (
+        !String.isBlank(overrideIsoCode) &&
+        !Pattern.matches('[A-Z]{3}', overrideIsoCode.trim().toUpperCase())
+      ) {
+        recordInvalid(
+          result,
+          foundSide ? 'foundCurrencyIsoCode' : 'expectedCurrencyIsoCode'
+        );
+      }
       overrideIsoCode = null;
     }
     applyResolvedFormat(check, result, formatName, overrideIsoCode, foundSide);

@@ -1,6 +1,46 @@
 @IsTest
 private class RecordHealthCheckApexResultFinalizerTest {
   @IsTest
+  static void configuredFormatWinsOverTypedPluginFormat() {
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'ApexClass__c' => 'ExamplePlugin',
+        'DisplayValueFormat__c' => 'RATIO_PERCENT'
+      }
+    );
+    RecordHealthCheckInternalResult value = new RecordHealthCheckInternalResult();
+    value.status = 'FAIL';
+    value.actualDisplayValue = Decimal.valueOf('0.75');
+    value.expectedDisplayValue = Decimal.valueOf('0.80');
+    value.actualDisplayFormat = 'NUMBER';
+    value.expectedDisplayFormat = 'NUMBER';
+    Test.startTest();
+    RecordHealthCheckInternalResult result = RecordHealthCheckApexResultFinalizer.finalizeResult(
+      check,
+      RecordHealthCheckTestDataFactory.account(null),
+      new RecordHealthCheckInternalResult(),
+      value,
+      new RecordHealthCheckFormulaEvaluator()
+    );
+    Test.stopTest();
+    Assert.areEqual(
+      '75%',
+      result.actualValue,
+      'Typed fallback must respect explicit metadata format.'
+    );
+    Assert.areEqual(
+      '80%',
+      result.expectedValue,
+      'Both typed fallback sides must respect metadata.'
+    );
+    Assert.areEqual(
+      'FAIL',
+      result.status,
+      'Formatting must preserve the business FAIL.'
+    );
+  }
+
+  @IsTest
   static void rejectsUnsupportedPluginStatus() {
     Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
       new Map<String, Object>{

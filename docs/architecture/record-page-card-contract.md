@@ -214,6 +214,13 @@ card keeps the verdict, message, Found/Expected comparison, remediation, and aut
 it never renders evidence summaries, tables, Show details/Show all, or downloads. Evidence remains
 available to authorized callers through the typed evaluation APIs and is tested there independently.
 
+Comparison headings are fixed as **Found** and **Expected** for every Check type, including
+Formula condition fallbacks and Apex plugin display content. Server-provided `expectedValueLabel`
+cannot rename the card heading or accessible row label. `ComparisonDisplayMode__c` controls eligible
+sides, and the Check Set's comparison placement controls inline/expanded visibility. Typed APIs
+retain their existing optional label field. The Jest block `fixed comparison labels respect Custom
+Metadata visibility` guards PASS and FAIL across all placement and visibility combinations.
+
 The Preview controller already returns JSON text. Public Apex, REST and native action contracts
 retain their existing typed or JSON responses; the new adapter changes only the card transport.
 The adapter preserves authorization, Check membership, source validation and per-Check execution.

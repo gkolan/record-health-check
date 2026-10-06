@@ -79,6 +79,12 @@ resolve every hidden manual-run Check Set before installation.
 
 ### Changed
 
+- Comparison headings are always Found and Expected, including Formula and Apex Checks. Custom
+  Metadata still controls which sides appear and the Check Set controls their placement.
+- Explicit Display: Value Format takes precedence over Apex plugin format overrides. Automatic
+  retains plugin formatting and structured comparison content; explicit formats render typed
+  operands without changing verdicts or machine values.
+
 - The record-page card no longer exposes structured evidence summaries, Show details, Show all,
   evidence tables, or downloads. Verdicts, comparisons, messages, and remediation remain. The
   card-specific response omits evidence rows; typed evaluation APIs keep their evidence contract.

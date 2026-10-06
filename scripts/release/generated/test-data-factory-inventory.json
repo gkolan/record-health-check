@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
   "summary": {
-    "classes": 129,
+    "classes": 130,
     "persistedCallSites": 0,
     "userCallSites": 0,
-    "safeClasses": 129
+    "safeClasses": 130
   },
   "classes": [
     {
@@ -197,6 +197,14 @@
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": true,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RHCFormatPrecedenceTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
       "persistedCalls": [],
       "userCalls": []
     },

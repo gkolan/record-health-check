@@ -313,3 +313,16 @@ Salesforce package versions are immutable. Roll forward with a corrected package
 schema or installed metadata change cannot be safely reversed. For an application-only regression,
 install the previously supported version only when Salesforce package ancestry and upgrade checks
 permit it. Document data or configuration remediation separately.
+
+### Reuse the retained subscriber pair
+
+For an explicitly authorized clean-install/reset/upgrade rehearsal, reuse the existing release
+pair rather than creating orgs. `package:verify --release-pair --keep-org --reuse-existing-org`
+requires a matching active Dev Hub receipt, subscriber namespace, release and Lightning security
+mode. It never deletes a reused org. The org must have no package installed, or the owner must
+select its one exact installed version with `--reset-installed-package <04t>`; the guarded reset
+removes the harness and that package before clean installation. Save owner-testing evidence before
+resetting. Run LWS and Locker sequentially, with their existing aliases and exact candidate ID.
+
+The source-only `RHC_Format_Precedence` and subscriber-owned `Subscriber_Format_Precedence`
+fixtures must stay on their respective sides of the source/installed-package boundary.

@@ -15,7 +15,7 @@ running a configuration whose only manual Run action is unreachable.
 - The record-page card keeps the verdict, message, Found/Expected comparison, and remediation, but
   removes structured evidence summaries, Show details, Show all, evidence tables, and downloads.
   The card-specific JSON response no longer transmits evidence rows; typed evaluation APIs retain
-  their evidence contract. This is a source change pending a new package and installed-card check.
+  their evidence contract. Candidate 2.0.11.2 includes the evidence-viewer removal; the fixed comparison headings described below are subsequent source work.
 
 ## Upgrade action from 2.0.10.1
 
@@ -36,11 +36,16 @@ reintroduce an unreachable action.
 
 ## Current release preparation
 
-The configured next candidate is **2.0.11.2**. It includes subsequent source changes and has not
-been created or installed. The 2.0.11.1 results below remain evidence for that immutable older
-candidate; they do not verify 2.0.11.2. Fresh package-build, installation and upgrade results remain
-pending. The stable public installer continues to select 2.0.10.1 until an owner promotes and
-publishes a replacement.
+Candidate **2.0.11.2**, whose ID is recorded in the [package project aliases](../../packages/record-health-check/sfdx-project.json), was created from `f988334` with
+97% package coverage and installed in the retained LWS test org for owner testing. It is unpromoted.
+That installation and its timing samples do not establish Locker, clean-install/upgrade, restricted
+persona, or the complete browser/API release matrix.
+
+The configured replacement candidate is **2.0.11.3**, pending creation. Its source adds fixed
+**Found / Expected** card headings and gives explicit Custom Metadata Value Format precedence over
+plugin formats. Automatic retains plugin formatting. Neither change is in 2.0.11.2. The stable
+public installer continues to select 2.0.10.1 until an owner promotes and publishes a replacement.
+Fresh package-build, installed-package and browser evidence must identify the replacement candidate.
 
 The separately distributed MCP server now preserves `AUTHORIZATION` when Salesforce rejects a
 caller before parsing the request body. It retains the caller's correlation ID and does not retry

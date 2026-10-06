@@ -133,6 +133,7 @@ export const PURPOSES = {
   RHC_SP_Preview_Live: "coverage",
   RHC_SP_Values: "coverage",
   RHC_Display_Budget: "coverage",
+  RHC_Format_Precedence: "coverage",
   RHC_Stop_On_System_Error: "diagnostics",
   Release_On_Load: "business",
   Review_Label_Icon_Pass: "review",

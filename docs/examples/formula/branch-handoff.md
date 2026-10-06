@@ -140,7 +140,7 @@ Formula applicability and the parent-field check produce these health results an
 | **`FAIL`**                  | A child Account whose parent has blank Billing City shows Needs attention with Warning severity and an action link to the parent. |
 | **`SKIPPED`**               | A top-level Account is skipped because it has no parent handoff requirement.                                                      |
 | **Found**                   | Blank because **Display: Found Formula** is blank.                                                                                |
-| **Expected**                | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(Parent.BillingCity))`.                     |
+| **Expected**                | The expanded details label the Pass Condition as **Expected** and show `NOT(ISBLANK(Parent.BillingCity))`.                        |
 
 ## Security and access
 

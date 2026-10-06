@@ -516,11 +516,9 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     : [];
   const hasValues = foundNodes.length > 0 || expectedNodes.length > 0;
 
-  // The Expected side normally reads "Expected"; a Formula check echoing its
-  // pass/fail condition (rather than a comparison value) overrides this with its
-  // own key, e.g. "Passes when". Found always reads "Found".
-  const expectedKeyLabel =
-    (isResolved && result.expectedValueLabel) || "Expected";
+  // Comparison headings are fixed across Check types. Metadata controls which
+  // sides appear and where; a server-provided semantic label cannot rename them.
+  const expectedKeyLabel = "Expected";
 
   const showInlineComparison =
     isResolved && hasValues && (!isPass || mode === "AllRows");

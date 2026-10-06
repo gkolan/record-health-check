@@ -37,6 +37,12 @@ value type. Name a format when the business meaning requires a specific presenta
 | Text             | The value exactly as written                                                     | `true` → `true`                                                                         |
 | Raw              | The value exactly as written                                                     | `0012345` → `0012345`                                                                   |
 
+For Apex Checks, an explicit metadata format takes precedence over plugin format and currency
+overrides. **Automatic** (including a blank legacy setting) allows the plugin format; otherwise the
+framework uses the typed value. Explicit formats also replace structured plugin comparison text
+with formatted typed operands. Message, remediation and action content remain independent.
+Comparison headings on the record-page card are always **Found** and **Expected**.
+
 One format covers both sides of the comparison, so Found and Expected always read in the same units.
 A Check that names Currency shows `$70,000.00` against `at least $50,000.00`, never one of each.
 

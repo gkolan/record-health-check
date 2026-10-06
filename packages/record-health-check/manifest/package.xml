@@ -489,6 +489,7 @@
         <members>RecordHealthCheckPluginDisplayDispatch</members>
         <members>RecordHealthCheckPluginDispatchTest</members>
         <members>RecordHealthCheckPresentationResolver</members>
+        <members>RHCFormatPrecedenceTest</members>
         <members>RHCPresentationResolverTest</members>
         <members>RecordHealthCheckQualifiedIdentity</members>
         <members>RecordHealthCheckQueryEvaluatorSupport</members>

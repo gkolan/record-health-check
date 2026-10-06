@@ -25,6 +25,11 @@ import {
   writeReleasePairResetDeploy
 } from "../lib/release-pair-reset.mjs";
 
+import {
+  assertReuseOptions,
+  assertRetainedReleaseOrg
+} from "../lib/release-org-reuse.mjs";
+
 const { values } = parseArgs({
   options: {
     alias: { type: "string", default: "rhc-verify" },
@@ -35,12 +40,14 @@ const { values } = parseArgs({
     "upgrade-only": { type: "boolean", default: false },
     "release-pair": { type: "boolean", default: false },
     "reuse-existing-org": { type: "boolean", default: false },
+    "reset-installed-package": { type: "string", default: "" },
     "security-mode": { type: "string", default: "LWS" },
     "keep-org": { type: "boolean", default: false }
   }
 });
 
 const createdAliases = new Set();
+const reusedPairAliases = new Set();
 
 function deleteOwnedScratchOrg(alias) {
   if (!createdAliases.has(alias)) return;
@@ -168,6 +175,73 @@ function assertReleasePairSlotAvailable(devHub, runtimeMatrix, securityMode) {
     process.exit(1);
   }
   return description;
+}
+
+function assertExistingReleasePair(alias, devHub, runtimeMatrix, securityMode) {
+  const organization = runJson("sf", [
+    "data",
+    "query",
+    "--target-org",
+    alias,
+    "--query",
+    "SELECT Id, NamespacePrefix FROM Organization"
+  ]).result?.records?.[0];
+  const records =
+    runJson("sf", [
+      "data",
+      "query",
+      "--target-org",
+      devHub,
+      "--query",
+      "SELECT ScratchOrg, Description, Status FROM ScratchOrgInfo WHERE Status = 'Active'"
+    ]).result?.records ?? [];
+  assertRetainedReleaseOrg({
+    orgId: organization?.Id,
+    namespace: organization?.NamespacePrefix,
+    securityMode,
+    version: releaseVersion(runtimeMatrix),
+    records
+  });
+  const directory = fs.mkdtempSync(
+    path.join(os.tmpdir(), "rhc-retained-security-")
+  );
+  try {
+    run("sf", [
+      "project",
+      "retrieve",
+      "start",
+      "--metadata",
+      "Settings:Security",
+      "--target-org",
+      alias,
+      "--output-dir",
+      directory,
+      "--wait",
+      "10"
+    ]);
+    const findSettings = (folder) => {
+      for (const entry of fs.readdirSync(folder, { withFileTypes: true })) {
+        const file = path.join(folder, entry.name);
+        if (entry.isDirectory()) {
+          const found = findSettings(file);
+          if (found) return found;
+        } else if (entry.name === "Security.settings-meta.xml") return file;
+      }
+      return null;
+    };
+    const file = findSettings(directory);
+    const value = file
+      ? fs
+          .readFileSync(file, "utf8")
+          .match(/<lockerServiceNext>(true|false)<\/lockerServiceNext>/)?.[1]
+      : null;
+    if (value !== (securityMode === "LWS" ? "true" : "false"))
+      throw new Error(
+        "Retained org Lightning security setting does not match the requested mode."
+      );
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 }
 
 function installPackage(packageVersionId, alias) {
@@ -312,6 +386,10 @@ function deployUpgradePreservationFixture(alias) {
     `${paths.subscriberApp}/main/default/classes/RHCSubscriberPlugin.cls`,
     "--source-dir",
     `${paths.subscriberApp}/main/default/classes/RHCSubscriberPlugin.cls-meta.xml`,
+    "--source-dir",
+    `${paths.subscriberApp}/main/default/classes/RHCSubscriberFormatPlugin.cls`,
+    "--source-dir",
+    `${paths.subscriberApp}/main/default/classes/RHCSubscriberFormatPlugin.cls-meta.xml`,
     "--source-dir",
     paths.subscriberUpgradePreflight,
     "--target-org",
@@ -463,9 +541,9 @@ function subscriberConfiguration(alias) {
         String(left.DeveloperName).localeCompare(String(right.DeveloperName))
       );
   }
-  if (snapshot.checkSets.length !== 3 || snapshot.checks.length !== 6) {
+  if (snapshot.checkSets.length !== 4 || snapshot.checks.length !== 10) {
     console.error(
-      `Subscriber preservation fixture is incomplete: expected 3 Check Sets and 6 Checks; found ${snapshot.checkSets.length} and ${snapshot.checks.length}.`
+      `Subscriber preservation fixture is incomplete: expected 4 Check Sets and 10 Checks; found ${snapshot.checkSets.length} and ${snapshot.checks.length}.`
     );
     process.exit(1);
   }
@@ -596,9 +674,19 @@ function main() {
     );
     process.exit(1);
   }
-  if (values["reuse-existing-org"] && !values["upgrade-only"]) {
-    console.error("--reuse-existing-org is valid only with --upgrade-only.");
-    process.exit(1);
+  assertReuseOptions({
+    reuseExistingOrg: values["reuse-existing-org"],
+    upgradeOnly: values["upgrade-only"],
+    releasePair: values["release-pair"],
+    keepOrg: values["keep-org"]
+  });
+  if (
+    values["reset-installed-package"] &&
+    !(values["reuse-existing-org"] && values["release-pair"])
+  ) {
+    throw new Error(
+      "--reset-installed-package requires reuse of a retained release pair."
+    );
   }
   const candidateId = values.package;
   if (!/^04t[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(candidateId)) {
@@ -646,41 +734,74 @@ function main() {
     return;
   }
 
-  if (!aliasAvailable(alias)) {
-    console.error(
-      `Alias '${alias}' is already in use. Pass --alias with a free name.`
+  if (values["reuse-existing-org"]) {
+    assertExistingReleasePair(alias, devHub, runtimeMatrix, securityMode);
+    const installed = installedPackageRecords(
+      runJson("sf", ["package", "installed", "list", "--target-org", alias])
     );
-    process.exit(1);
-  }
+    if (installed.length) {
+      const resetId = values["reset-installed-package"];
+      if (
+        !resetId ||
+        installed.length !== 1 ||
+        !hasInstalledPackageVersion(installed, resetId)
+      ) {
+        throw new Error(
+          "Clean install requires an empty org or --reset-installed-package naming its one exact installed version."
+        );
+      }
+      // The owner explicitly selects the package to uninstall; never infer it.
+      resetReleasePairForUpgrade(alias, resetId);
+      const remaining = installedPackageRecords(
+        runJson("sf", ["package", "installed", "list", "--target-org", alias])
+      );
+      if (remaining.length)
+        throw new Error(
+          "Release-pair reset did not leave a clean package inventory."
+        );
+    } else if (values["reset-installed-package"]) {
+      throw new Error(
+        "The selected reset package is not installed; no reset was performed."
+      );
+    }
+    reusedPairAliases.add(alias);
+  } else {
+    if (!aliasAvailable(alias)) {
+      console.error(
+        `Alias '${alias}' is already in use. Pass --alias with a free name.`
+      );
+      process.exit(1);
+    }
 
-  console.log(`Creating no-namespace verification org '${alias}'...`);
-  const releaseDescription = values["release-pair"]
-    ? assertReleasePairSlotAvailable(devHub, runtimeMatrix, securityMode)
-    : "";
-  assertScratchCapacity(
-    devHub,
-    values["release-pair"] ? 1 : needsUpgradeOrg ? 2 : 1
-  );
-  run("sf", [
-    "org",
-    "create",
-    "scratch",
-    "--definition-file",
-    securityMode === "Locker"
-      ? paths.lockerScratchDef
-      : paths.subscriberScratchDef,
-    "--alias",
-    alias,
-    "--target-dev-hub",
-    devHub,
-    "--duration-days",
-    values["release-pair"] ? "30" : "1",
-    ...(values["release-pair"] ? ["--description", releaseDescription] : []),
-    "--no-namespace",
-    "--wait",
-    "30"
-  ]);
-  createdAliases.add(alias);
+    console.log(`Creating no-namespace verification org '${alias}'...`);
+    const releaseDescription = values["release-pair"]
+      ? assertReleasePairSlotAvailable(devHub, runtimeMatrix, securityMode)
+      : "";
+    assertScratchCapacity(
+      devHub,
+      values["release-pair"] ? 1 : needsUpgradeOrg ? 2 : 1
+    );
+    run("sf", [
+      "org",
+      "create",
+      "scratch",
+      "--definition-file",
+      securityMode === "Locker"
+        ? paths.lockerScratchDef
+        : paths.subscriberScratchDef,
+      "--alias",
+      alias,
+      "--target-dev-hub",
+      devHub,
+      "--duration-days",
+      values["release-pair"] ? "30" : "1",
+      ...(values["release-pair"] ? ["--description", releaseDescription] : []),
+      "--no-namespace",
+      "--wait",
+      "30"
+    ]);
+    createdAliases.add(alias);
+  }
 
   console.log(`Clean install of candidate ${candidateId}...`);
   installPackage(candidateId, alias);
@@ -761,9 +882,12 @@ function runUpgradeGate(
       process.exit(1);
     }
   } else if (reuseReleaseOrg) {
-    if (!createdAliases.has(alias) || aliasAvailable(alias)) {
+    if (
+      (!createdAliases.has(alias) && !reusedPairAliases.has(alias)) ||
+      aliasAvailable(alias)
+    ) {
       console.error(
-        `Release-pair upgrade expected the clean-install org '${alias}' created by this process.`
+        `Release-pair upgrade expected the clean-install org '${alias}' created or verified for this process.`
       );
       process.exit(1);
     }

@@ -107,7 +107,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.10.1-to-2.0.11.2",
+  "upgrade-2.0.10.1-to-2.0.11.3",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -290,8 +290,8 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.11.2") {
-  errors.push("Candidate version must be exactly 2.0.11.2.");
+if (matrix.candidateVersion !== "2.0.11.3") {
+  errors.push("Candidate version must be exactly 2.0.11.3.");
 }
 if (matrix.upgradeFromVersion !== "2.0.10.1") {
   errors.push("Upgrade base version must be exactly 2.0.10.1.");

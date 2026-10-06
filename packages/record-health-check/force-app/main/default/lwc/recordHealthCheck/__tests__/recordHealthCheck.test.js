@@ -4303,7 +4303,7 @@ describe("c-record-health-check — FAIL styling and accessibility", () => {
     expect(vals).toEqual(["ISBLANK(BillingCity)"]);
   });
 
-  it("labels an echoed pass/fail condition with its own key instead of 'Expected'", async () => {
+  it("uses Expected for an echoed pass/fail condition despite a custom label", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
@@ -4324,13 +4324,11 @@ describe("c-record-health-check — FAIL styling and accessibility", () => {
     const vals = [...comparison.querySelectorAll(".rhc-cmp__val")].map((n) =>
       n.textContent.trim()
     );
-    expect(keys).toEqual(["Passes when"]);
+    expect(keys).toEqual(["Expected"]);
     expect(vals).toEqual(["Owner.IsActive"]);
 
     const row = element.shadowRoot.querySelector("li[aria-label]");
-    expect(row.getAttribute("aria-label")).toContain(
-      "Passes when Owner.IsActive"
-    );
+    expect(row.getAttribute("aria-label")).toContain("Expected Owner.IsActive");
   });
 
   it("renders a Found chip when the actual value is 0", async () => {
@@ -7930,4 +7928,74 @@ describe("card context changes during asynchronous work", () => {
     expect(evaluateCheck).not.toHaveBeenCalled();
     document.body.removeChild(element);
   });
+});
+
+describe("fixed comparison labels respect Custom Metadata visibility", () => {
+  it.each(["PASS", "FAIL"])(
+    "uses fixed labels for %s across placement and visibility settings",
+    (status) => {
+      for (const placement of ["AllRows", "OnDemand", "FailuresOnly"]) {
+        for (const mode of [
+          "AUTOMATIC",
+          "FOUND_ONLY",
+          "EXPECTED_ONLY",
+          "HIDDEN"
+        ]) {
+          for (const label of [
+            "Required recent activity",
+            "Passes when",
+            "",
+            null
+          ]) {
+            const row = annotateCheck(
+              {
+                ...makeDefinitions().checks[0],
+                comparisonDisplayMode: mode,
+                uiState: "RESOLVED",
+                result: {
+                  ...FAIL_RESULT("Check_A"),
+                  status,
+                  actualValue: "0",
+                  expectedValue: "2",
+                  expectedValueLabel: label
+                }
+              },
+              false,
+              placement,
+              true
+            );
+            const visible = row.inlineComparisonValues.concat(
+              row.expandedComparisonValues
+            );
+            const eligible = status === "FAIL" || placement !== "FailuresOnly";
+            const expectedLabels = eligible
+              ? [
+                  ...(mode === "AUTOMATIC" || mode === "FOUND_ONLY"
+                    ? ["Found"]
+                    : []),
+                  ...(mode === "AUTOMATIC" || mode === "EXPECTED_ONLY"
+                    ? ["Expected"]
+                    : [])
+                ]
+              : [];
+            expect(visible.map((value) => value.label)).toEqual(expectedLabels);
+            expect(visible.map((value) => value.value)).toEqual(
+              expectedLabels.map((key) => (key === "Found" ? "0" : "2"))
+            );
+            expect(row.expectedKeyLabel).toBe("Expected");
+            expect(row.accessibleLabel.includes("Found 0")).toBe(
+              expectedLabels.includes("Found")
+            );
+            expect(row.accessibleLabel.includes("Expected 2")).toBe(
+              expectedLabels.includes("Expected")
+            );
+            expect(row.accessibleLabel).not.toContain(
+              "Required recent activity"
+            );
+            expect(row.accessibleLabel).not.toContain("Passes when");
+          }
+        }
+      }
+    }
+  );
 });

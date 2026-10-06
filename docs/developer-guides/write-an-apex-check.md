@@ -170,9 +170,12 @@ return new rhc.RecordHealthCheckDisplayOverride()
   .withFound(found)
   .withMessage(new rhc.RecordHealthCheckDisplayText().text('Approval review is required.'))
   .withFix(new rhc.RecordHealthCheckDisplayText().text('Complete each approval step.'))
-  .withAction(new rhc.RecordHealthCheckDisplayAction('Open approvals', '/lightning/page/home'))
-  .withExpectedLabel('Required state');
+  .withAction(new rhc.RecordHealthCheckDisplayAction('Open approvals', '/lightning/page/home'));
 ```
+
+The record-page card always labels comparison values **Found** and **Expected**. Its Check
+visibility and Check Set placement settings apply to structured plugin values too.
+`withExpectedLabel` remains available to typed API consumers, but cannot rename the card heading.
 
 The input lists may have different sizes, for example one, two, and three Users. The resulting groups
 render on separate lines, and both each Step label and each saved User are independently clickable.
