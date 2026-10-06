@@ -36,6 +36,14 @@ reintroduce an unreachable action.
 
 ## Current release preparation
 
+The configured next candidate is **2.0.11.4**. It keeps a plugin-declared currency code when an
+explicit Display: Value Format is configured. 2.0.11.3 replaced that code with the viewing user's
+currency for Found, and for Expected when no Expected currency was configured. The subscriber
+regression `RHCSubscriberFormatTest` reproduced this against installed 2.0.11.3 in the retained LWS
+org: run `707cU00000sxsOW` kept the PASS and FAIL verdicts but returned a `null` Found currency instead
+of `EUR`. Do not promote 2.0.11.3. The 2.0.11.3 results below remain evidence for that candidate
+only; 2.0.11.4 package-build, installation and upgrade results are pending.
+
 Candidate **2.0.11.3**, whose immutable ID is recorded in the
 [package project aliases](../../packages/record-health-check/sfdx-project.json), was created from
 `3f68a358ad4365813cbebe9b71d0b9cec6420e0b` on October 6, 2026. Salesforce reports 97% package

@@ -149,17 +149,22 @@ public with sharing class RecordHealthCheckPresentationResolver {
       formatName = validConfiguredFormat(check.DisplayValueFormat__c);
       overrideIsoCode = null;
     }
-    if (explicitFormat) {
-      if (
-        !String.isBlank(overrideIsoCode) &&
-        !Pattern.matches('[A-Z]{3}', overrideIsoCode.trim().toUpperCase())
-      ) {
+    if (explicitFormat && !String.isBlank(overrideIsoCode)) {
+      // The configured format wins, but a currency code names the value's
+      // unit, not its formatting: keep the plugin's unit unless the admin set
+      // an Expected currency or the configured format is not Currency.
+      if (!Pattern.matches('[A-Z]{3}', overrideIsoCode.trim().toUpperCase())) {
         recordInvalid(
           result,
           foundSide ? 'foundCurrencyIsoCode' : 'expectedCurrencyIsoCode'
         );
+        overrideIsoCode = null;
+      } else if (
+        formatName != RecordHealthCheckDisplayFormat.FORMAT_CURRENCY ||
+        (!foundSide && String.isNotBlank(check.ExpectedCurrencyIsoCode__c))
+      ) {
+        overrideIsoCode = null;
       }
-      overrideIsoCode = null;
     }
     applyResolvedFormat(check, result, formatName, overrideIsoCode, foundSide);
   }

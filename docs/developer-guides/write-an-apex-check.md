@@ -134,7 +134,11 @@ so it must reuse data already loaded by `evaluate`; it cannot query or perform s
 
 The optional override can provide rich message, remediation, Found and Expected content; one atomic
 action label and destination; an Expected label; and independent Found/Expected formats with an
-optional currency ISO code. A missing or invalid field falls back to Check configuration. Status,
+optional currency ISO code. A missing or invalid field falls back to Check configuration. When the
+Check sets an explicit **Display: Value Format** (anything except Automatic), that format replaces
+the plugin's format and structured Found/Expected content. A valid plugin currency code still names
+the values' unit under a Currency format; a configured Expected currency takes precedence for
+Expected. Status,
 typed values, severity, identity, order, category, applicability, visibility and publication policy
 remain framework or administrator owned.
 

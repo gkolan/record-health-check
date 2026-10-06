@@ -385,8 +385,8 @@ Examples:
 ### Display: Expected Formula (`DisplayExpectedFormula__c`)
 
 Optional Long Text Area(32,768) for Formula Checks. It supplies the Expected value shown on the
-card and never changes pass or fail. Leave it blank to show the generated **Passes when...** text
-based on Pass Condition.
+card and never changes pass or fail. Leave it blank to show the Pass Condition expression under
+**Expected**.
 
 Examples:
 

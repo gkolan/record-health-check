@@ -179,3 +179,6 @@ recycle-bin/
 
 # Personal, portable local org kit — never tracked; meant to be movable out of the repo.
 /local-orgs/
+
+# Temporary security retrieve from the package verifier
+rhc-retained-security-*/

@@ -230,9 +230,6 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
         check,
         apexResult.actualDisplayFormat
       );
-      if (hasConfiguredFormat(check)) {
-        apexResult.actualCurrencyIsoCode = null;
-      }
       apexResult.actualValue = RecordHealthCheckDisplayFormat.render(
         apexResult.actualDisplayValue,
         apexResult.actualDisplayFormat,
@@ -250,7 +247,10 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
         check,
         apexResult.expectedDisplayFormat
       );
-      if (hasConfiguredFormat(check)) {
+      if (
+        hasConfiguredFormat(check) &&
+        String.isNotBlank(check.ExpectedCurrencyIsoCode__c)
+      ) {
         apexResult.expectedCurrencyIsoCode = check.ExpectedCurrencyIsoCode__c;
       }
       apexResult.expectedValue = RecordHealthCheckDisplayFormat.render(

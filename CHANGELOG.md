@@ -83,7 +83,9 @@ resolve every hidden manual-run Check Set before installation.
   Metadata still controls which sides appear and the Check Set controls their placement.
 - Explicit Display: Value Format takes precedence over Apex plugin format overrides. Automatic
   retains plugin formatting and structured comparison content; explicit formats render typed
-  operands without changing verdicts or machine values.
+  operands without changing verdicts or machine values. A plugin's currency code still names the
+  values' unit under an explicit Currency format, so amounts never switch to the viewing user's
+  currency; a configured Expected currency takes precedence for Expected.
 
 - The record-page card no longer exposes structured evidence summaries, Show details, Show all,
   evidence tables, or downloads. Verdicts, comparisons, messages, and remediation remain. The

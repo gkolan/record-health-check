@@ -428,6 +428,9 @@ currency paths. `RecordHealthCheckApexResultFinalizerTest.configuredFormatWinsOv
 guards the legacy typed fallback. Subscriber-owned equivalents under `subscriber-app` use
 `Subscriber_Format_Precedence`, `RHCSubscriberFormatPlugin`, and `RHCSubscriberFormatTest`;
 never deploy these integration source fixtures to a subscriber org. The subscriber test verifies
-both Check and mixed-Set public API paths. Package 2.0.11.3 passed its packaged tests, and the subscriber formatting regression passed
+both Check and mixed-Set public API paths. Its `Subscriber_Format_Currency_Pass` and
+`Subscriber_Format_Currency_Fail` Checks set Display: Value Format to Currency while the plugin
+declares EUR for both values: the card must use the Currency format and keep EUR, not the viewing
+user's currency. That pair failed on 2.0.11.3 (Found currency `null`) and is fixed in 2.0.11.4. Package 2.0.11.3 passed its packaged tests, and the subscriber formatting regression passed
 on that exact candidate in LWS and Locker, after both clean installation and upgrade. See the
 release document for the completed runtime evidence.

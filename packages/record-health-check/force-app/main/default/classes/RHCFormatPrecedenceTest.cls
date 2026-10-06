@@ -89,6 +89,57 @@ private class RHCFormatPrecedenceTest {
       'Configured Expected currency must win with an explicit format.'
     );
   }
+  @IsTest
+  static void explicitCurrencyKeepsPluginUnits() {
+    RecordHealthCheckInternalResult result = numbers('FAIL');
+    result.presentationOverride = new RecordHealthCheckDisplayOverride()
+      .withFoundFormat('NUMBER', 'EUR')
+      .withExpectedFormat('NUMBER', 'EUR');
+    Test.startTest();
+    RecordHealthCheckPresentationResolver.apply(configured('CURRENCY'), result);
+    Test.stopTest();
+    Assert.areEqual(
+      'CURRENCY',
+      result.actualDisplayFormat,
+      'The configured format must win.'
+    );
+    Assert.areEqual(
+      'EUR',
+      result.actualCurrencyIsoCode,
+      'Found must keep the plugin-declared unit, not the user currency.'
+    );
+    Assert.areEqual(
+      'EUR',
+      result.expectedCurrencyIsoCode,
+      'Expected must keep the plugin unit when none is configured.'
+    );
+    Assert.isNull(
+      result.detailMessage,
+      'A valid plugin unit is not a display contract violation.'
+    );
+  }
+  @IsTest
+  static void explicitNonCurrencyFormatDropsPluginUnitQuietly() {
+    RecordHealthCheckInternalResult result = numbers('FAIL');
+    result.presentationOverride = new RecordHealthCheckDisplayOverride()
+      .withFoundFormat('CURRENCY', 'EUR')
+      .withExpectedFormat('CURRENCY', 'EUR');
+    Test.startTest();
+    RecordHealthCheckPresentationResolver.apply(configured('NUMBER'), result);
+    Test.stopTest();
+    Assert.isNull(
+      result.actualCurrencyIsoCode,
+      'A Number value carries no currency.'
+    );
+    Assert.isNull(
+      result.expectedCurrencyIsoCode,
+      'A Number value carries no currency.'
+    );
+    Assert.isNull(
+      result.detailMessage,
+      'The admin format replaced the plugin format; that is not a plugin error.'
+    );
+  }
   private static void verify(
     String formatName,
     String pluginFormat,

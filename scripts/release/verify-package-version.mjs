@@ -540,9 +540,9 @@ function subscriberConfiguration(alias) {
         String(left.DeveloperName).localeCompare(String(right.DeveloperName))
       );
   }
-  if (snapshot.checkSets.length !== 4 || snapshot.checks.length !== 10) {
+  if (snapshot.checkSets.length !== 4 || snapshot.checks.length !== 12) {
     console.error(
-      `Subscriber preservation fixture is incomplete: expected 4 Check Sets and 10 Checks; found ${snapshot.checkSets.length} and ${snapshot.checks.length}.`
+      `Subscriber preservation fixture is incomplete: expected 4 Check Sets and 12 Checks; found ${snapshot.checkSets.length} and ${snapshot.checks.length}.`
     );
     process.exit(1);
   }

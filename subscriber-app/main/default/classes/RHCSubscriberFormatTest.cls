@@ -20,6 +20,54 @@ private class RHCSubscriberFormatTest {
   static void automaticRetainsPluginNumber() {
     verifyCheck('Subscriber_Format_Auto_Pass', 'PASS', '0.75', '0.75');
   }
+  // An explicit Currency format must keep the unit the plugin declared (EUR);
+  // 2.0.11.3 replaced it with the running user's currency.
+  @IsTest
+  static void explicitCurrencyKeepsPluginUnitForPass() {
+    verifyCurrency('Subscriber_Format_Currency_Pass', 'PASS');
+  }
+  @IsTest
+  static void explicitCurrencyKeepsPluginUnitForFail() {
+    verifyCurrency('Subscriber_Format_Currency_Fail', 'FAIL');
+  }
+  private static void verifyCurrency(String name, String status) {
+    Account record = RHCSubscriberTestDataFactory.createAccount(
+      'Format currency alone'
+    );
+    Test.startTest();
+    rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
+      rhc.RecordHealthCheckRequest.forCheck(name, record.Id)
+        .withResultMode(rhc.RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
+    );
+    Test.stopTest();
+    Assert.areEqual(1, response.results.size(), 'The Check must run alone.');
+    assertCurrency(response.results[0], status);
+  }
+  private static void assertCurrency(
+    rhc.RecordHealthCheckResultItem item,
+    String status
+  ) {
+    Assert.areEqual(
+      status,
+      item.evaluation.status,
+      'Formatting must preserve the independently expected verdict.'
+    );
+    Assert.areEqual(
+      'CURRENCY',
+      item.display.foundDisplayFormat,
+      'The configured Currency format must apply to Found.'
+    );
+    Assert.areEqual(
+      'EUR',
+      item.display.foundCurrencyIsoCode,
+      'Found must keep the plugin-declared EUR unit.'
+    );
+    Assert.areEqual(
+      'EUR',
+      item.display.expectedCurrencyIsoCode,
+      'Expected must keep the plugin-declared EUR unit when none is configured.'
+    );
+  }
   private static void verifySet() {
     Account record = RHCSubscriberTestDataFactory.createAccount(
       'Format regression'
@@ -34,11 +82,20 @@ private class RHCSubscriberFormatTest {
     );
     Test.stopTest();
     Assert.areEqual(
-      4,
+      6,
       response.results.size(),
       'All configured Checks must execute.'
     );
     for (rhc.RecordHealthCheckResultItem item : response.results) {
+      if (item.evaluation.checkQualifiedApiName.contains('Currency')) {
+        assertCurrency(
+          item,
+          item.evaluation.checkQualifiedApiName.endsWith('Pass')
+            ? 'PASS'
+            : 'FAIL'
+        );
+        continue;
+      }
       Boolean ratio = item.evaluation.checkQualifiedApiName.contains('Ratio');
       Boolean passing = item.evaluation.checkQualifiedApiName.endsWith('Pass');
       assertResult(

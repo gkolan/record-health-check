@@ -33,12 +33,16 @@ global with sharing class RHCSubscriberFormatPlugin implements rhc.RecordHealthC
     rhc.RecordHealthCheckScope scope
   ) {
     Map<Id, rhc.RecordHealthCheckDisplayOverride> results = new Map<Id, rhc.RecordHealthCheckDisplayOverride>();
+    // A currency parameter makes the plugin declare the unit of both values.
+    Object unit = scope.parameters.get('currency');
+    String format = unit == null ? 'NUMBER' : 'CURRENCY';
+    String isoCode = unit == null ? null : String.valueOf(unit);
     for (Id recordId : scope.recordIds) {
       results.put(
         recordId,
         new rhc.RecordHealthCheckDisplayOverride()
-          .withFoundFormat('NUMBER', null)
-          .withExpectedFormat('NUMBER', null)
+          .withFoundFormat(format, isoCode)
+          .withExpectedFormat(format, isoCode)
           .withExpectedLabel('Plugin target')
       );
     }

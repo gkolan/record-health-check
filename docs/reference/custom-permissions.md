@@ -48,7 +48,7 @@ scoping-rule access while evaluating a Check.
 ## Diagnostics access
 
 Diagnostics is no longer a Custom Permission. Explicit diagnostics access
-can reveal the Formula **Passes when** expression when the row uses the documented
+can reveal the Formula pass-condition expression, shown under **Expected**, when the row uses the documented
 Formula comparison display; that specific display does not require **Show Diagnostics**. Broader
 troubleshooting detail appears only when both conditions are true:
 
