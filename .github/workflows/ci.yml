@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm install --global @salesforce/cli@2.151.7
+      - run: npm install --global @salesforce/cli@2.152.14
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
       # Ruff is not an npm dependency. Install it before the gates so that
@@ -41,7 +41,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.151.7
+      - run: npm install --global @salesforce/cli@2.152.14
       - run: echo y | sf plugins install code-analyzer@5.16.0
       - name: Record analyzer toolchain versions
         run: |

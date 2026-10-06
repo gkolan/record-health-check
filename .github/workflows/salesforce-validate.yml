@@ -27,7 +27,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm ci --prefix packages/record-health-check-mcp
-      - run: npm install --global @salesforce/cli@2.151.7
+      - run: npm install --global @salesforce/cli@2.152.14
       - run: npm run check:toolchain
       - name: Complete all no-org release checks before spending quota
         run: npm run release:preflight
@@ -114,7 +114,7 @@ jobs:
           node-version: 22
       - name: Install pinned Salesforce CLI for Dev Hub preflight
         if: steps.credentials.outputs.available == 'true'
-        run: npm install --global @salesforce/cli@2.151.7
+        run: npm install --global @salesforce/cli@2.152.14
       - name: Authenticate Dev Hub
         if: steps.credentials.outputs.available == 'true'
         env:
@@ -145,7 +145,7 @@ jobs:
       # `npm run release:preflight`, and this job cannot start until it passed.
       # Re-listing those gates here only creates drift against
       # scripts/lib/release-gates.mjs, which is their one declaration.
-      - run: npm install --global @salesforce/cli@2.151.7
+      - run: npm install --global @salesforce/cli@2.152.14
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
@@ -273,7 +273,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm install --global @salesforce/cli@2.151.7
+      - run: npm install --global @salesforce/cli@2.152.14
       - run: npm run check:toolchain
       - name: Authenticate Dev Hub
         env:
