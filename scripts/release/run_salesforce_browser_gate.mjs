@@ -305,6 +305,10 @@ try {
     }
   }
 
+  runBrowserSpec("chromium", "tests/browser/admin-user-setup.spec.mjs", {
+    RHC_ADMIN_SETUP_URL: frontdoorUrl(targetOrg, "/lightning/page/home")
+  });
+
   const restrictedSetupUrl = frontdoorUrl(
     restrictedAlias,
     "/lightning/page/home"
