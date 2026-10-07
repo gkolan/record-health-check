@@ -9,6 +9,7 @@ RUN npm run build && npm prune --omit=dev
 
 FROM gcr.io/distroless/nodejs22-debian13:nonroot@sha256:ec2313763dd43931543bd03830466e0c409ce73a487e8d46f10db72d3b816c1c AS runtime
 ENV NODE_ENV=production
+ENV NODE_OPTIONS=--no-addons
 WORKDIR /service
 COPY --chown=nonroot:nonroot --from=build /service/package.json /service/package-lock.json ./
 COPY --chown=nonroot:nonroot --from=build /service/NOTICE ./NOTICE

@@ -79,9 +79,14 @@ promotion ran from the exact creation commit with its immutable creation receipt
 No new scratch org was created. Direct namespaced source-org and optional hosted Salesforce
 validation remain separate, unexecuted evidence; package creation ran the packaged Apex tests.
 
-The separately distributed MCP container failed its high-severity artifact scan and was not
-published. That failure is distinct from the Salesforce package build and required CI workflow;
-no scanner policy was weakened or vulnerability disposition assumed.
+The separately distributed MCP container initially failed its high-severity artifact scan and was
+not published. Follow-up container work refreshes the pinned Debian runtime to fix the High
+OpenSSL findings, preserves scan reports on failure, and replaces stale exceptions with reviewed
+package/version/unfixed-state dispositions. The High/Critical failure threshold remains enabled;
+new native reachability checks run against the built image before scanning. See the
+[MCP operations review](../../packages/record-health-check-mcp/OPERATIONS.md#container-vulnerability-dispositions).
+This container work does not change the immutable Salesforce package source or installation URLs;
+container build/scan evidence remains distinct from installed-package validation.
 
 ## Earlier candidates
 

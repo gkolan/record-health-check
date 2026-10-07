@@ -112,16 +112,34 @@ only exact package-and-CVE reachability exceptions; it does not ignore severity 
 have a fix available. Review and remove each disposition when the base image supplies a correction,
 and repeat this reachability review if the server, protocol, native dependencies, or runtime changes.
 
-The current distroless Debian 13 runtime reports the following findings. They are excluded from the
-gate because the vulnerable code is not in this service's execution path:
+Reviewed on 2026-10-07 for the Linux amd64 artifact and runtime digest
+`ec2313763dd43931543bd03830466e0c409ce73a487e8d46f10db72d3b816c1c`.
+The base update fixes the four High OpenSSL findings and removes obsolete dispositions for
+`CVE-2026-5450`, `CVE-2026-5928`, and `CVE-2026-14456`. The remaining dispositions are
+restricted to the exact Debian namespace, binary package version, and unfixed state. A changed
+version or an available fix stops matching and requires review. These are reachability decisions,
+not claims that Debian has patched every finding.
 
-| Finding          | Runtime package | Reachability decision                                                                                                                                                                                                                                        |
-| ---------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CVE-2026-5450`  | `libc6`         | The Node/Express service does not call the glibc `scanf` `%mc` conversion.                                                                                                                                                                                   |
-| `CVE-2026-5928`  | `libc6`         | The service does not call `ungetwc` on attacker-selected exotic-encoding streams.                                                                                                                                                                            |
-| `CVE-2026-5435`  | `libc6`         | The service does not call glibc's deprecated resolver packet-printing functions.                                                                                                                                                                             |
-| `CVE-2026-14456` | `libssl3t64`    | Express serves HTTP/1 and does not create an OpenSSL QUIC server/listener or process QUIC Initial packets. OpenSSL rates this issue Low.                                                                                                                     |
-| `CVE-2026-85091` | `zlib1g`        | The issue requires a stalled non-blocking `gzwrite()` followed by `gzprintf()` or `gzvprintf()`. This JSON-over-HTTP service has no compression or archive path, imports no zlib API, and does not expose the affected native call sequence to request data. |
+| Finding           | Runtime package/version                                            | Reachability decision                                                                                                                                                                                                                                                                                                                       |
+| ----------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CVE-2026-5435`   | `libc6` / `2.41-12+deb13u4`                                        | The service does not call deprecated resolver packet-printing functions.                                                                                                                                                                                                                                                                    |
+| `CVE-2026-85091`  | `zlib1g` / `1:1.3.dfsg+really1.3.1-1+b1`                           | No compression/archive path exposes the stalled non-blocking `gzwrite` followed by `gzprintf`/`gzvprintf` sequence.                                                                                                                                                                                                                         |
+| `CVE-2026-19499`  | `libc6` / `2.41-12+deb13u4`                                        | The buffer overflow requires native `strfmon`/`strfmon_l` monetary formatting. The Node binary and runtime shared objects have no undefined imports of these functions; the JSON service provides no native monetary-formatting API.                                                                                                        |
+| `CVE-2026-95619`  | `gcc-14-base`, `libgcc-s1`, `libgomp1`, `libstdc++6` / `14.2.0-19` | Debian associates this libstdc++ source finding with four binary packages. The pinned library's aligned `operator new` calls `posix_memalign`, the path upstream explicitly identifies as unaffected. The other three packages do not implement that operator.                                                                              |
+| `CVE-2026-102010` | `gcc-14-base`, `libgcc-s1`, `libgomp1`, `libstdc++6` / `14.2.0-19` | The defect is in the GNU PBDS binary-heap `erase_if` C++ header template, not the shared runtime library. The service builds TypeScript, ships no C++ headers/compiler or native application code, and neither its Node binary nor shared libraries exposes PBDS symbols. Native addon loading is disabled with `NODE_OPTIONS=--no-addons`. |
+
+Primary references: [Debian glibc finding](https://security-tracker.debian.org/tracker/CVE-2026-19499),
+[GCC aligned-allocation correction and unaffected POSIX path](https://github.com/gcc-mirror/gcc/commit/59d235ffa5a69231eb42e5290d52dc8c90d28b7a),
+[GCC PBDS header correction](https://github.com/gcc-mirror/gcc/commit/aaa8351f4d2e636f9680a1f0a8ebc2f0a60611e6),
+[Debian GCC allocation finding](https://security-tracker.debian.org/tracker/CVE-2026-95619), and
+[Debian GCC PBDS finding](https://security-tracker.debian.org/tracker/CVE-2026-102010).
+
+`scripts/lib/mcp-artifact-policy.test.mjs` pins the reviewed dispositions, runtime digest,
+production dependency inventory, native-addon prohibition, and blocking scan/report retention.
+Changing these requires a new reachability review. The artifact workflow verifies the native
+allocation/import evidence against the built image before scanning it. Repository/container policy
+has no Salesforce Check configuration, so its executable policy test and image checks are the
+regression fixtures.
 
 The production npm dependency audit is separate and must remain clear. A new or unmatched
 High/Critical OS or application finding still fails the artifact workflow. Preserve the scan,
