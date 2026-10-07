@@ -58,7 +58,11 @@ test("deletes Checks before the Check Sets they reference", () => {
 test("removes the owned upgrade fixtures before uninstalling a retained package", () => {
   const plan = planReleasePairReset(
     paths.subscriberApp,
-    paths.subscriberUpgradePreflight
+    paths.subscriberUpgradePreflight,
+    [
+      "rhc__Record_Health_Check.Subscriber_2_0_11_Hidden_Manual_Formula",
+      "rhc__Record_Health_Check_Set.Subscriber_2_0_11_Hidden_Manual"
+    ]
   );
   assert.ok(
     plan.pre.CustomMetadata.includes(
@@ -68,6 +72,19 @@ test("removes the owned upgrade fixtures before uninstalling a retained package"
   assert.ok(
     plan.post.CustomMetadata.includes(
       "rhc__Record_Health_Check_Set.Subscriber_2_0_11_Hidden_Manual"
+    )
+  );
+});
+
+test("does not delete upgrade fixtures absent after a clean install", () => {
+  const plan = planReleasePairReset(
+    paths.subscriberApp,
+    paths.subscriberUpgradePreflight,
+    []
+  );
+  assert.ok(
+    ![...plan.pre.CustomMetadata, ...plan.post.CustomMetadata].some((name) =>
+      name.includes("Subscriber_2_0_11_Hidden_Manual")
     )
   );
 });

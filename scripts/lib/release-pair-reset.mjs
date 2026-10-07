@@ -30,7 +30,11 @@ function overridesFrom(objectFile) {
 }
 
 /** Builds the ordered reset plan from the subscriber harness source tree. */
-export function planReleasePairReset(subscriberAppRoot, upgradeFixtureRoot) {
+export function planReleasePairReset(
+  subscriberAppRoot,
+  upgradeFixtureRoot,
+  installedCustomMetadata = []
+) {
   const root = path.join(subscriberAppRoot, "main", "default");
   const known = new Set([
     "classes",
@@ -54,7 +58,7 @@ export function planReleasePairReset(subscriberAppRoot, upgradeFixtureRoot) {
       ? names(
           path.join(upgradeFixtureRoot, "main", "default", "customMetadata"),
           ".md-meta.xml"
-        )
+        ).filter((name) => installedCustomMetadata.includes(name))
       : [])
   ];
   const post = {

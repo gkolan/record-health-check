@@ -270,9 +270,19 @@ function resetReleasePairForUpgrade(alias, candidateId) {
   try {
     // One transaction: delete Checks, reset record-page overrides and
     // deactivate Flows, then delete the remaining harness components.
+    const installedCustomMetadata = runJson("sf", [
+      "org",
+      "list",
+      "metadata",
+      "--metadata-type",
+      "CustomMetadata",
+      "--target-org",
+      alias
+    ]).result.map((record) => record.fullName);
     const plan = planReleasePairReset(
       paths.subscriberApp,
-      paths.subscriberUpgradePreflight
+      paths.subscriberUpgradePreflight,
+      installedCustomMetadata
     );
     writeReleasePairResetDeploy(plan, deployDirectory);
     run("sf", [
