@@ -89,6 +89,17 @@ test("does not delete upgrade fixtures absent after a clean install", () => {
   );
 });
 
+test("resets only installed harness metadata across candidate versions", () => {
+  const installed = "rhc__Record_Health_Check.Subscriber_Format_Auto_Pass";
+  const plan = planReleasePairReset(
+    paths.subscriberApp,
+    paths.subscriberUpgradePreflight,
+    [installed, "rhc__Record_Health_Check.Subscriber_Owner_Custom"]
+  );
+  assert.deepEqual(plan.pre.CustomMetadata, [installed]);
+  assert.deepEqual(plan.post.CustomMetadata, []);
+});
+
 test("deactivates Flows instead of deleting them through the metadata deploy", () => {
   const plan = planReleasePairReset(paths.subscriberApp);
   assert.deepEqual(plan.flows, ["RHC_Subscriber_Release_Matrix"]);

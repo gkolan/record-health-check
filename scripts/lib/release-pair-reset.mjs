@@ -33,7 +33,7 @@ function overridesFrom(objectFile) {
 export function planReleasePairReset(
   subscriberAppRoot,
   upgradeFixtureRoot,
-  installedCustomMetadata = []
+  installedCustomMetadata
 ) {
   const root = path.join(subscriberAppRoot, "main", "default");
   const known = new Set([
@@ -58,9 +58,13 @@ export function planReleasePairReset(
       ? names(
           path.join(upgradeFixtureRoot, "main", "default", "customMetadata"),
           ".md-meta.xml"
-        ).filter((name) => installedCustomMetadata.includes(name))
+        )
       : [])
-  ];
+  ].filter(
+    (name) =>
+      installedCustomMetadata === undefined ||
+      installedCustomMetadata.includes(name)
+  );
   const post = {
     ApexClass: names(path.join(root, "classes"), ".cls-meta.xml"),
     ApexTrigger: names(path.join(root, "triggers"), ".trigger-meta.xml"),
