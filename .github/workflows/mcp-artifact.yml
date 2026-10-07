@@ -30,12 +30,23 @@ jobs:
           push: false
           tags: record-health-check-mcp:${{ github.sha }}
       - name: Scan container for high-severity vulnerabilities
+        id: container-scan
         uses: anchore/scan-action@v7
         with:
           image: record-health-check-mcp:${{ github.sha }}
           config: packages/record-health-check-mcp/grype.yaml
           fail-build: true
           severity-cutoff: high
+          output-format: json
+          output-file: mcp-container-scan.json
+      - name: Upload container scan findings
+        if: ${{ always() && (steps.container-scan.outcome == 'success' || steps.container-scan.outcome == 'failure') }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: mcp-container-scan-${{ github.sha }}
+          path: mcp-container-scan.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@v0
         with:
