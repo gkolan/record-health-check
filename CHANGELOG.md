@@ -6,7 +6,7 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.10-1`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.11-4`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
 
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
@@ -16,8 +16,8 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 > version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current stable release: `Record Health Check@2.0.10-1` (`04tak000000h2wDAAQ`).
-- Previous stable release: `Record Health Check@2.0.9-2` (`04tak000000gX9FAAU`).
+- Current stable release: `Record Health Check@2.0.11-4`; exact package ID is in the release registry.
+- Previous stable release: `Record Health Check@2.0.10-1`; exact package ID is in the release registry.
 
 ### Evaluation and integration
 
