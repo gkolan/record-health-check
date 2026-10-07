@@ -270,7 +270,10 @@ function resetReleasePairForUpgrade(alias, candidateId) {
   try {
     // One transaction: delete Checks, reset record-page overrides and
     // deactivate Flows, then delete the remaining harness components.
-    const plan = planReleasePairReset(paths.subscriberApp);
+    const plan = planReleasePairReset(
+      paths.subscriberApp,
+      paths.subscriberUpgradePreflight
+    );
     writeReleasePairResetDeploy(plan, deployDirectory);
     run("sf", [
       "project",

@@ -321,7 +321,7 @@ pair rather than creating orgs. `package:verify --release-pair --keep-org --reus
 requires a matching active Dev Hub receipt and release, an org without its own namespace, and the
 actual Lightning security setting. It never deletes a reused org. The org must have no package installed, or the owner must
 select its one exact installed version with `--reset-installed-package <04t>`; the guarded reset
-removes the harness and that package before clean installation. Save owner-testing evidence before
+removes the harness, the owned previous-release upgrade fixtures, and that package before clean installation. Save owner-testing evidence before
 resetting. Run LWS and Locker sequentially, with their existing aliases and exact candidate ID.
 
 The source-only `RHC_Format_Precedence` and subscriber-owned `Subscriber_Format_Precedence`

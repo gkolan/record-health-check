@@ -30,7 +30,7 @@ function overridesFrom(objectFile) {
 }
 
 /** Builds the ordered reset plan from the subscriber harness source tree. */
-export function planReleasePairReset(subscriberAppRoot) {
+export function planReleasePairReset(subscriberAppRoot, upgradeFixtureRoot) {
   const root = path.join(subscriberAppRoot, "main", "default");
   const known = new Set([
     "classes",
@@ -48,7 +48,15 @@ export function planReleasePairReset(subscriberAppRoot) {
     }
   }
 
-  const metadata = names(path.join(root, "customMetadata"), ".md-meta.xml");
+  const metadata = [
+    ...names(path.join(root, "customMetadata"), ".md-meta.xml"),
+    ...(upgradeFixtureRoot
+      ? names(
+          path.join(upgradeFixtureRoot, "main", "default", "customMetadata"),
+          ".md-meta.xml"
+        )
+      : [])
+  ];
   const post = {
     ApexClass: names(path.join(root, "classes"), ".cls-meta.xml"),
     ApexTrigger: names(path.join(root, "triggers"), ".trigger-meta.xml"),
