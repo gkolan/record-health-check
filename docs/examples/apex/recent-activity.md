@@ -687,7 +687,12 @@ rhc.RecordHealthCheckResponse response = rhc.RecordHealthCheck.evaluate(
   rhc.RecordHealthCheckRequest.forCheck('Account_Has_Recent_Activity', accountId)
     .withResultMode(rhc.RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
 );
-System.debug(LoggingLevel.INFO, JSON.serializePretty(response));
+for (rhc.RecordHealthCheckResultItem item : response.results) {
+  System.debug(
+    LoggingLevel.INFO,
+    item.evaluation.status + ': ' + item.display.renderedMessage
+  );
+}
 ```
 
 ### Lightning record page

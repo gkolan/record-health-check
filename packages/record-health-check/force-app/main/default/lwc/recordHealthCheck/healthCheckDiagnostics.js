@@ -57,7 +57,8 @@ const COMPONENT_ERROR_PRESENTATIONS = {
   INVALID_CONFIG: {
     title: "Record Health Check Needs Setup",
     message: "This Record Health Check has a configuration problem.",
-    guidance: "Ask your Salesforce admin to review this Check Set in Setup."
+    guidance: "Ask your Salesforce admin to review this Check Set in Setup.",
+    retryable: true
   },
   FRAMEWORK_MAX_CHECKS_EXCEEDED: {
     title: "Record Health Check Needs Setup",

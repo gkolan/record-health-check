@@ -127,4 +127,57 @@ private class RHCMetadataValidatorWarningTest {
       'The validator should warn when a hidden automatic card cannot publish an enabled Check event.'
     );
   }
+
+  @IsTest
+  static void warnsWhenHiddenAutomaticHeadingHasPublishingCheck() {
+    Id setId = Id.valueOf('m00' + '000000000010');
+    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+      new Map<String, Object>{
+        'DeveloperName' => String.valueOf(setId),
+        'ObjectApiName__c' => 'Account',
+        'CardTitle__c' => 'Passive headingless health',
+        'CardRunMode__c' => 'RUN_ON_LOAD',
+        'RunButtonDisplay__c' => 'LABEL_AND_ICON',
+        'CardHeadingDisplay__c' => 'HIDE',
+        'CardRevealMode__c' => 'ALL_AT_ONCE',
+        'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK'
+      }
+    );
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{
+        'DeveloperName' => 'Headingless_Publishing_Check',
+        'MasterLabel' => 'Headingless Publishing Check',
+        'CheckTitle__c' => 'Headingless Publishing Check',
+        'EvaluationType__c' => 'FORMULA',
+        'FailureSeverity__c' => 'WARNING',
+        'PassConditionFormula__c' => 'TRUE',
+        'FailureMessage__c' => 'Formula failure',
+        'UnableToEvaluateMessage__c' => 'Cannot evaluate Formula Check.',
+        'EvaluationOrder__c' => 10,
+        'ApplicabilityMode__c' => 'ALL_RECORDS',
+        'NoRowsResult__c' => 'FAIL',
+        'EmptyValueHandling__c' => 'SKIP_RECORD',
+        'PublishUserResultEvent__c' => true,
+        'Record_Health_Check_Set__c' => setId
+      }
+    );
+
+    List<RecordHealthCheckMetadataValidator.ValidationIssue> issues = new RecordHealthCheckMetadataValidator()
+      .validateRecords(
+        new List<Record_Health_Check_Set__mdt>{ checkSet },
+        new List<Record_Health_Check__mdt>{ check }
+      );
+
+    Boolean foundLifecycleWarning = false;
+    for (RecordHealthCheckMetadataValidator.ValidationIssue issue : issues) {
+      foundLifecycleWarning =
+        foundLifecycleWarning ||
+        issue.reasonCode == 'USER_RESULT_PUBLICATION_UNREACHABLE';
+    }
+    Assert.isTrue(
+      foundLifecycleWarning,
+      'A hidden automatic heading must warn when it removes an enabled Check publication path.'
+    );
+  }
 }

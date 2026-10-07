@@ -1,6 +1,6 @@
 {
-  "checkCount": 158,
-  "inventorySha256": "e46ae531342dd483958fcbd386570cb33d9bd96d635396daa826775d423610b1",
+  "checkCount": 162,
+  "inventorySha256": "0b79beb8222858e5478df733c9e8a7052d16a277b1eea9db1932dcae624acd76",
   "results": [
     {
       "check": "Account_Active_Signed_Contract",
@@ -668,6 +668,13 @@
       "status": "UNABLE_TO_EVALUATE"
     },
     {
+      "check": "Account_Rows_Scalar_Beside_Subquery",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "status": "FAIL"
+    },
+    {
       "check": "Account_Rows_SecondContactEmail",
       "queryFields": [
         "SourceQuery__c"
@@ -1191,6 +1198,30 @@
       "status": "UNABLE_TO_EVALUATE"
     },
     {
+      "check": "RHC_Link_Grammar_Open",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "INVALID_CONFIG",
+      "status": "UNABLE_TO_EVALUATE"
+    },
+    {
+      "check": "RHC_Link_Grammar_Valid",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
+      "check": "RHC_Link_Metadata",
+      "queryFields": [
+        "SourceQuery__c"
+      ],
+      "reasonCode": "APPLICABILITY_NOT_MET",
+      "status": "SKIPPED"
+    },
+    {
       "check": "RHC_Negative_For_Update",
       "exceptionType": "rhc.RecordHealthCheckScopePipeline.ScopePipelineException",
       "queryFields": [
@@ -1254,5 +1285,5 @@
     }
   ],
   "schemaVersion": 1,
-  "templateCount": 290
+  "templateCount": 294
 }

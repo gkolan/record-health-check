@@ -5,6 +5,7 @@ released. Administrators who only configure Checks can skip it.
 
 | Topic                                                           | Reference                                                                   |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Required agent startup reading, lessons and evidence limits     | [Agent lessons and verification handoff](./agent-lessons.md)                |
 | Release-owner GitHub, package, promotion, and publication steps | [Manual release-owner checklist](./manual-release-owner-checklist.md)       |
 | Repeatable passing, failing, skipped, and unable Check outcomes | [Check and Check Set outcome verification](./check-outcome-verification.md) |
 | Scratch org ownership, reuse, cleanup, and release allocation   | [Scratch org lifecycle and release plan](./scratch-org-lifecycle.md)        |

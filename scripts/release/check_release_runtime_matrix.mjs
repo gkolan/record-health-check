@@ -33,7 +33,7 @@ assertReleaseQuotaPolicy(
 releaseUpgradeBases(matrix, readPackageReleases());
 requireEqual(
   matrix.upgradeBases.map((base) => base.version),
-  ["2.0.9.2"],
+  ["2.0.10.1"],
   "Required upgrade origins"
 );
 if (
@@ -107,7 +107,7 @@ const requiredScenarios = [
   "record-navigation",
   "component-disconnect-reconnect",
   "fresh-package-install",
-  "upgrade-2.0.9.2-to-2.0.10.1",
+  "upgrade-2.0.10.1-to-2.0.11.4",
   "post-install-lwc",
   "post-upgrade-lwc",
   "post-install-apex-api",
@@ -290,11 +290,11 @@ requireEqual(
   requiredScenarios,
   "Lifecycle evidence scenarios"
 );
-if (matrix.candidateVersion !== "2.0.10.1") {
-  errors.push("Candidate version must be exactly 2.0.10.1.");
+if (matrix.candidateVersion !== "2.0.11.4") {
+  errors.push("Candidate version must be exactly 2.0.11.4.");
 }
-if (matrix.upgradeFromVersion !== "2.0.9.2") {
-  errors.push("Upgrade base version must be exactly 2.0.9.2.");
+if (matrix.upgradeFromVersion !== "2.0.10.1") {
+  errors.push("Upgrade base version must be exactly 2.0.10.1.");
 }
 for (const scenario of requiredScenarios) {
   const evidence = matrix.lifecycleEvidence?.[scenario];
@@ -397,7 +397,7 @@ requireText("scripts/release/create-package-version.mjs", [
 requireOrderedText("scripts/release/create-package-version.mjs", [
   'run("npm", ["run", "release:preflight"]',
   "const createArguments = [",
-  'run("sf", createArguments'
+  'tryRun("sf", [...createArguments, "--json"]'
 ]);
 requireText("scripts/release/promote-package-version.mjs", [
   "runtimeMatrix.candidateVersion",
@@ -503,7 +503,9 @@ requireText("tests/browser/lifecycle.mjs", [
   'button[title="Edit Phone"]',
   'performance.getEntriesByType("navigation").length',
   "navigationEntriesAfterClick",
-  "expectAutomaticRunCompleted(page)"
+  "expectAutomaticRunCompleted(page)",
+  'page.on("requestfinished", countRefreshedChecks)',
+  "await expect.poll(() => refreshedCheckResponses).toBeGreaterThanOrEqual(29)"
 ]);
 requireText("scripts/release/verify_mcp_salesforce_contract.mjs", [
   "RUN_CHECK_SET must account for every Check in the four-type release set.",

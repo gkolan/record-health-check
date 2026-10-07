@@ -121,7 +121,8 @@ in an org that installs Record Health Check cannot call it through the `rhc` nam
   `RecordHealthCheckConstants.FRAMEWORK_MAX_CHECKS` (25) as
   `ERROR`/`FRAMEWORK_MAX_CHECKS_EXCEEDED`. Salesforce can save the additional Checks, but every
   whole-set runtime rejects the configuration before evaluation begins.
-- When an automatic card hides Run and Rerun, users cannot publish lifecycle events from the card.
+- When an automatic card hides Run and Rerun through either Run Button Display or Card Heading
+  Display, users cannot publish lifecycle events from the card.
   The audit returns `WARNING`/`USER_RUN_PUBLICATION_UNREACHABLE` when Check Set publication is
   enabled and `WARNING`/`USER_RESULT_PUBLICATION_UNREACHABLE` for each Check whose publication is
   enabled. Apex and Flow can still publish, so these findings are warnings rather than errors. The

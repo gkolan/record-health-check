@@ -83,6 +83,10 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   Check API; and `RHC_SP_Diagnostics` proves both business verdicts as well as the separate
   inapplicable lifecycle trace. The deliberately invalid diagnostic, definition, access, and
   preview fixtures assert their exact safe failure instead of manufacturing a business verdict.
+- The versioned `tests/fixtures/release-2.0.10/outcome-contract.json` inventory maps every public
+  2.0.10 feature to success, adverse and recovery evidence. Its `test:scripts` guard requires each
+  feature to retain an integration-test anchor and prevents a generic smoke test or coverage number
+  from replacing the named behavioral regressions.
 - `scripts/setup-negative-scenarios.apex`, `verify-negative-scenarios.apex`, and
   `cleanup-negative-scenarios.apex`: repeatable data lifecycle for the negative row-cap card
 - `npm run test:war-room -- --alias <alias>`: cross-platform deploy-optional runner for the negative
@@ -355,12 +359,14 @@ presentation must not change those verdicts.
 `RecordHealthCheck.evaluate`, using EVALUATION_WITH_DISPLAY and disabling event publication.
 Its assertions cover all eight business results, typed null preservation, malformed-summary removal,
 authorized cross-record rows, and redacted counts. `RHCControllerEvidenceTransportTest` additionally
-checks the card JSON adapter, preserving the one-column null row and runner authorization. On a single-record card, the cross-record fixture
-has only the current authorized row; a two-record request is needed to verify the second row.
+checks that the card JSON adapter omits evidence rows and preserves runner authorization. A
+two-record typed API request is needed to verify the second authorized cross-record row.
 
 After deploying integration metadata, use the `RHC_Evidence_Projection` administrator list view to
 inspect the four Checks. Assign the Set to a disposable Account page and run the card on both
-records. Inspect the evidence details against the table, accounting for the single-record scope.
+records. Confirm the card shows PASS or FAIL, its message and comparison, but no evidence summary,
+table, Show details, Show all, or download controls. Inspect the evidence projection through the
+authorized typed API and the `RHCEvidenceFixtureTest` assertions, not the card.
 For recovery, change Number of Employees from 1 to 0 and rerun: the verdict must become PASS while
 the same evidence-validity rules remain. Delete the disposable Accounts/page assignment afterward;
 retain the intentionally malformed integration definitions. Record the actual persistent and browser
@@ -376,13 +382,55 @@ JSON envelope to exactly 262,145 UTF-8 bytes. Valid cells remain within their in
 The TRUNCATED case adds empty authorized rows to reach 101; UNKNOWN adds denied provenance.
 
 Use one Account with Site `RHC_EVIDENCE_FIXTURE` and Number of Employees 0, then change the count to 1.
-Run one byte Set at a time on the card. Expect PASS then FAIL, with 12 returned evidence rows in both
-runs. COMPLETE and TRUNCATED candidates must report TRUNCATED after trimming, with total/omitted
+Run one byte Set at a time on the card. Expect PASS then FAIL without evidence controls. The typed
+API must return 12 evidence rows in both runs. COMPLETE and TRUNCATED candidates must report
+TRUNCATED after trimming, with total/omitted
 counts 13/1 and 101/89 respectively. UNKNOWN must retain UNKNOWN and null total/omitted counts.
 Every final envelope must fit within 262,144 bytes. Keep these Sets separate: combining large
 payloads would also exercise the shared response budget and obscure the individual boundary.
 
 `RHCEvidenceByteFixtureTest` verifies the saved fixture plugin at the projector boundary and through
 the public evaluation API, separately for PASS and FAIL. Both layers matter: the shared response
-allocator is another safeguard and could mask a projector-only overflow. Record browser rendering and
-persistent administrator results separately; the automated tests are the byte-count authority.
+allocator is another safeguard and could mask a projector-only overflow. Record card verdicts and
+typed API results separately; the automated tests are the byte-count authority.
+
+### Fixed Found / Expected card labels
+
+Use the existing `Example_Guide_Recent_Activity` Check in `Example_Account_Check_Builder_Guide`
+on `RHC Builder Ready Account` (PASS) and `RHC Builder Needs Review Account` (FAIL) from the
+demo setup. Preserve those independently declared outcomes while verifying the comparison headings. The plugin supplies
+`Required recent activity` to typed APIs, but the card must label the value **Expected**. Also open
+the Formula examples: their default condition must use **Expected**, never **Passes when** as a heading.
+
+On a saved copy of the integration Check, test `ComparisonDisplayMode__c` values `AUTOMATIC`,
+`FOUND_ONLY`, `EXPECTED_ONLY`, and `HIDDEN`. Rerun after each edit: show both sides, Found only,
+Expected only, or neither respectively. With `HIDDEN`, neither comparison value may appear in the
+expanded region or accessible row label. Repeat with the Set's Found/Expected placement set to
+All rows, On demand (expand the passing row), and Failures only (passing values stay hidden).
+Restore the copied Check and Set settings afterward. No verdict, count, message or remediation
+may change merely because visibility changed. The Jest block `fixed comparison labels respect
+Custom Metadata visibility` covers PASS and FAIL across these settings and absent/custom labels;
+the installed browser matrix separately asserts the activity row and forbids other comparison
+headings. The exhaustive visibility and placement combinations are covered by Jest and the
+manual configuration procedure above.
+
+### Apex metadata formatting precedence
+
+`RHC_Format_Precedence` contains paired PASS and FAIL Checks for explicit Ratio as percent
+and Automatic. `RHCFormatPrecedencePlugin` supplies Found 0.75 and Expected 0.75 (PASS) or
+0.80 (FAIL), plus NUMBER overrides. Use any accessible Account. With RATIO_PERCENT, expect
+Found 75% / Expected 75% or 80%; with AUTO, expect Found 0.75 / Expected 0.75 or 0.8.
+Run each Check alone and the mixed Set; all four verdicts and raw values must remain unchanged.
+Change the explicit format to RAW, rerun, and verify the stored spelling; restore it afterward.
+
+`RHCFormatPrecedenceTest` pins the resolver's ordinary, empty, structured-content, RAW and
+currency paths. `RecordHealthCheckApexResultFinalizerTest.configuredFormatWinsOverTypedPluginFormat`
+guards the legacy typed fallback. Subscriber-owned equivalents under `subscriber-app` use
+`Subscriber_Format_Precedence`, `RHCSubscriberFormatPlugin`, and `RHCSubscriberFormatTest`;
+never deploy these integration source fixtures to a subscriber org. The subscriber test verifies
+both Check and mixed-Set public API paths. Its `Subscriber_Format_Currency_Pass` and
+`Subscriber_Format_Currency_Fail` Checks set Display: Value Format to Currency while the plugin
+declares EUR for both values: the card must use the Currency format and keep EUR, not the viewing
+user's currency. That pair failed on 2.0.11.3 (Found currency `null`) and is fixed in 2.0.11.4. Package 2.0.11.3 passed its packaged tests, and the subscriber formatting regression passed
+on that exact candidate in LWS and Locker, after both clean installation and upgrade. See the
+release document for the completed runtime evidence.

@@ -193,12 +193,12 @@ for the complete field list.
 The component evaluates Checks through separate Salesforce requests so it can honor prerequisites,
 stop after system errors when configured, and show results progressively.
 
-When **Stop after a system error** is unchecked, the component allows up to five evaluations at a
-time so the card can finish promptly without flooding the browser or Salesforce with one request per
+When **Stop after a system error** is unchecked, the component allows up to eight evaluations at a
+time, shared by every card on the page, so the card can finish promptly without flooding the browser or Salesforce with one request per
 Check all at once. When it is checked, evaluation becomes sequential; the component must know whether
 the current Check returned `ERROR` before deciding whether the next Check is allowed to start.
 
-With **Reveal Mode = One by one**, the card can show work in groups of up to five evaluations while
+With **Reveal Mode = One by one**, the card can show work in groups of up to eight evaluations while
 it advances through the ordered Checks. That staged appearance is not a failure; wait for the run
 summary before troubleshooting missing rows.
 

@@ -172,3 +172,23 @@ test("a title too long to be a label may be cut short, but not reworded", () => 
   assert.equal(findings.length, 1);
   assert.match(findings[0], /must be the start of it/);
 });
+
+test("example Checks never require categories on administrator-copy cards", () => {
+  const fields = [...TIER_A, ...TIER_B].filter(
+    (field) => field !== "Category__c"
+  );
+  assert.deepEqual(
+    comprehensionFindings(
+      [],
+      [check("Example_One", "Example_Account_Query", fields)]
+    ),
+    []
+  );
+  assert.deepEqual(
+    comprehensionFindings(
+      [],
+      [check("Subscriber_One", "Account_Data_Quality", fields)]
+    ),
+    ["Subscriber_One (in Account_Data_Quality) is missing Category__c"]
+  );
+});

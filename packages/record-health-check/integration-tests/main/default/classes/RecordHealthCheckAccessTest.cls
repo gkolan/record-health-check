@@ -12,6 +12,10 @@ private class RecordHealthCheckAccessTest {
         RecordHealthCheckAccess.canRunChecks(),
         'Apex test execution must not bypass the Run custom permission.'
       );
+      Assert.isFalse(
+        RecordHealthCheckAccess.canViewDetails(),
+        'A user without a direct Admin or Diagnostics Viewer assignment must not receive restricted detail.'
+      );
       try {
         RecordHealthCheckAccess.requireCanRunChecks();
         Assert.fail('The unentitled test user must be rejected.');

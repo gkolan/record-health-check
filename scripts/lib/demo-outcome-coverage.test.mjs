@@ -109,3 +109,48 @@ test("rejects a misspelled expected status", () => {
     ["Account / Review / Example_One has unknown status FAILED."]
   );
 });
+
+for (const active of ["true", "false"]) {
+  test(`rejects categories on ${active === "true" ? "active" : "inactive"} packaged examples`, (t) => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "rhc-category-"));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    writeCheck(directory, "Example_One", {
+      IsActive__c: active,
+      Record_Health_Check_Set__c: "Example_Set",
+      ApplicabilityMode__c: "ALL_RECORDS",
+      Category__c: "COMPLETENESS"
+    });
+    const matrix =
+      active === "true"
+        ? {
+            Account: {
+              checkSet: "Example_Set",
+              records: {
+                Ready: { Example_One: "PASS" },
+                Review: { Example_One: "FAIL" }
+              }
+            }
+          }
+        : {};
+    assert.deepEqual(demoOutcomeCoverageGaps(directory, matrix), [
+      "Example_One must leave Category__c blank; packaged examples must not set a category."
+    ]);
+  });
+}
+
+test("allows blank example categories and subscriber-owned categories", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "rhc-category-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  for (const [name, category] of [
+    ["Example_Blank", ""],
+    ["Example_Whitespace", "  "],
+    ["Subscriber_One", "RISK"]
+  ]) {
+    writeCheck(directory, name, {
+      IsActive__c: "false",
+      Category__c: category
+    });
+  }
+  writeCheck(directory, "Example_Absent", { IsActive__c: "false" });
+  assert.deepEqual(demoOutcomeCoverageGaps(directory, {}), []);
+});

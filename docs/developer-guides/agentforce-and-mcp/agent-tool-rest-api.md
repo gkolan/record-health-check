@@ -121,6 +121,10 @@ Adapter errors return `success=false`, a safe error type, and a safe message. Th
 health status, query, formula, stack trace, exception text, record value, token, session ID, or
 administrator diagnostic.
 
+Permission denial precedes request-body parsing, so HTTP `403` / `AUTHORIZATION` uses a
+server-generated correlation ID. The MCP service maps that early denial to `AUTHORIZATION` with its
+own request ID; see [early permission denial and correlation](../../reference/contracts/agent-tool-contract.md#early-permission-denial-and-correlation).
+
 ## Limits and security behavior
 
 - One request evaluates one record and one exact Check or Check Set.

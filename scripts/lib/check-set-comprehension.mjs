@@ -133,6 +133,7 @@ export const PURPOSES = {
   RHC_SP_Preview_Live: "coverage",
   RHC_SP_Values: "coverage",
   RHC_Display_Budget: "coverage",
+  RHC_Format_Precedence: "coverage",
   RHC_Stop_On_System_Error: "diagnostics",
   Release_On_Load: "business",
   Review_Label_Icon_Pass: "review",
@@ -261,7 +262,9 @@ export function comprehensionFindings(sets, checks) {
 
   const tierB = new Set(TIER_B_SETS);
   for (const { api, set, fields, values = new Map() } of checks) {
-    const required = [...TIER_A, ...(tierB.has(set) ? TIER_B : [])];
+    const required = [...TIER_A, ...(tierB.has(set) ? TIER_B : [])].filter(
+      (field) => field !== "Category__c" || !api.startsWith("Example_")
+    );
     const missing = required.filter((field) => !fields.has(field));
     if (missing.length > 0) {
       findings.push(`${api} (in ${set}) is missing ${missing.join(", ")}`);

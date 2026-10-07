@@ -4,10 +4,11 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { setTimeout } from "node:timers/promises";
 import { paths } from "../lib/paths.mjs";
 import { packageVersionString } from "../lib/package-version.mjs";
 import { readPackageReleases } from "../lib/package-releases.mjs";
-import { run, runJson } from "../lib/run.mjs";
+import { run, runJson, tryRun } from "../lib/run.mjs";
 import { assertPackageVersionCapacity } from "../lib/salesforce-limits.mjs";
 
 const { values } = parseArgs({
@@ -17,7 +18,8 @@ const { values } = parseArgs({
     "release-ready": { type: "boolean", default: false },
     "allow-additional-candidate": { type: "boolean", default: false },
     "override-reason": { type: "string", default: "" },
-    wait: { type: "string", default: "120" }
+    wait: { type: "string", default: "120" },
+    resume: { type: "string" }
   }
 });
 
@@ -33,6 +35,16 @@ if (!values["release-ready"]) {
     "Package creation is the final release-candidate step. Re-run with --release-ready only after the branch is committed and every preflight gate passes."
   );
   process.exit(1);
+}
+
+if (!/^\d+$/.test(values.wait) || !Number.isSafeInteger(Number(values.wait))) {
+  throw new Error("--wait must be a non-negative integer number of minutes.");
+}
+if (
+  values.resume &&
+  !/^08c[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(values.resume)
+) {
+  throw new Error("--resume requires a package creation request ID (08c).");
 }
 
 const branch = execFileSync("git", ["branch", "--show-current"], {
@@ -79,155 +91,312 @@ if (versionNumber !== runtimeMatrix.candidateVersion) {
   );
   process.exit(1);
 }
-const packageCapacity = assertPackageVersionCapacity(values["dev-hub"]);
-const createsUsedToday = packageCapacity.max - packageCapacity.remaining;
-if (createsUsedToday > 0 && !values["allow-additional-candidate"]) {
-  console.error(
-    `The Dev Hub has already consumed ${createsUsedToday} of ${packageCapacity.max} ` +
-      "package-version creates in the current limit window. This repository permits one " +
-      "candidate attempt per day by default. Wait for the limit to reset."
-  );
-  process.exit(1);
+const evidenceDirectory = path.join(paths.packageRoot, ".package-evidence");
+fs.mkdirSync(evidenceDirectory, { recursive: true });
+const attemptPath = path.join(
+  evidenceDirectory,
+  `${releases.package2Id}-${versionNumber}-attempt.json`
+);
+const tag = `${gitCommit}:${versionNumber}`;
+
+function assertSourceUnchanged() {
+  const git = (...args) =>
+    execFileSync("git", args, { cwd: paths.repoRoot, encoding: "utf8" }).trim();
+  if (
+    git("rev-parse", "HEAD") !== gitCommit ||
+    git("branch", "--show-current") !== branch ||
+    git("status", "--porcelain")
+  ) {
+    throw new Error(
+      "Release source changed during preparation. No candidate may be bound to this commit."
+    );
+  }
 }
-if (values["allow-additional-candidate"]) {
-  if (values["override-reason"].trim().length < 20) {
+
+// `sf package version create report` returns a one-element list.
+function createReport(requestId) {
+  const result = runJson(
+    "sf",
+    [
+      "package",
+      "version",
+      "create",
+      "report",
+      "--package-create-request-id",
+      requestId,
+      "--target-dev-hub",
+      values["dev-hub"]
+    ],
+    { cwd: paths.packageRoot }
+  ).result;
+  if (!Array.isArray(result)) return result;
+  if (result.length !== 1) {
+    throw new Error(
+      `Expected one creation request for ${requestId}; Salesforce returned ${result.length}.`
+    );
+  }
+  return result[0];
+}
+
+// Inputs that determine the built package. A resume only reads request status,
+// so it may run from a later commit when none of these changed since submission.
+const PACKAGE_INPUTS = [
+  "packages/record-health-check/force-app",
+  "packages/record-health-check/sfdx-project.json",
+  "packages/record-health-check/config",
+  "config/package-releases.json",
+  "config/release-runtime-matrix.json"
+];
+
+function resumableFrom(submittedCommit) {
+  if (submittedCommit === gitCommit) return true;
+  const git = (...args) =>
+    tryRun("git", args, { cwd: paths.repoRoot }).status === 0;
+  return (
+    /^[0-9a-f]{40}$/.test(String(submittedCommit)) &&
+    git("merge-base", "--is-ancestor", submittedCommit, "HEAD") &&
+    git("diff", "--quiet", submittedCommit, "HEAD", "--", ...PACKAGE_INPUTS)
+  );
+}
+
+let attempt;
+let response;
+if (values.resume) {
+  attempt = JSON.parse(fs.readFileSync(attemptPath, "utf8"));
+  if (
+    !resumableFrom(attempt.gitCommit) ||
+    attempt.packageBranch !== branch ||
+    attempt.package2Id !== releases.package2Id ||
+    attempt.version !== versionNumber ||
+    attempt.devHubAlias !== values["dev-hub"] ||
+    (attempt.createRequestId && attempt.createRequestId !== values.resume)
+  ) {
+    throw new Error(
+      "Resume request does not match the saved candidate attempt, or package inputs changed since it was submitted."
+    );
+  }
+  response = createReport(values.resume);
+} else {
+  if (fs.existsSync(attemptPath)) {
+    throw new Error(
+      `A candidate attempt already exists: ${attemptPath}. Inspect its request and use --resume; do not create again.`
+    );
+  }
+  const packageCapacity = assertPackageVersionCapacity(values["dev-hub"]);
+  const createsUsedToday = packageCapacity.max - packageCapacity.remaining;
+  if (createsUsedToday > 0 && !values["allow-additional-candidate"]) {
     console.error(
-      "An additional candidate requires --override-reason with at least 20 characters " +
-        "describing the reviewed evidence and why waiting is unacceptable."
+      `The Dev Hub has already consumed ${createsUsedToday} of ${packageCapacity.max} ` +
+        "package-version creates in the current limit window. This repository permits one " +
+        "candidate attempt per day by default. Wait for the limit to reset."
     );
     process.exit(1);
   }
-  console.warn(
-    "EXCEPTION: allowing an additional package candidate in the current limit window."
-  );
-  console.warn(`Reviewed reason: ${values["override-reason"].trim()}`);
+  if (values["allow-additional-candidate"]) {
+    if (values["override-reason"].trim().length < 20) {
+      console.error(
+        "An additional candidate requires --override-reason with at least 20 characters " +
+          "describing the reviewed evidence and why waiting is unacceptable."
+      );
+      process.exit(1);
+    }
+    console.warn(
+      "EXCEPTION: allowing an additional package candidate in the current limit window."
+    );
+    console.warn(`Reviewed reason: ${values["override-reason"].trim()}`);
+  }
+
+  const versionListArguments = [
+    "package",
+    "version",
+    "list",
+    "--packages",
+    releases.package2Id,
+    "--target-dev-hub",
+    values["dev-hub"],
+    "--order-by",
+    "CreatedDate",
+    "--concise"
+  ];
+  const versionsBefore = runJson("sf", versionListArguments, {
+    cwd: paths.packageRoot
+  });
+  if (!Array.isArray(versionsBefore.result)) {
+    throw new Error("Dev Hub returned an invalid package version inventory.");
+  }
+  if (
+    versionsBefore.result.some(
+      (record) => packageVersionString(record) === versionNumber
+    )
+  ) {
+    throw new Error(
+      `Candidate ${versionNumber} already exists. Select a reviewed new build number; do not recreate it.`
+    );
+  }
+  assertSourceUnchanged();
+  attempt = {
+    capturedAt: new Date().toISOString(),
+    gitCommit,
+    packageBranch: branch,
+    package2Id: releases.package2Id,
+    version: versionNumber,
+    devHubAlias: values["dev-hub"],
+    generatedPackageZipRequested: true,
+    capacityAtPreflight: {
+      remaining: packageCapacity.remaining,
+      maximum: packageCapacity.max,
+      consumed: createsUsedToday
+    },
+    additionalCandidateException: values["allow-additional-candidate"],
+    overrideReason: values["allow-additional-candidate"]
+      ? values["override-reason"].trim()
+      : null,
+    createRequestId: null,
+    status: "SubmissionPending"
+  };
+  // Exclusive creation prevents a second local invocation from consuming quota.
+  // Retain this journal even if the CLI loses its response after submission.
+  fs.writeFileSync(attemptPath, `${JSON.stringify(attempt, null, 2)}\n`, {
+    flag: "wx"
+  });
+
+  const createArguments = [
+    "package",
+    "version",
+    "create",
+    "--package",
+    releases.package2Id,
+    "--definition-file",
+    "config/project-scratch-def.json",
+    "--code-coverage",
+    "--generate-pkg-zip",
+    "--installation-key-bypass",
+    "--branch",
+    branch,
+    "--tag",
+    tag,
+    "--wait",
+    "0",
+    "--target-dev-hub",
+    values["dev-hub"]
+  ];
+  createArguments.push("--version-number", versionNumber);
+
+  const submission = tryRun("sf", [...createArguments, "--json"], {
+    cwd: paths.packageRoot,
+    env: {
+      ...process.env,
+      SF_PROJECT_AUTOUPDATE_DISABLE_FOR_PACKAGE_VERSION_CREATE: "true"
+    }
+  });
+  // Keep raw CLI output locally for diagnosis, including failures and lost responses.
+  fs.writeFileSync(`${attemptPath}.stdout`, submission.stdout ?? "");
+  fs.writeFileSync(`${attemptPath}.stderr`, submission.stderr ?? "");
+  if (submission.status !== 0) {
+    throw new Error(
+      `Submission outcome is uncertain. Inspect ${attemptPath} and the Dev Hub creation requests; recover with --resume, never a blind retry.`
+    );
+  }
+  const envelope = JSON.parse(submission.stdout);
+  if (envelope.status !== 0)
+    throw new Error(
+      "Package submission returned an unsuccessful JSON status; inspect the saved attempt."
+    );
+  response = envelope.result;
 }
 
-console.log(
-  `Creating package version for ${releases.packageName} (${releases.package2Id}) from force-app` +
-    `${versionNumber ? ` at ${versionNumber}` : " (version from sfdx-project.json)"}...`
-);
-
-const versionListArguments = [
-  "package",
-  "version",
-  "list",
-  "--packages",
-  releases.package2Id,
-  "--target-dev-hub",
-  values["dev-hub"],
-  "--created-last-days",
-  "1",
-  "--order-by",
-  "CreatedDate",
-  "--concise"
-];
-const versionsBefore = runJson("sf", versionListArguments, {
-  cwd: paths.packageRoot
-});
-const idsBefore = new Set(
-  (versionsBefore.result ?? [])
-    .map((record) => record.SubscriberPackageVersionId)
-    .filter(Boolean)
-);
-// Salesforce stores this as the source-control branch, not as package ancestry.
-// Exact immutable provenance is recorded separately as gitCommit in the local
-// creation evidence.
-const candidateBranch = branch;
-
-const createArguments = [
-  "package",
-  "version",
-  "create",
-  "--package",
-  releases.package2Id,
-  "--definition-file",
-  "config/project-scratch-def.json",
-  "--code-coverage",
-  "--generate-pkg-zip",
-  "--installation-key-bypass",
-  "--branch",
-  candidateBranch,
-  "--wait",
-  values.wait,
-  "--target-dev-hub",
-  values["dev-hub"]
-];
-createArguments.push("--version-number", versionNumber);
-
-run("sf", createArguments, { cwd: paths.packageRoot });
-
-const versions = runJson("sf", versionListArguments, {
-  cwd: paths.packageRoot
-});
-
-const records = versions.result ?? [];
-const createdRecords = records.filter(
-  (record) =>
-    record.SubscriberPackageVersionId &&
-    !idsBefore.has(record.SubscriberPackageVersionId) &&
-    (record.Branch ?? record.branch) === candidateBranch
-);
-if (createdRecords.length !== 1) {
-  console.error(
-    `Package version create must produce exactly one candidate bound to ${candidateBranch}; found ${createdRecords.length}.`
+const deadline = Date.now() + Number(values.wait) * 60_000;
+while (true) {
+  if (
+    !response ||
+    !/^08c[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(response.Id) ||
+    response.Package2Id !== releases.package2Id ||
+    response.Branch !== branch ||
+    response.Tag !== `${attempt.gitCommit}:${versionNumber}` ||
+    (values.resume && response.Id !== values.resume) ||
+    (attempt.createRequestId && response.Id !== attempt.createRequestId)
+  ) {
+    throw new Error(
+      "Salesforce creation response does not match the saved request, package, branch, and commit tag."
+    );
+  }
+  attempt.createRequestId = response.Id;
+  attempt.status = response.Status;
+  fs.writeFileSync(attemptPath, `${JSON.stringify(attempt, null, 2)}\n`);
+  fs.writeFileSync(
+    `${attemptPath}.report.json`,
+    `${JSON.stringify(response, null, 2)}\n`
   );
-  process.exit(1);
-}
-const latest = createdRecords[0];
-const createdVersion = packageVersionString(latest);
-if (createdVersion !== runtimeMatrix.candidateVersion) {
-  console.error(
-    `Salesforce created ${createdVersion || "an unknown version"}; expected exact candidate ${runtimeMatrix.candidateVersion}. Candidate creation is blocked.`
-  );
-  process.exit(1);
+  if (response.Status === "Success") break;
+  if (response.Status === "Error")
+    throw new Error(
+      `Package creation failed. Inspect ${attemptPath}.report.json; a new attempt needs a reviewed build number.`
+    );
+  if (
+    ![
+      "Queued",
+      "InProgress",
+      "Initializing",
+      "VerifyingFeaturesAndSettings",
+      "VerifyingDependencies",
+      "VerifyingMetadata",
+      "FinalizingPackageVersion",
+      "PerformingValidations"
+    ].includes(response.Status)
+  ) {
+    throw new Error(
+      `Unknown package creation status: ${response.Status}. Inspect the saved request.`
+    );
+  }
+  if (Date.now() >= deadline) {
+    throw new Error(
+      `Candidate still ${response.Status}. Resume without consuming quota: npm run package:create -- --dev-hub ${values["dev-hub"]} --release-ready --resume ${response.Id}`
+    );
+  }
+  console.log(`Package request ${response.Id}: ${response.Status}`);
+  await setTimeout(Math.min(30_000, deadline - Date.now()));
+  response = createReport(attempt.createRequestId);
 }
 
-const evidenceDirectory = path.join(paths.packageRoot, ".package-evidence");
-fs.mkdirSync(evidenceDirectory, { recursive: true });
+const createdVersion = packageVersionString(response);
+if (
+  createdVersion !== versionNumber ||
+  !/^04t[0-9A-Za-z]{12}(?:[0-9A-Za-z]{3})?$/.test(
+    response.SubscriberPackageVersionId
+  ) ||
+  response.HasPassedCodeCoverageCheck !== true
+) {
+  throw new Error(
+    "Completed request does not have the exact candidate version, a valid 04t, and passing package code coverage."
+  );
+}
+assertSourceUnchanged();
 const evidencePath = path.join(
   evidenceDirectory,
-  `${latest.SubscriberPackageVersionId}-create.json`
+  `${response.SubscriberPackageVersionId}-create.json`
 );
-fs.writeFileSync(
-  evidencePath,
-  `${JSON.stringify(
-    {
-      capturedAt: new Date().toISOString(),
-      gitCommit,
-      packageBranch: candidateBranch,
-      package2Id: releases.package2Id,
-      subscriberPackageVersionId: latest.SubscriberPackageVersionId,
-      packageVersionId: latest.Id ?? null,
-      version: latest.Version ?? latest.version ?? null,
-      devHubAlias: values["dev-hub"],
-      generatedPackageZipRequested: true,
-      capacityAtPreflight: {
-        remaining: packageCapacity.remaining,
-        maximum: packageCapacity.max,
-        consumed: createsUsedToday
-      },
-      additionalCandidateException: values["allow-additional-candidate"],
-      overrideReason: values["allow-additional-candidate"]
-        ? values["override-reason"].trim()
-        : null
-    },
-    null,
-    2
-  )}\n`
-);
-
-console.log("");
-console.log("Candidate package version created.");
-console.log(`Version: ${latest.Version ?? latest.version ?? "unknown"}`);
-console.log(`04t: ${latest.SubscriberPackageVersionId}`);
-console.log(`Redacted creation evidence: ${evidencePath}`);
-console.log("");
+const evidence = {
+  ...attempt,
+  subscriberPackageVersionId: response.SubscriberPackageVersionId,
+  packageVersionId: response.Package2VersionId,
+  version: createdVersion
+};
+const serialized = `${JSON.stringify(evidence, null, 2)}\n`;
+if (fs.existsSync(evidencePath)) {
+  if (fs.readFileSync(evidencePath, "utf8") !== serialized)
+    throw new Error(
+      "Existing creation evidence differs; preserve and review it."
+    );
+} else {
+  fs.writeFileSync(evidencePath, serialized, { flag: "wx" });
+}
 console.log(
-  "Next: dispatch Subscriber release-pair validation once for " +
-    latest.SubscriberPackageVersionId +
-    " after the release owner explicitly authorizes its LWS and Locker pair."
+  `Candidate ${createdVersion} created: ${response.SubscriberPackageVersionId}`
+);
+console.log(`Creation evidence: ${evidencePath}`);
+console.log(
+  "Subscriber install and upgrade validation is recommended optional evidence; its scratch orgs require explicit owner authorization."
 );
 console.log(
-  "Do not update config/package-releases.json until clean install, upgrade, and promote gates pass."
+  "Update config/package-releases.json only after owner-authorized promotion."
 );

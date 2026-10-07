@@ -29,7 +29,7 @@ export function redactBrowserEvidence(text, environment) {
   let redacted = String(text);
   for (const secret of secrets)
     redacted = redacted.split(secret).join("[REDACTED]");
-  return redacted;
+  return redacted.replace(/([?&](?:sid|lm)=)[^&\s"'<>\\]+/gi, "$1[REDACTED]");
 }
 
 export function browserEvidenceHtml(redactedJson) {

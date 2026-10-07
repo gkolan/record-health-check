@@ -49,6 +49,7 @@ function fakePage(states, destination = home) {
     probes: () => probes,
     clicks: () => clicks,
     url: () => state.url,
+    frames: () => [],
     getByLabel(pattern) {
       const matching = fields.filter((field) => pattern.test(field));
       assert.equal(matching.length, 1);
@@ -152,4 +153,47 @@ test("post-submit login and password-error destinations do not pass", async () =
       /not Lightning Home/
     );
   }
+});
+
+test("acknowledges Salesforce maintenance notice in a frame before password setup", async () => {
+  const page = fakePage([{ url: change, visible: true }]);
+  let visible = true;
+  let acknowledged = 0;
+  page.frames = () => [
+    {
+      getByText: (text) => {
+        assert.equal(text, "Scheduled Maintenance");
+        return { isVisible: async () => visible };
+      },
+      getByRole: (role, { name }) => {
+        assert.equal(role, "link");
+        assert.equal(name, "Got it");
+        return {
+          click: async () => {
+            visible = false;
+            acknowledged++;
+          }
+        };
+      }
+    }
+  ];
+  await completeScratchUserFirstLogin(page, credentials, options);
+  assert.equal(acknowledged, 1);
+  assert.equal(page.clicks(), 1);
+});
+
+test("retries a maintenance frame that detaches during redirect", async () => {
+  const page = fakePage([{ url: home, visible: false }]);
+  page.frames = () => [
+    {
+      isDetached: () => true,
+      getByText: () => ({
+        isVisible: async () => {
+          throw new Error("Frame was detached");
+        }
+      })
+    }
+  ];
+  await completeScratchUserFirstLogin(page, credentials, options);
+  assert.equal(page.clicks(), 0);
 });

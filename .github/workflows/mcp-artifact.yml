@@ -29,13 +29,41 @@ jobs:
           load: true
           push: false
           tags: record-health-check-mcp:${{ github.sha }}
+      - name: Verify native vulnerability reachability assumptions
+        env:
+          IMAGE: record-health-check-mcp:${{ github.sha }}
+        run: |
+          runtime=$(mktemp -d)
+          container=$(docker create "$IMAGE")
+          trap 'docker rm "$container" >/dev/null; rm -rf "$runtime"' EXIT
+          docker cp "$container":/nodejs/bin/node "$runtime/node"
+          docker cp "$container":/usr/lib/x86_64-linux-gnu "$runtime/libraries"
+          objdump -d --disassemble=_ZnwmSt11align_val_t "$runtime/libraries/libstdc++.so.6.0.33" > "$runtime/aligned-new.txt"
+          grep -q 'call.*posix_memalign' "$runtime/aligned-new.txt"
+          if grep -q 'call.*aligned_alloc' "$runtime/aligned-new.txt"; then exit 1; fi
+          objdump -T "$runtime/node" > "$runtime/symbols.txt"
+          find "$runtime/libraries" -type f -name '*.so*' -exec objdump -T {} + >> "$runtime/symbols.txt"
+          if grep -E '\*UND\*.*(__)?strfmon(_l)?([[:space:]]|$)' "$runtime/symbols.txt"; then exit 1; fi
+          if grep -q '__gnu_pbds' "$runtime/symbols.txt"; then exit 1; fi
+          docker run --rm "$IMAGE" -e 'try { process.dlopen({}, "/missing.node"); process.exit(1); } catch (error) { if (error.code !== "ERR_DLOPEN_DISABLED") throw error; }'
       - name: Scan container for high-severity vulnerabilities
+        id: container-scan
         uses: anchore/scan-action@v7
         with:
           image: record-health-check-mcp:${{ github.sha }}
           config: packages/record-health-check-mcp/grype.yaml
           fail-build: true
           severity-cutoff: high
+          output-format: json
+          output-file: mcp-container-scan.json
+      - name: Upload container scan findings
+        if: ${{ always() && (steps.container-scan.outcome == 'success' || steps.container-scan.outcome == 'failure') }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: mcp-container-scan-${{ github.sha }}
+          path: mcp-container-scan.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@v0
         with:

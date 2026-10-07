@@ -504,6 +504,47 @@ describe("Salesforce client", () => {
     ).rejects.toMatchObject({ code: "UPSTREAM_CONTRACT" });
   });
 
+  it.each([
+    [200, "AUTHORIZATION"],
+    [400, "VALIDATION"],
+    [403, "EXECUTION"],
+    [413, "LIMIT"],
+    [500, "EXECUTION"]
+  ])(
+    "rejects mismatched correlation for HTTP %s / %s",
+    async (status, errorType) => {
+      const fetcher = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(
+          json({
+            access_token: "token",
+            instance_url: "https://instance.salesforce.test"
+          })
+        )
+        .mockResolvedValueOnce(
+          json(
+            {
+              contractVersion: "1.0",
+              correlationId: "wrong-request",
+              success: false,
+              errorType,
+              errorMessage: "Safe failure."
+            },
+            status
+          )
+        );
+      await expect(
+        new SalesforceClient(testConfig(), logger, fetcher).evaluate({
+          operation: "RUN_CHECK",
+          recordId: "001000000000001AAA",
+          qualifiedApiName: "Check_One",
+          correlationId: "caller-supplied"
+        })
+      ).rejects.toMatchObject({ code: "UPSTREAM_CONTRACT" });
+      expect(fetcher).toHaveBeenCalledTimes(2);
+    }
+  );
+
   it("M03 Generated retry correlation", async () => {
     const requestBodies: string[] = [];
     const fetcher = vi.fn<typeof fetch>((url, init) => {

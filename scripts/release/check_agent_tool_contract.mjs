@@ -46,6 +46,20 @@ for (const example of readJson("examples/invalid.json")) {
   }
 }
 
+// Early denial is a transport fixture: no Check configuration can exercise
+// a request rejected before body parsing or evaluation.
+const earlyDenial = readJson("examples/early-authorization-denial.json");
+if (
+  earlyDenial.httpStatus !== 403 ||
+  !validators.response(earlyDenial.body) ||
+  earlyDenial.body.success !== false ||
+  earlyDenial.body.errorType !== "AUTHORIZATION"
+) {
+  failures.push(
+    "Early Run permission denial must be a strict HTTP 403 AUTHORIZATION envelope."
+  );
+}
+
 const diagnosisFields = [
   "diagnosticId",
   "diagnosticCategory",
@@ -133,6 +147,24 @@ const apexResponseSource = fs.readFileSync(
   ),
   "utf8"
 );
+const authorizationIndex = apexResponseSource.indexOf(
+  "if (!RecordHealthCheckAccess.canRunChecks())"
+);
+const bodyIndex = apexResponseSource.indexOf(
+  "if (request == null || request.requestBody == null)"
+);
+if (
+  authorizationIndex < 0 ||
+  bodyIndex < authorizationIndex ||
+  !apexResponseSource.includes(
+    "PERMISSION_DENIED_MESSAGE = '" + earlyDenial.body.errorMessage + "'"
+  )
+) {
+  failures.push(
+    "REST early authorization denial must precede body inspection and match the transport fixture."
+  );
+}
+
 const apexResponseBody = apexResponseSource.match(
   /global class AgentToolResponse\s*\{([\s\S]*?)\n\s{2}\}/
 )?.[1];

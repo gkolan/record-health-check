@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const releasePageUrl = process.env.RHC_BROWSER_URL;
 const retainedReleaseEvidence = Boolean(process.env.RHC_BROWSER_JSON);
+const firefoxExecutablePath = process.env.RHC_FIREFOX_EXECUTABLE_PATH;
 
 export default defineConfig({
   testDir: "./tests/browser",
@@ -26,7 +27,15 @@ export default defineConfig({
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } }
+    {
+      name: "firefox",
+      use: {
+        ...devices["Desktop Firefox"],
+        ...(firefoxExecutablePath
+          ? { launchOptions: { executablePath: firefoxExecutablePath } }
+          : {})
+      }
+    }
   ],
   outputDir: process.env.RHC_BROWSER_OUTPUT || "test-results/browser"
 });

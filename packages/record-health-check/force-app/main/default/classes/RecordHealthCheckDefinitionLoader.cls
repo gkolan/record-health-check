@@ -362,12 +362,13 @@ public with sharing class RecordHealthCheckDefinitionLoader {
       runButtonDisplay == 'HIDE'
     ) {
       throw new RecordHealthCheckConfigService.ConfigException(
-        'Run Button Display cannot be Hide when When Checks Run is "When the user clicks Run". Use a visible Run Button Display or run checks when the page opens.',
+        'Run Button Display cannot be Hide when checks run only after a user clicks Run. Use a visible Run Button Display or run checks when the page opens.',
         RC_INVALID_CONFIG
       );
     }
     RecordHealthCheckConfigService.validatedCardHeadingDisplay(
-      checkSet.CardHeadingDisplay__c
+      checkSet.CardHeadingDisplay__c,
+      checkSet.CardRunMode__c
     );
     if (!VALID_REVEAL_MODES.contains(checkSet.CardRevealMode__c)) {
       throw new RecordHealthCheckConfigService.ConfigException(

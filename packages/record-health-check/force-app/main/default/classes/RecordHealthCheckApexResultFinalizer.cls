@@ -105,7 +105,7 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
           ' characters.'
       );
     }
-    String displayContractError = applyTypedDisplayValues(apexResult);
+    String displayContractError = applyTypedDisplayValues(check, apexResult);
     if (displayContractError != null) {
       return contractError(
         check,
@@ -216,6 +216,7 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
   }
 
   private static String applyTypedDisplayValues(
+    Record_Health_Check__mdt check,
     RecordHealthCheckInternalResult apexResult
   ) {
     if (
@@ -225,6 +226,10 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
       if (!isValidPluginFormat(apexResult.actualDisplayFormat)) {
         return 'returned an invalid actualDisplayFormat. Use a canonical uppercase format API name.';
       }
+      apexResult.actualDisplayFormat = effectiveFormat(
+        check,
+        apexResult.actualDisplayFormat
+      );
       apexResult.actualValue = RecordHealthCheckDisplayFormat.render(
         apexResult.actualDisplayValue,
         apexResult.actualDisplayFormat,
@@ -238,6 +243,16 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
       if (!isValidPluginFormat(apexResult.expectedDisplayFormat)) {
         return 'returned an invalid expectedDisplayFormat. Use a canonical uppercase format API name.';
       }
+      apexResult.expectedDisplayFormat = effectiveFormat(
+        check,
+        apexResult.expectedDisplayFormat
+      );
+      if (
+        hasConfiguredFormat(check) &&
+        String.isNotBlank(check.ExpectedCurrencyIsoCode__c)
+      ) {
+        apexResult.expectedCurrencyIsoCode = check.ExpectedCurrencyIsoCode__c;
+      }
       apexResult.expectedValue = RecordHealthCheckDisplayFormat.render(
         apexResult.expectedDisplayValue,
         apexResult.expectedDisplayFormat,
@@ -245,6 +260,24 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
       );
     }
     return null;
+  }
+
+  private static Boolean hasConfiguredFormat(Record_Health_Check__mdt check) {
+    return String.isNotBlank(check.DisplayValueFormat__c) &&
+      check.DisplayValueFormat__c !=
+      RecordHealthCheckDisplayFormat.FORMAT_AUTO &&
+      RecordHealthCheckDisplayFormat.isFormatApiName(
+        check.DisplayValueFormat__c
+      );
+  }
+
+  private static String effectiveFormat(
+    Record_Health_Check__mdt check,
+    String pluginFormat
+  ) {
+    return hasConfiguredFormat(check)
+      ? check.DisplayValueFormat__c
+      : pluginFormat;
   }
 
   private static Boolean isValidPluginFormat(String formatName) {

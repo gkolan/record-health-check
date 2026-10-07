@@ -17,7 +17,8 @@ import {
 } from "../healthCheckPresentation";
 import {
   HealthCheckRunner,
-  resetPageEvaluationSchedulerForTest
+  resetPageEvaluationSchedulerForTest,
+  MAX_CONCURRENT_EVALUATIONS
 } from "../healthCheckRunner";
 import {
   checkNamespace,
@@ -98,8 +99,8 @@ async function appendAndLoad(element) {
   await flushPromises();
   jest.runOnlyPendingTimers();
   await flushPromises();
-  // Initial configuration and Automatic execution each own a separate idle
-  // boundary so the Lightning page can finish painting before any Apex work.
+  // Flush the initial idle boundary and any fallback scheduling (record swaps,
+  // or definitions loaded without a shell run mode) in jsdom's timer fallback.
   jest.runOnlyPendingTimers();
   await flushPromises();
   await flushPromises();
@@ -364,17 +365,11 @@ describe("c-record-health-check — load and error states", () => {
   });
 
   it.each([
-    ["TITLE_AND_SUBTITLE", true, true, false],
-    ["TITLE_ONLY", true, false, false],
-    ["HIDE", false, false, true]
+    ["TITLE_AND_SUBTITLE", true],
+    ["TITLE_ONLY", false]
   ])(
-    "renders Card Heading Display %s without changing the Run action",
-    async (
-      cardHeadingDisplay,
-      showsTitle,
-      showsSubtitle,
-      usesBodyActionRow
-    ) => {
+    "renders Card Heading Display %s with its integrated Run action",
+    async (cardHeadingDisplay, showsSubtitle) => {
       getCheckDefinitions.mockResolvedValue(
         makeDefinitions({
           cardHeadingDisplay,
@@ -386,13 +381,13 @@ describe("c-record-health-check — load and error states", () => {
 
       expect(
         Boolean(element.shadowRoot.querySelector(".rhc-header__title"))
-      ).toBe(showsTitle);
+      ).toBe(true);
       expect(
         Boolean(element.shadowRoot.querySelector(".rhc-header__desc"))
       ).toBe(showsSubtitle);
       expect(
-        Boolean(element.shadowRoot.querySelector(".rhc-body-action-row"))
-      ).toBe(usesBodyActionRow);
+        element.shadowRoot.querySelector(".rhc-body-action-row")
+      ).toBeNull();
       expect(
         element.shadowRoot.querySelectorAll(".rhc-action-button")
       ).toHaveLength(1);
@@ -401,6 +396,23 @@ describe("c-record-health-check — load and error states", () => {
       ).toBe("Account Health");
     }
   );
+
+  it("renders no top action bar when an automatic card hides its heading", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        triggerMode: "Automatic",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay: "LABEL_AND_ICON"
+      })
+    );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-body-action-row")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+  });
 
   it("defaults an omitted Card Heading Display to title and subtitle", async () => {
     const definition = makeDefinitions({
@@ -453,25 +465,32 @@ describe("c-record-health-check — load and error states", () => {
     ).not.toBeNull();
   });
 
-  it("removes both heading and action row when each is independently hidden", async () => {
-    getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({
-        triggerMode: "Automatic",
-        cardHeadingDisplay: "HIDE",
-        runButtonDisplay: "HIDE"
-      })
-    );
-    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+  it.each(["LABEL_AND_ICON", "LABEL_ONLY", "ICON_ONLY", "HIDE"])(
+    "keeps a page-load hidden heading valid without an action row for %s",
+    async (runButtonDisplay) => {
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({
+          triggerMode: "Automatic",
+          cardHeadingDisplay: "HIDE",
+          runButtonDisplay
+        })
+      );
+      evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
 
-    await appendAndLoad(element);
+      await appendAndLoad(element);
 
-    expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
-    expect(element.shadowRoot.querySelector(".rhc-body-action-row")).toBeNull();
-    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
-    expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
-  });
+      expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-body-action-row")
+      ).toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-card")).not.toBeNull();
+      expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+      expect(evaluateCheck).toHaveBeenCalled();
+    }
+  );
 
-  it("keeps focus on the Run action when a refreshed heading moves it", async () => {
+  it("moves focus to the card when refreshed configuration hides the heading", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
     evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
     await appendAndLoad(element);
@@ -481,7 +500,10 @@ describe("c-record-health-check — load and error states", () => {
     originalAction.focus();
     expect(element.shadowRoot.activeElement).toBe(originalAction);
     getCheckDefinitions.mockResolvedValue(
-      makeDefinitions({ cardHeadingDisplay: "HIDE" })
+      makeDefinitions({
+        triggerMode: "Automatic",
+        cardHeadingDisplay: "HIDE"
+      })
     );
 
     originalAction.click();
@@ -489,11 +511,157 @@ describe("c-record-health-check — load and error states", () => {
     await flushPromises();
     await flushPromises();
 
-    const replacementAction = element.shadowRoot.querySelector(
-      ".rhc-body-action-row .rhc-action-button"
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(element.shadowRoot.activeElement).toBe(
+      element.shadowRoot.querySelector("[data-card-root]")
     );
-    expect(replacementAction).not.toBeNull();
-    expect(element.shadowRoot.activeElement).toBe(replacementAction);
+  });
+
+  it.each(["LABEL_AND_ICON", "LABEL_ONLY", "ICON_ONLY"])(
+    "loads the full definition to reject a hidden Manual heading for %s",
+    async (runButtonDisplay) => {
+      getCheckSetShellConfig.mockResolvedValue({
+        runMode: "Manual",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay,
+        cardTitle: "Broken hidden manual card",
+        activeCheckCount: "1"
+      });
+      getCheckDefinitions.mockRejectedValue({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message:
+              "Card Heading Display cannot be Hide when checks run only after a user clicks Run."
+          })
+        }
+      });
+
+      await appendAndLoad(element);
+
+      expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+      expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-error-banner")
+      ).not.toBeNull();
+      expect(element.shadowRoot.textContent).toContain("configuration problem");
+      expect(evaluateCheck).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    [true, true],
+    [false, false]
+  ])(
+    "shows exact invalid configuration only when detail entitlement is %s",
+    async (canViewDetails, showsAdministratorDetail) => {
+      getCheckSetShellConfig.mockResolvedValue({
+        runMode: "Manual",
+        cardHeadingDisplay: "HIDE",
+        runButtonDisplay: "LABEL_AND_ICON",
+        activeCheckCount: "1"
+      });
+      getCheckDefinitions.mockRejectedValue({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message:
+              "Card Heading Display cannot be Hide when checks run only after a user clicks Run.",
+            canViewDetails
+          })
+        }
+      });
+
+      await appendAndLoad(element);
+
+      const detail = element.shadowRoot.querySelector(
+        ".rhc-error-banner__technical"
+      );
+      expect(Boolean(detail)).toBe(showsAdministratorDetail);
+      expect(
+        detail?.textContent.includes("Card Heading Display cannot be Hide") ??
+          false
+      ).toBe(showsAdministratorDetail);
+      expect(
+        element.shadowRoot.textContent.includes(
+          "Card Heading Display cannot be Hide"
+        )
+      ).toBe(showsAdministratorDetail);
+    }
+  );
+
+  it("recovers after a hidden Manual heading is corrected to page-load", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Manual",
+      cardHeadingDisplay: "HIDE",
+      runButtonDisplay: "LABEL_AND_ICON",
+      activeCheckCount: "1"
+    });
+    getCheckDefinitions
+      .mockRejectedValueOnce({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message:
+              "Card Heading Display cannot be Hide when checks run only after a user clicks Run.",
+            canViewDetails: false
+          })
+        }
+      })
+      .mockResolvedValueOnce(
+        makeDefinitions({
+          triggerMode: "Automatic",
+          cardHeadingDisplay: "HIDE",
+          runButtonDisplay: "HIDE"
+        })
+      );
+    evaluateCheck.mockResolvedValue(PASS_RESULT("Check_A"));
+
+    await appendAndLoad(element);
+
+    const retry = element.shadowRoot.querySelector(
+      ".rhc-error-banner__actions button"
+    );
+    expect(retry).not.toBeNull();
+    retry.click();
+    await flushPromises();
+    await flushPromises();
+    await runScheduledAutomaticRun();
+
+    expect(getCheckDefinitions).toHaveBeenCalledTimes(2);
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-header")).toBeNull();
+    expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+    expect(
+      element.shadowRoot
+        .querySelector(".rhc-body")
+        .classList.contains("rhc-body--bare-top")
+    ).toBe(true);
+    expect(evaluateCheck).toHaveBeenCalled();
+  });
+
+  it("does not add bare-top spacing above a setup error heading", async () => {
+    getCheckSetShellConfig.mockResolvedValue({
+      runMode: "Automatic",
+      cardHeadingDisplay: "HIDE",
+      runButtonDisplay: "HIDE",
+      cardTitle: "Hidden automatic card",
+      activeCheckCount: "1"
+    });
+    getCheckDefinitions.mockRejectedValue({
+      body: {
+        message: JSON.stringify({
+          reasonCode: "INVALID_CONFIG",
+          message: "Invalid test configuration."
+        })
+      }
+    });
+
+    await appendAndLoad(element);
+
+    const body = element.shadowRoot.querySelector(".rhc-body");
+    expect(element.shadowRoot.querySelector(".rhc-header")).not.toBeNull();
+    expect(body.classList).not.toContain("rhc-body--bare-top");
   });
 
   it("moves focus to the card when refreshed configuration removes the action", async () => {
@@ -586,6 +754,7 @@ describe("c-record-health-check — load and error states", () => {
   it("blocks a legacy truncated response without evaluating any Check", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
+        canViewDetails: true,
         revealMode: "OneAtATime",
         checksOmittedByLimit: true,
         totalAvailableCheckCount: 40
@@ -595,6 +764,10 @@ describe("c-record-health-check — load and error states", () => {
 
     expect(evaluateCheck).not.toHaveBeenCalled();
     expect(element.shadowRoot.textContent).toContain("No Checks were run");
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__technical")
+        .textContent
+    ).toContain("FRAMEWORK_MAX_CHECKS_EXCEEDED");
   });
 
   it("uses the configured Run label in the pre-run hint", async () => {
@@ -904,21 +1077,39 @@ describe("c-record-health-check — load and error states", () => {
     await flushPromises();
     await flushPromises();
 
+    // The page has already painted once the first idle boundary fires, so the
+    // run proceeds straight to definitions without waiting for idle again.
     expect(getCheckSetShellConfig).toHaveBeenCalledTimes(1);
-    expect(getCheckDefinitions).not.toHaveBeenCalled();
-    expect(
-      element.shadowRoot.querySelector(".rhc-card-loading")
-    ).not.toBeNull();
-
-    idleCallbacks.shift()({ didTimeout: false, timeRemaining: () => 10 });
-    await flushPromises();
-    await flushPromises();
-
     expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
     expect(evaluateCheck).toHaveBeenCalledWith(
       expect.objectContaining({ source: "RUN_ON_LOAD" })
     );
+    expect(window.requestIdleCallback).toHaveBeenCalledTimes(1);
+    expect(idleCallbacks).toHaveLength(0);
 
+    delete window.requestIdleCallback;
+    delete window.cancelIdleCallback;
+  });
+
+  it("bounds every idle wait so a busy record page cannot postpone checks indefinitely", async () => {
+    Object.defineProperty(window, "requestIdleCallback", {
+      configurable: true,
+      value: jest.fn(() => 7)
+    });
+    Object.defineProperty(window, "cancelIdleCallback", {
+      configurable: true,
+      value: jest.fn()
+    });
+
+    await appendAndLoad(element);
+
+    expect(window.requestIdleCallback).toHaveBeenCalledTimes(1);
+    const [, options] = window.requestIdleCallback.mock.calls[0];
+    expect(options).toEqual({ timeout: 1000 });
+    expect(getCheckSetShellConfig).not.toHaveBeenCalled();
+
+    document.body.removeChild(element);
+    expect(window.cancelIdleCallback).toHaveBeenCalledWith(7);
     delete window.requestIdleCallback;
     delete window.cancelIdleCallback;
   });
@@ -1319,6 +1510,7 @@ describe("c-record-health-check — load and error states", () => {
   it("shows a load error when a definition is missing its developerName", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
+        canViewDetails: true,
         checks: [
           {
             developerName: "",
@@ -1334,6 +1526,10 @@ describe("c-record-health-check — load and error states", () => {
     expect(
       element.shadowRoot.querySelector(".rhc-error-banner")
     ).not.toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__technical")
+        .textContent
+    ).toContain("missing its developer name");
   });
 
   it("shows a load error when a definition is missing its qualifiedApiName", async () => {
@@ -2184,6 +2380,30 @@ describe("c-record-health-check — run orchestration", () => {
     expect(element.shadowRoot.textContent).toContain("configuration problem");
   });
 
+  it.each(["LABEL_AND_ICON", "LABEL_ONLY", "ICON_ONLY"])(
+    "rejects a hidden Manual heading in a definition response for %s",
+    async (runButtonDisplay) => {
+      getCheckSetShellConfig.mockResolvedValue(null);
+      getCheckDefinitions.mockResolvedValue(
+        makeDefinitions({
+          triggerMode: "Manual",
+          cardHeadingDisplay: "HIDE",
+          runButtonDisplay
+        })
+      );
+
+      await appendAndLoad(element);
+
+      expect(getCheckDefinitions).toHaveBeenCalledTimes(1);
+      expect(element.shadowRoot.querySelector(".rhc-action-button")).toBeNull();
+      expect(
+        element.shadowRoot.querySelector(".rhc-error-banner")
+      ).not.toBeNull();
+      expect(element.shadowRoot.textContent).toContain("configuration problem");
+      expect(evaluateCheck).not.toHaveBeenCalled();
+    }
+  );
+
   it("uses default labels and CSS play when the new DTO fields are absent", async () => {
     const definition = makeDefinitions();
     delete definition.runButtonDisplay;
@@ -3030,6 +3250,25 @@ describe("c-record-health-check — _parseAuraError", () => {
     ).toContain("isn't configured for this type of record");
   });
 
+  it("retains a server-verified detail entitlement from a structured error", () => {
+    expect(
+      parseAuraError({
+        body: {
+          message: JSON.stringify({
+            reasonCode: "INVALID_CONFIG",
+            message: "Invalid setting.",
+            canViewDetails: true
+          })
+        }
+      })
+    ).toEqual(
+      expect.objectContaining({
+        reasonCode: "INVALID_CONFIG",
+        canViewDetails: true
+      })
+    );
+  });
+
   it("falls back gracefully when error body is not JSON", async () => {
     getCheckDefinitions.mockRejectedValue({
       body: { message: "Internal server error" }
@@ -3359,7 +3598,7 @@ describe("c-record-health-check — reactive recordId reload", () => {
     ).toBe(2);
   });
 
-  it("never exceeds five concurrent evaluations across a mid-run record swap", async () => {
+  it("never exceeds eight concurrent evaluations across a mid-run record swap", async () => {
     const checks = Array.from({ length: 12 }, (_, i) => ({
       developerName: `Check_${i}`,
       label: `Check ${i}`,
@@ -3395,27 +3634,27 @@ describe("c-record-health-check — reactive recordId reload", () => {
     });
 
     await appendAndLoad(element);
-    // Record A saturated the pool: 5 in flight, the rest queued.
+    // Record A saturated the pool: 8 in flight, the rest queued.
     expect(
       evaluateCheck.mock.calls.filter((c) => c[0].recordId === RECORD_A).length
-    ).toBe(5);
-    expect(active).toBe(5);
+    ).toBe(8);
+    expect(active).toBe(8);
 
-    // Swap mid-run. A's 5 calls are still open; the new run must treat them as
+    // Swap mid-run. A's 8 calls are still open; the new run must treat them as
     // occupying the pool rather than launching a second batch on top.
     element.recordId = RECORD_B;
     await flushPromises();
     await flushPromises();
     await runScheduledAutomaticRun();
 
-    // No B evaluation may start while A still holds all five slots.
+    // No B evaluation may start while A still holds all eight slots.
     expect(
       evaluateCheck.mock.calls.filter((c) => c[0].recordId === RECORD_B).length
     ).toBe(0);
-    expect(peak).toBeLessThanOrEqual(5);
+    expect(peak).toBeLessThanOrEqual(8);
 
     // Drain A's abandoned calls one at a time; each freed slot lets exactly one
-    // B check start, so the global peak stays capped at five throughout.
+    // B check start, so the global peak stays capped at eight throughout.
     let safety = 0;
     while (
       evaluateCheck.mock.calls.filter((c) => c[0].recordId === RECORD_B)
@@ -3433,7 +3672,7 @@ describe("c-record-health-check — reactive recordId reload", () => {
     expect(
       evaluateCheck.mock.calls.filter((c) => c[0].recordId === RECORD_B).length
     ).toBe(12);
-    expect(peak).toBeLessThanOrEqual(5);
+    expect(peak).toBeLessThanOrEqual(8);
   });
 
   it("discards a stale in-flight result from the previously-viewed record", async () => {
@@ -3595,7 +3834,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     }
   );
 
-  it("never runs more than five Apex evaluations concurrently", async () => {
+  it("never runs more than eight Apex evaluations concurrently", async () => {
     const checks = Array.from({ length: 12 }, (_, i) => ({
       developerName: `Check_${i}`,
       label: `Check ${i}`,
@@ -3621,7 +3860,7 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     });
 
     await appendAndLoad(element);
-    expect(evaluateCheck).toHaveBeenCalledTimes(5);
+    expect(evaluateCheck).toHaveBeenCalledTimes(8);
     let safety = 0;
     while (evaluateCheck.mock.calls.length < 12 && safety++ < 12) {
       const batch = pending.splice(0, pending.length);
@@ -3636,11 +3875,11 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
     }
 
     expect(evaluateCheck).toHaveBeenCalledTimes(12);
-    expect(peak).toBeLessThanOrEqual(5);
+    expect(peak).toBe(8);
   });
 
-  it("shares the five-request ceiling across component runners", async () => {
-    const checks = Array.from({ length: 4 }, (_, i) => ({
+  it("shares the eight-request ceiling across component runners", async () => {
+    const checks = Array.from({ length: 6 }, (_, i) => ({
       developerName: `Shared_${i}`,
       label: `Shared ${i}`,
       description: "",
@@ -3665,8 +3904,8 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
 
     first.run();
     second.run();
-    expect(evaluateCheck).toHaveBeenCalledTimes(5);
-    while (pending.length > 0 || evaluateCheck.mock.calls.length < 8) {
+    expect(evaluateCheck).toHaveBeenCalledTimes(8);
+    while (pending.length > 0 || evaluateCheck.mock.calls.length < 12) {
       const batch = pending.splice(0, pending.length);
       batch.forEach((resolve) => resolve());
       // eslint-disable-next-line no-await-in-loop
@@ -3675,8 +3914,8 @@ describe("c-record-health-check — enterprise boundary and concurrency", () => 
       await flushPromises();
     }
 
-    expect(evaluateCheck).toHaveBeenCalledTimes(8);
-    expect(peak).toBeLessThanOrEqual(5);
+    expect(evaluateCheck).toHaveBeenCalledTimes(12);
+    expect(peak).toBe(8);
   });
 
   it("renders semantic heading, tooltip descriptions, focusable rows, and status text", async () => {
@@ -4064,7 +4303,7 @@ describe("c-record-health-check — FAIL styling and accessibility", () => {
     expect(vals).toEqual(["ISBLANK(BillingCity)"]);
   });
 
-  it("labels an echoed pass/fail condition with its own key instead of 'Expected'", async () => {
+  it("uses Expected for an echoed pass/fail condition despite a custom label", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({ checks: [makeDefinitions().checks[0]] })
     );
@@ -4085,13 +4324,11 @@ describe("c-record-health-check — FAIL styling and accessibility", () => {
     const vals = [...comparison.querySelectorAll(".rhc-cmp__val")].map((n) =>
       n.textContent.trim()
     );
-    expect(keys).toEqual(["Passes when"]);
+    expect(keys).toEqual(["Expected"]);
     expect(vals).toEqual(["Owner.IsActive"]);
 
     const row = element.shadowRoot.querySelector("li[aria-label]");
-    expect(row.getAttribute("aria-label")).toContain(
-      "Passes when Owner.IsActive"
-    );
+    expect(row.getAttribute("aria-label")).toContain("Expected Owner.IsActive");
   });
 
   it("renders a Found chip when the actual value is 0", async () => {
@@ -4361,165 +4598,82 @@ describe("annotateCheck — comparison disclosure matrix", () => {
   });
 });
 
-describe("annotateCheck — structured evidence", () => {
-  const check = {
-    qualifiedApiName: "RHC_SP_Evidence_Items",
-    uiState: "RESOLVED",
-    label: "Website uses HTTPS",
-    description: null,
-    result: {
-      status: "FAIL",
-      severity: "WARNING",
-      evidence: {
-        version: "1.0",
-        runId: "run-evidence-1",
-        checkIdentity: "RHC_SP_Evidence_Items",
-        recordId: "001000000000001AAA",
-        summary: "11 inactive approvers across 2 approval rules",
-        columns: [
-          { key: "stepNumber", label: "Step", dataType: "NUMBER" },
-          { key: "ruleName", label: "Rule", dataType: "STRING" }
-        ],
-        rows: Array.from({ length: 11 }, (_, index) => [
-          index < 6 ? 2 : 10,
-          index < 6 ? "Manager Approval" : "Executive Approval"
-        ]),
-        returnedItemCount: 11,
-        totalItemCount: 11,
-        completeness: "COMPLETE",
-        omittedItemCount: 0,
-        groupKeys: ["stepNumber", "ruleName"]
-      }
-    }
-  };
-
-  it("shows ten rows first, groups numeric steps, and labels complete downloads", () => {
-    const collapsed = annotateCheck(check, false, "OnDemand", false);
-    expect(collapsed.showEvidence).toBe(true);
-    expect(collapsed.evidenceExpanded).toBe(false);
-    expect(collapsed.evidenceDownloadLabel).toBe("Download full details");
-
-    const expanded = annotateCheck(
-      { ...check, evidenceExpanded: true },
-      false,
-      "OnDemand",
-      false
+describe("c-record-health-check — no structured evidence controls", () => {
+  it("does not copy evidence from the serialized card response into row state", () => {
+    const normalized = normalizeResult(
+      JSON.stringify({
+        evaluation: { status: "FAIL", severity: "WARNING" },
+        display: {
+          foundDisplayValue: "1",
+          expectedDisplayValue: "0",
+          evidence: { summary: "Sensitive evidence summary" }
+        }
+      }),
+      { developerName: "Check_A", qualifiedApiName: "Check_A" }
     );
-    expect(expanded.evidenceVisibleRowCount).toBe(10);
-    expect(expanded.showAllEvidence).toBe(true);
-    expect(expanded.evidenceGroups.map((group) => group.step)).toEqual([2, 10]);
+    expect(normalized.actualValue).toBe("1");
+    expect(normalized.expectedValue).toBe("0");
+    expect(normalized).not.toHaveProperty("evidence");
   });
 
-  it("rejects malformed column declarations and mismatched evidence rows", () => {
-    for (const patch of [
-      { columns: [{ key: "value", label: "", dataType: "STRING" }] },
-      { rows: [[1]] },
-      { rows: [null] }
-    ]) {
-      const annotated = annotateCheck(
-        {
-          ...check,
-          result: {
-            ...check.result,
-            evidence: { ...check.result.evidence, ...patch }
-          }
-        },
-        false,
-        "OnDemand",
-        false
+  it.each(["PASS", "FAIL"])(
+    "keeps the verdict and comparison but omits evidence controls for %s",
+    async (status) => {
+      const result = makeStructuredEvidenceResult();
+      result.status = status;
+      const element = await renderCompletedManualCard(result);
+      const card = element.shadowRoot;
+      expect(card.textContent).toContain(
+        status === "PASS" ? "Pass" : "Warning"
       );
-      expect(annotated.evidenceUnavailable).toBe(true);
-      expect(annotated.evidenceSummary).toBe("Details unavailable.");
+      expect(card.textContent.includes("11 inactive approvers")).toBe(
+        status === "FAIL"
+      );
+      expect(card.textContent.includes("No inactive approvers")).toBe(
+        status === "FAIL"
+      );
+      expect(card.textContent).not.toContain("across 2 approval rules");
+      expect(card.querySelector(".rhc-evidence")).toBeNull();
+      expect(card.querySelector("[data-evidence-toggle]")).toBeNull();
+      expect(card.querySelector("[data-evidence-download]")).toBeNull();
+      expect(card.textContent).not.toContain("Show details");
+      expect(card.textContent).not.toContain("Show all");
+      expect(card.textContent).not.toContain("Download full details");
+      document.body.removeChild(element);
     }
-  });
+  );
 
-  it("places unknown evidence steps after numbered steps without discarding groups", () => {
-    const annotated = annotateCheck(
-      {
-        ...check,
-        evidenceExpanded: true,
-        result: {
-          ...check.result,
+  it("does not expose evidence from a serialized Apex display response", async () => {
+    const element = await renderCompletedManualCard(
+      JSON.stringify({
+        evaluation: {
+          status: "FAIL",
+          severity: "WARNING",
+          checkQualifiedApiName: "Check_A",
+          recordId: "001000000000001AAA"
+        },
+        display: {
+          renderedMessage: "Approval routing needs attention.",
+          foundDisplayValue: "1",
+          expectedDisplayValue: "0",
           evidence: {
-            ...check.result.evidence,
-            rows: [
-              [null, "Unassigned A"],
-              [2, "Numbered"],
-              [null, "Unassigned B"]
-            ],
-            returnedItemCount: 3,
-            totalItemCount: 3
+            version: "1.0",
+            summary: "Sensitive evidence summary",
+            columns: [{ key: "value", label: "Value", dataType: "NUMBER" }],
+            rows: [[null]],
+            completeness: "COMPLETE"
           }
         }
-      },
-      false,
-      "OnDemand",
-      false
+      })
     );
-    expect(annotated.evidenceGroups.map((group) => group.step)).toEqual([
-      2,
-      null,
-      null
-    ]);
-    expect(annotated.evidenceVisibleRowCount).toBe(3);
-  });
-
-  it("falls back locally for unknown evidence versions", () => {
-    const annotated = annotateCheck(
-      {
-        ...check,
-        result: {
-          ...check.result,
-          evidence: { ...check.result.evidence, version: "9.0" }
-        }
-      },
-      false,
-      "OnDemand",
-      false
+    expect(element.shadowRoot.textContent).toContain(
+      "Approval routing needs attention."
     );
-    expect(annotated.showEvidence).toBe(true);
-    expect(annotated.evidenceUnavailable).toBe(true);
-    expect(annotated.evidenceSummary).toBe("Details unavailable.");
-  });
-});
-
-describe("c-record-health-check — structured evidence interactions", () => {
-  it("preserves typed null cells through serialized Apex responses", async () => {
-    const result = {
-      evaluation: {
-        status: "FAIL",
-        severity: "WARNING",
-        checkQualifiedApiName: "Check_A",
-        recordId: "001000000000001AAA"
-      },
-      display: {
-        foundDisplayValue: "1",
-        expectedDisplayValue: "0",
-        evidence: {
-          version: "1.0",
-          summary: "Typed evidence fixture",
-          columns: [{ key: "value", label: "Value", dataType: "NUMBER" }],
-          rows: [[null]],
-          returnedItemCount: 1,
-          totalItemCount: 1,
-          omittedItemCount: 0,
-          completeness: "COMPLETE",
-          groupKeys: [null, null]
-        }
-      }
-    };
-    const element = await renderCompletedManualCard(JSON.stringify(result));
-    const toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
-    expect(toggle).not.toBeNull();
-    toggle.click();
-    await flushPromises();
-    expect(element.shadowRoot.textContent).toContain("Typed evidence fixture");
-    expect(
-      element.shadowRoot.querySelector(".rhc-evidence td").textContent
-    ).toBe("—");
     expect(element.shadowRoot.textContent).not.toContain(
-      "Details unavailable."
+      "Sensitive evidence summary"
     );
+    expect(element.shadowRoot.querySelector(".rhc-evidence")).toBeNull();
+    document.body.removeChild(element);
   });
 
   it.each(["{", "null", '"unexpected"'])(
@@ -4530,104 +4684,9 @@ describe("c-record-health-check — structured evidence interactions", () => {
         "The server returned an invalid result. Contact your administrator."
       );
       expect(element.shadowRoot.querySelector(".rhc-evidence")).toBeNull();
+      document.body.removeChild(element);
     }
   );
-
-  it("expands ten rows, shows all rows, and restores focus on collapse", async () => {
-    const element = await renderCompletedManualCard(
-      makeStructuredEvidenceResult()
-    );
-    let toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
-
-    toggle.click();
-    await flushPromises();
-    expect(
-      element.shadowRoot.querySelectorAll(".rhc-evidence tbody tr")
-    ).toHaveLength(10);
-
-    element.shadowRoot.querySelector(".rhc-evidence__show-all").click();
-    await flushPromises();
-    expect(
-      element.shadowRoot.querySelectorAll(".rhc-evidence tbody tr")
-    ).toHaveLength(11);
-
-    toggle = element.shadowRoot.querySelector("[data-evidence-toggle]");
-    toggle.click();
-    await flushPromises();
-    expect(
-      element.shadowRoot.querySelector(".rhc-evidence__region")
-    ).toBeNull();
-    expect(element.shadowRoot.activeElement).toBe(
-      element.shadowRoot.querySelector("[data-evidence-toggle]")
-    );
-    document.body.removeChild(element);
-  });
-
-  it("downloads the exact complete envelope with a filesystem-safe name", async () => {
-    const originalCreateObjectUrl = window.URL.createObjectURL;
-    const originalRevokeObjectUrl = window.URL.revokeObjectURL;
-    window.URL.createObjectURL = jest.fn(() => "blob:rhc-evidence");
-    window.URL.revokeObjectURL = jest.fn();
-    const clickSpy = jest
-      .spyOn(HTMLAnchorElement.prototype, "click")
-      .mockImplementation(() => {});
-    const element = await renderCompletedManualCard(
-      makeStructuredEvidenceResult()
-    );
-
-    const download = [...element.shadowRoot.querySelectorAll("button")].find(
-      (button) => button.textContent.trim() === "Download full details"
-    );
-    download.click();
-    await flushPromises();
-
-    expect(window.URL.createObjectURL).toHaveBeenCalledTimes(1);
-    const blob = window.URL.createObjectURL.mock.calls[0][0];
-    expect(blob.type).toBe("application/json;charset=utf-8");
-    expect(clickSpy).toHaveBeenCalledTimes(1);
-    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(
-      "blob:rhc-evidence"
-    );
-
-    clickSpy.mockRestore();
-    window.URL.createObjectURL = originalCreateObjectUrl;
-    window.URL.revokeObjectURL = originalRevokeObjectUrl;
-    document.body.removeChild(element);
-  });
-
-  it("labels incomplete evidence as partial and cleans retained URLs on disconnect", async () => {
-    const originalRevokeObjectUrl = window.URL.revokeObjectURL;
-    window.URL.revokeObjectURL = jest.fn();
-    const element = await renderCompletedManualCard(
-      makeStructuredEvidenceResult({
-        completeness: "TRUNCATED",
-        returnedItemCount: 11,
-        totalItemCount: 15,
-        omittedItemCount: 4
-      })
-    );
-
-    expect(
-      element.shadowRoot.querySelector(".rhc-evidence").textContent
-    ).toContain("Download returned details");
-    const originalCreateObjectUrl = window.URL.createObjectURL;
-    window.URL.createObjectURL = jest.fn(() => "blob:retained-evidence");
-    const clickSpy = jest
-      .spyOn(HTMLAnchorElement.prototype, "click")
-      .mockImplementation(() => {});
-    const download = [...element.shadowRoot.querySelectorAll("button")].find(
-      (button) => button.textContent.trim() === "Download returned details"
-    );
-    download.click();
-    document.body.removeChild(element);
-    await flushPromises();
-    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith(
-      "blob:retained-evidence"
-    );
-    clickSpy.mockRestore();
-    window.URL.createObjectURL = originalCreateObjectUrl;
-    window.URL.revokeObjectURL = originalRevokeObjectUrl;
-  });
 });
 
 describe("annotateCheck — guided remediation", () => {
@@ -5859,7 +5918,9 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     await expect(runner._acquireEvaluationSlot(1)).resolves.toBe(false);
 
     const held = await Promise.all(
-      Array.from({ length: 5 }, () => runner._acquireEvaluationSlot(2))
+      Array.from({ length: MAX_CONCURRENT_EVALUATIONS }, () =>
+        runner._acquireEvaluationSlot(2)
+      )
     );
     const queued = runner._acquireEvaluationSlot(2);
     runner._runToken = 3;
@@ -5979,7 +6040,9 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     const runner = makeRunner(makeRunnerHost([check]));
     runner._runToken = 1;
     const held = await Promise.all(
-      Array.from({ length: 5 }, () => runner._acquireEvaluationSlot(1))
+      Array.from({ length: MAX_CONCURRENT_EVALUATIONS }, () =>
+        runner._acquireEvaluationSlot(1)
+      )
     );
     const release = jest.spyOn(runner, "_releaseEvaluationSlot");
 
@@ -6007,7 +6070,9 @@ describe("HealthCheckRunner — defensive orchestration branches", () => {
     const runner = makeRunner(makeRunnerHost([check]));
     runner._runToken = 1;
     const held = await Promise.all(
-      Array.from({ length: 5 }, () => runner._acquireEvaluationSlot(1))
+      Array.from({ length: MAX_CONCURRENT_EVALUATIONS }, () =>
+        runner._acquireEvaluationSlot(1)
+      )
     );
     const release = jest.spyOn(runner, "_releaseEvaluationSlot");
 
@@ -6183,7 +6248,8 @@ describe("healthCheckModel — complete response contracts", () => {
     expect(parseAuraError({ body: { message: "{}" } })).toEqual({
       reasonCode: "LOAD_FAILED",
       message: "An error occurred loading Record Health Check.",
-      diagnosticCode: expect.anything()
+      diagnosticCode: expect.anything(),
+      canViewDetails: null
     });
   });
 
@@ -6550,6 +6616,16 @@ describe("c-record-health-check — defensive UI permutations", () => {
     ).not.toBeNull();
   });
 
+  it("retains administrator detail when the response omits its Check collection", async () => {
+    getCheckDefinitions.mockResolvedValue({ canViewDetails: true });
+    await appendAndLoad(element);
+
+    expect(
+      element.shadowRoot.querySelector(".rhc-error-banner__technical")
+        .textContent
+    ).toContain("invalid health-check definition response");
+  });
+
   it("shows a retriable system error when Check Set availability lookup fails", async () => {
     element.checkSetName = "";
     getCheckSetAvailabilityForRecord.mockRejectedValue(new Error("offline"));
@@ -6563,17 +6639,33 @@ describe("c-record-health-check — defensive UI permutations", () => {
     ).toContain("Try again");
   });
 
-  it("discards a blank-Check-Set availability result after disconnect", async () => {
+  it("discards a blank-Check-Set lookup after reconnecting with valid configuration", async () => {
     const availability = deferred();
     element.checkSetName = "";
     getCheckSetAvailabilityForRecord.mockReturnValue(availability.promise);
     document.body.appendChild(element);
     jest.runOnlyPendingTimers();
+    await flushPromises();
+    jest.runOnlyPendingTimers();
+    await flushPromises();
+    expect(getCheckSetAvailabilityForRecord).toHaveBeenCalledTimes(1);
     document.body.removeChild(element);
+
+    element.checkSetName = "Example_Account_Health";
+    getCheckDefinitions.mockResolvedValue(makeDefinitions());
+    await appendAndLoad(element);
+    expect(
+      element.shadowRoot.querySelector(".rhc-action-button")
+    ).not.toBeNull();
     availability.resolve({ hasActive: false, hasInactive: false });
     await flushPromises();
+    await flushPromises();
 
-    expect(element.isConnected).toBe(false);
+    expect(element.shadowRoot.querySelector(".rhc-error-banner")).toBeNull();
+    expect(
+      element.shadowRoot.querySelector(".rhc-action-button")
+    ).not.toBeNull();
+    expect(evaluateCheck).not.toHaveBeenCalled();
   });
 
   it("handles tooltip child transitions and non-anchors", async () => {
@@ -7478,6 +7570,11 @@ describe("c-record-health-check — the card body never collapses to a header", 
 
   const expectBody = (el, scenario) => {
     expect(el.shadowRoot.querySelector(".rhc-header")).not.toBeNull();
+    expect(
+      el.shadowRoot
+        .querySelector(".rhc-body")
+        .classList.contains("rhc-body--bare-top")
+    ).toBe(false);
     if (bodyContent(el).length === 0) {
       throw new Error(`Header-only card in scenario: ${scenario}`);
     }
@@ -7831,4 +7928,74 @@ describe("card context changes during asynchronous work", () => {
     expect(evaluateCheck).not.toHaveBeenCalled();
     document.body.removeChild(element);
   });
+});
+
+describe("fixed comparison labels respect Custom Metadata visibility", () => {
+  it.each(["PASS", "FAIL"])(
+    "uses fixed labels for %s across placement and visibility settings",
+    (status) => {
+      for (const placement of ["AllRows", "OnDemand", "FailuresOnly"]) {
+        for (const mode of [
+          "AUTOMATIC",
+          "FOUND_ONLY",
+          "EXPECTED_ONLY",
+          "HIDDEN"
+        ]) {
+          for (const label of [
+            "Required recent activity",
+            "Passes when",
+            "",
+            null
+          ]) {
+            const row = annotateCheck(
+              {
+                ...makeDefinitions().checks[0],
+                comparisonDisplayMode: mode,
+                uiState: "RESOLVED",
+                result: {
+                  ...FAIL_RESULT("Check_A"),
+                  status,
+                  actualValue: "0",
+                  expectedValue: "2",
+                  expectedValueLabel: label
+                }
+              },
+              false,
+              placement,
+              true
+            );
+            const visible = row.inlineComparisonValues.concat(
+              row.expandedComparisonValues
+            );
+            const eligible = status === "FAIL" || placement !== "FailuresOnly";
+            const expectedLabels = eligible
+              ? [
+                  ...(mode === "AUTOMATIC" || mode === "FOUND_ONLY"
+                    ? ["Found"]
+                    : []),
+                  ...(mode === "AUTOMATIC" || mode === "EXPECTED_ONLY"
+                    ? ["Expected"]
+                    : [])
+                ]
+              : [];
+            expect(visible.map((value) => value.label)).toEqual(expectedLabels);
+            expect(visible.map((value) => value.value)).toEqual(
+              expectedLabels.map((key) => (key === "Found" ? "0" : "2"))
+            );
+            expect(row.expectedKeyLabel).toBe("Expected");
+            expect(row.accessibleLabel.includes("Found 0")).toBe(
+              expectedLabels.includes("Found")
+            );
+            expect(row.accessibleLabel.includes("Expected 2")).toBe(
+              expectedLabels.includes("Expected")
+            );
+            expect(row.accessibleLabel).not.toContain(
+              "Required recent activity"
+            );
+            expect(row.accessibleLabel).not.toContain("Passes when");
+          }
+        }
+      }
+    }
+  );
 });

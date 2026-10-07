@@ -77,7 +77,20 @@ for(RecordHealthCheckResultItem item:response.results) {
  System.assert(expected.containsKey(name),'Unknown demo record: '+name);
  System.assert(expected.get(name).containsKey(checkName),'Unknown or duplicate Check: '+checkName);
  System.assertEquals(expected.get(name).get(checkName),item.evaluation.status,name+' / '+checkName);
- System.assert(!JSON.serialize(item.display).contains('{!'),'Unresolved display token: '+checkName);
+ List<String> renderedStrings=new List<String>{item.display.renderedMessage,item.display.renderedFix,item.display.foundDisplayValue,item.display.expectedDisplayValue,item.display.expectedValueLabel,item.display.actionLabel,item.display.actionUrl};
+ if(item.display.displayContent!=null) {
+  for(List<RecordHealthCheckDisplayNode> nodes:new List<List<RecordHealthCheckDisplayNode>>{item.display.displayContent.message,item.display.displayContent.fix,item.display.displayContent.found,item.display.displayContent.expected}) {
+   if(nodes==null) continue;
+   for(RecordHealthCheckDisplayNode node:nodes) renderedStrings.addAll(new List<String>{node.text,node.href});
+  }
+ }
+ if(item.display.evidence!=null) {
+  renderedStrings.add(item.display.evidence.summary);
+  renderedStrings.addAll(item.display.evidence.groupKeys==null?new List<String>():item.display.evidence.groupKeys);
+  if(item.display.evidence.columns!=null) for(RecordHealthCheckEvidenceColumn column:item.display.evidence.columns) renderedStrings.addAll(new List<String>{column.key,column.label,column.dataType});
+  if(item.display.evidence.rows!=null) for(List<Object> row:item.display.evidence.rows) if(row!=null) for(Object cell:row) renderedStrings.add(String.valueOf(cell));
+ }
+ for(String rendered:renderedStrings) System.assert(rendered==null || !rendered.contains('{!'),'Unresolved display token: '+checkName);
  Boolean emptyRoleQuery=name=='RHC Demo Review Account' && checkName.endsWith('Example_Open_Deals_Have_Contacts');
  Boolean emptyWonRoleQuery=item.evaluation.status=='FAIL' && checkName.endsWith('Example_Earliest_Vs_Latest_Close');
  Boolean unableWithoutDisplay=item.evaluation.status=='UNABLE_TO_EVALUATE';
@@ -104,7 +117,7 @@ for(Map<String,String> remaining:expected.values()) System.assert(remaining.isEm
 System.debug('RHC_READINESS_VERIFIED ${object} records=${records.length} results=${count}');
 `;
     source = source.replace(
-      /\b(RecordHealthCheckResponse|RecordHealthCheckRequest|RecordHealthCheckResultMode|RecordHealthCheckResultItem|RecordHealthCheck)\b/g,
+      /\b(RecordHealthCheckResponse|RecordHealthCheckRequest|RecordHealthCheckResultMode|RecordHealthCheckResultItem|RecordHealthCheckDisplayNode|RecordHealthCheckEvidenceColumn|RecordHealthCheck)\b/g,
       `${prefix}$1`
     );
     const file = path.join(directory, `verify${scenarioName}.apex`);

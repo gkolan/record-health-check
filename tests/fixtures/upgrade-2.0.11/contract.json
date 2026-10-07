@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "release": "2.0.11",
+  "upgradeFrom": "2.0.10.1",
+  "fixture": "Subscriber_2_0_11_Hidden_Manual",
+  "actor": "assigned Record Health Check administrator",
+  "initialConfiguration": {
+    "CardHeadingDisplay__c": "HIDE",
+    "CardRunMode__c": "RUN_ON_REQUEST"
+  },
+  "expectedAfterUpgrade": {
+    "configurationPreserved": true,
+    "validationReasonCode": "INVALID_CONFIG",
+    "validationField": "CardHeadingDisplay__c",
+    "evaluationForbiddenBeforeCorrection": true
+  },
+  "recovery": {
+    "CardHeadingDisplay__c": "HIDE",
+    "CardRunMode__c": "RUN_ON_LOAD",
+    "expectedValidationErrors": 0,
+    "expectedEvaluationStatus": "PASS"
+  }
+}

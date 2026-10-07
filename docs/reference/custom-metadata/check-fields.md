@@ -294,6 +294,9 @@ so Checks created before this field existed keep their current behavior.
 | Show expected only | `EXPECTED_ONLY` | Only the Expected value can appear.                 |
 | Hide               | `HIDDEN`        | Neither value appears, inline or behind the caret.  |
 
+The comparison headings are always **Found** and **Expected**, including Formula and Apex Checks.
+Plugin labels and Formula explanation labels cannot rename them.
+
 This setting filters what is eligible to appear. It does not force a value to appear when the Check
 Set's Found/Expected display placement would normally keep it hidden, and it applies to Formula,
 Query, Compare Two Queries, and Apex Checks alike.
@@ -382,8 +385,8 @@ Examples:
 ### Display: Expected Formula (`DisplayExpectedFormula__c`)
 
 Optional Long Text Area(32,768) for Formula Checks. It supplies the Expected value shown on the
-card and never changes pass or fail. Leave it blank to show the generated **Passes when...** text
-based on Pass Condition.
+card and never changes pass or fail. Leave it blank to show the Pass Condition expression under
+**Expected**.
 
 Examples:
 

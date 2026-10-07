@@ -54,28 +54,6 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void getCheckDefinitionsWrapsConfigErrorsForAura() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
-    try {
-      RecordHealthCheckController.getCheckDefinitions(
-        'Missing_Config',
-        accountRecord.Id,
-        'test-run-2'
-      );
-      Assert.isTrue(false, 'Expected AuraHandledException.');
-    } catch (AuraHandledException ex) {
-      Assert.isTrue(
-        ex.getMessage().contains('CONFIG_NOT_FOUND'),
-        'Expected serialized reason code in the Aura error message.'
-      );
-      Assert.isTrue(
-        ex.getMessage().contains('Missing_Config'),
-        'The structured Aura payload should retain the safe configuration message.'
-      );
-    }
-  }
-
-  @IsTest
   static void getCheckDefinitionsRejectsBlankSelection() {
     Test.startTest();
     try {

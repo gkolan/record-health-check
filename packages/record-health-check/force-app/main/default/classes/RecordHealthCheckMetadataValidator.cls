@@ -173,9 +173,12 @@ public with sharing class RecordHealthCheckMetadataValidator {
     for (Record_Health_Check_Set__mdt cs : checkSets) {
       if (
         cs.CardRunMode__c == 'RUN_ON_LOAD' &&
-        RecordHealthCheckConstants.normalizedRunButtonDisplay(
+        (RecordHealthCheckConstants.normalizedRunButtonDisplay(
           cs.RunButtonDisplay__c
-        ) == 'HIDE'
+        ) == 'HIDE' ||
+        RecordHealthCheckConstants.normalizedCardHeadingDisplay(
+          cs.CardHeadingDisplay__c
+        ) == 'HIDE')
       ) {
         hiddenAutomaticSetKeys.add(cs.DeveloperName);
         if (cs.Id != null) {

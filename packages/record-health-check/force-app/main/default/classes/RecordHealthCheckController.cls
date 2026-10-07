@@ -110,7 +110,6 @@ public with sharing class RecordHealthCheckController {
     String runId
   ) {
     requireRunAccess();
-    // Normalize at the controller boundary (the engine also normalizes in evaluate).
     checkSetQualifiedApiName = RecordHealthCheckLogger.normalizeIdentifier(
       checkSetQualifiedApiName,
       80
@@ -139,7 +138,7 @@ public with sharing class RecordHealthCheckController {
         new Map<String, Object>{ 'reasonCode' => ex.reasonCode },
         null
       );
-      throw buildAuraException(ex.reasonCode, ex.getMessage());
+      throw buildAuraException(ex.reasonCode, ex.getMessage(), true);
     } catch (Exception ex) {
       RecordHealthCheckLogger.log(
         RecordHealthCheckLogger.Level.ERROR,
@@ -151,12 +150,8 @@ public with sharing class RecordHealthCheckController {
         null,
         ex
       );
-      // an unexpected failure here (governor limit, NPE, SOQL error) is
-      // NOT a missing-config condition. Reporting CONFIG_NOT_FOUND would tell the
-      // admin their Check Set does not exist when it does. Use LOAD_FAILED so the
-      // LWC surfaces a generic load error (parseAuraError already treats unknown
-      // codes as LOAD_FAILED); CONFIG_NOT_FOUND stays reserved for the explicit
-      // not-found path raised as a ConfigException above.
+      // Reserve CONFIG_NOT_FOUND for the explicit ConfigException path above;
+      // unexpected failures must remain generic LOAD_FAILED responses.
       throw buildAuraException(
         'LOAD_FAILED',
         'An unexpected error occurred loading the health check configuration.'
@@ -169,13 +164,8 @@ public with sharing class RecordHealthCheckController {
   }
 
   /**
-   * Preserves null evidence cells and exposes only card evaluation/display fields.
-   * @param checkSetQualifiedApiName Exact parent Check Set QualifiedApiName.
-   * @param checkQualifiedApiName Exact Check QualifiedApiName.
-   * @param recordId Record to evaluate.
-   * @param runId Optional client correlation identifier.
-   * @param source Exact browser execution source.
-   * @return JSON card result, with null object properties omitted.
+   * Returns card-only evaluation/display JSON without structured evidence rows.
+   * Runner authorization and exact Check membership are preserved by evaluateCheck.
    */
   @AuraEnabled
   public static String evaluateCheckJson(
@@ -192,6 +182,11 @@ public with sharing class RecordHealthCheckController {
       runId,
       source
     );
+    // The record-page card has no evidence viewer. Keep evidence in the typed
+    // evaluation APIs, but do not send its potentially large rows to the LWC.
+    if (item.display != null) {
+      item.display.evidence = null;
+    }
     return JSON.serialize(
       new Map<String, Object>{
         'evaluation' => new Map<String, Object>{
@@ -307,7 +302,6 @@ public with sharing class RecordHealthCheckController {
 
   /**
    * Publishes advisory lifecycle events after a user-initiated client run finishes.
-   *
    * @param checkSetQualifiedApiName Exact QualifiedApiName of the completed Check Set.
    * @param runId Client correlation identifier for the completed run.
    * @param source Exact browser execution source.
@@ -427,7 +421,6 @@ public with sharing class RecordHealthCheckController {
     return response;
   }
 
-  /** Validates the browser execution source without silently changing its meaning. */
   private static void requireRunAccess() {
     try {
       RecordHealthCheckAccess.requireCanRunChecks();
@@ -439,7 +432,6 @@ public with sharing class RecordHealthCheckController {
     }
   }
 
-  /** Validates the browser execution source without silently changing its meaning. */
   private static String normalizeLwcSource(String source) {
     if (
       source == RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED ||
@@ -477,22 +469,30 @@ public with sharing class RecordHealthCheckController {
   private class RecordHealthCheckControllerException extends Exception {
   }
 
-  // ─── Helper ───────────────────────────────────────────────────────────────
-
   private static AuraHandledException buildAuraException(
     String reasonCode,
     String message
   ) {
-    // Surface a safe message to the LWC; reasonCode is embedded for diagnostic use.
-    // Raw internal details are never passed through this public boundary.
-    String payload = JSON.serialize(
-      new Map<String, String>{
-        'reasonCode' => reasonCode,
-        'message' => message
-      }
-    );
-    // The Lightning transport uses the constructor payload while direct Apex
-    // tests observe getMessage(). Keep both paths identical and structured.
+    return buildAuraException(reasonCode, message, false);
+  }
+
+  private static AuraHandledException buildAuraException(
+    String reasonCode,
+    String message,
+    Boolean includeDetailEntitlement
+  ) {
+    Boolean canViewDetails =
+      includeDetailEntitlement && RecordHealthCheckAccess.canViewDetails();
+    Map<String, Object> response = new Map<String, Object>{
+      'reasonCode' => reasonCode,
+      'message' => includeDetailEntitlement && !canViewDetails
+        ? 'The selected Check Set configuration could not be loaded.'
+        : message
+    };
+    if (includeDetailEntitlement) {
+      response.put('canViewDetails', canViewDetails);
+    }
+    String payload = JSON.serialize(response);
     AuraHandledException ex = new AuraHandledException(payload);
     ex.setMessage(payload);
     return ex;

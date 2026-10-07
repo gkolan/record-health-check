@@ -132,7 +132,7 @@ The Formula result produces these health results and card values:
 | **`FAIL`**                  | When both fields are blank, the card shows Needs attention with Warning severity and the configured guidance. |
 | **`SKIPPED`**               | This configuration applies to every Account and has no prerequisite, so it does not produce `SKIPPED`.        |
 | **Found**                   | Blank because **Display: Found Formula** is blank and either of two fields can satisfy the Check.             |
-| **Expected**                | The expanded details label the Pass Condition as **Passes when** and show the `OR(…)` formula.                |
+| **Expected**                | The expanded details label the Pass Condition as **Expected** and show the `OR(…)` formula.                   |
 
 ## Security and access
 

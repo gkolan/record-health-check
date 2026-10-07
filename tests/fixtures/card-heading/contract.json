@@ -1,5 +1,65 @@
 {
   "status": "fixtures_only_runtime_pending",
+  "configurationErrorMatrix": [
+    {
+      "fixture": "RHC_Heading_Action",
+      "heading": "HIDE",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_REQUEST",
+      "outcome": "INVALID_CONFIG"
+    },
+    {
+      "fixture": "RHC_Heading_NoneLabelManual",
+      "heading": "HIDE",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "outcome": "INVALID_CONFIG"
+    },
+    {
+      "fixture": "RHC_Heading_NoneIconManual",
+      "heading": "HIDE",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_REQUEST",
+      "outcome": "INVALID_CONFIG"
+    },
+    {
+      "fixture": "RHC_Heading_NoneManual",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_REQUEST",
+      "outcome": "INVALID_CONFIG"
+    }
+  ],
+  "hiddenHeadingPageLoadMatrix": [
+    {
+      "fixture": "RHC_Heading_NoneBothAuto",
+      "heading": "HIDE",
+      "button": "LABEL_AND_ICON",
+      "run": "RUN_ON_LOAD",
+      "outcome": "VALID"
+    },
+    {
+      "fixture": "RHC_Heading_NoneLabelAuto",
+      "heading": "HIDE",
+      "button": "LABEL_ONLY",
+      "run": "RUN_ON_LOAD",
+      "outcome": "VALID"
+    },
+    {
+      "fixture": "RHC_Heading_NoneIconAuto",
+      "heading": "HIDE",
+      "button": "ICON_ONLY",
+      "run": "RUN_ON_LOAD",
+      "outcome": "VALID"
+    },
+    {
+      "fixture": "RHC_Heading_None",
+      "heading": "HIDE",
+      "button": "HIDE",
+      "run": "RUN_ON_LOAD",
+      "outcome": "VALID"
+    }
+  ],
   "records": [
     {
       "name": "RHC Heading Healthy",

@@ -134,7 +134,11 @@ so it must reuse data already loaded by `evaluate`; it cannot query or perform s
 
 The optional override can provide rich message, remediation, Found and Expected content; one atomic
 action label and destination; an Expected label; and independent Found/Expected formats with an
-optional currency ISO code. A missing or invalid field falls back to Check configuration. Status,
+optional currency ISO code. A missing or invalid field falls back to Check configuration. When the
+Check sets an explicit **Display: Value Format** (anything except Automatic), that format replaces
+the plugin's format and structured Found/Expected content. A valid plugin currency code still names
+the values' unit under a Currency format; a configured Expected currency takes precedence for
+Expected. Status,
 typed values, severity, identity, order, category, applicability, visibility and publication policy
 remain framework or administrator owned.
 
@@ -170,9 +174,12 @@ return new rhc.RecordHealthCheckDisplayOverride()
   .withFound(found)
   .withMessage(new rhc.RecordHealthCheckDisplayText().text('Approval review is required.'))
   .withFix(new rhc.RecordHealthCheckDisplayText().text('Complete each approval step.'))
-  .withAction(new rhc.RecordHealthCheckDisplayAction('Open approvals', '/lightning/page/home'))
-  .withExpectedLabel('Required state');
+  .withAction(new rhc.RecordHealthCheckDisplayAction('Open approvals', '/lightning/page/home'));
 ```
+
+The record-page card always labels comparison values **Found** and **Expected**. Its Check
+visibility and Check Set placement settings apply to structured plugin values too.
+`withExpectedLabel` remains available to typed API consumers, but cannot rename the card heading.
 
 The input lists may have different sizes, for example one, two, and three Users. The resulting groups
 render on separate lines, and both each Step label and each saved User are independently clickable.

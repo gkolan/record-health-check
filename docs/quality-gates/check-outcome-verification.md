@@ -8,6 +8,19 @@ For implementation and test authoring, also follow the
 [regression testing standard](./regression-testing-standard.md). It defines independent data-based
 expectations, red evidence, isolated and mixed configurations, transport tests, and evidence limits.
 
+## Packaged example categories
+
+Every packaged `Record_Health_Check.Example_*` record must leave `Category__c` blank,
+including inactive examples and example integration fixtures. Subscriber-owned Checks may still
+configure categories.
+`check:demo-outcome-coverage` rejects any populated example category before CI or guarded
+package creation can pass. Its active/inactive negative fixtures prove rejection; absent, blank,
+and subscriber-category controls prove the scope. The card-comprehension gate must not require
+Category on example Checks, even in its Tier B Check Sets; its example/subscriber regression
+control prevents that conflicting requirement from returning. This is a metadata packaging rule, so its
+regression fixtures are temporary metadata files in `demo-outcome-coverage.test.mjs`; no new
+Salesforce Check Set or business-record fixture is needed.
+
 ## Required outcomes
 
 Every active packaged example Check must run against:
@@ -69,6 +82,7 @@ equivalent executable self-test and record why Salesforce Custom Metadata does n
 `npm run check:demo-outcome-coverage` reads the packaged example metadata and the expected-result
 contract. It fails when:
 
+- any packaged example Check sets a category, whether active or inactive;
 - an active Check lacks PASS or FAIL coverage;
 - a relevant skipped or unable-to-check outcome is missing;
 - a record omits an active Check from its Check Set;

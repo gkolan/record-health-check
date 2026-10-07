@@ -431,123 +431,6 @@ export function normalizeComparisonDisplayMode(configuredMode) {
     : "AUTOMATIC";
 }
 
-const EVIDENCE_TYPES = new Set([
-  "STRING",
-  "ID",
-  "NUMBER",
-  "BOOLEAN",
-  "DATE",
-  "DATETIME"
-]);
-
-function unavailableEvidence() {
-  return {
-    unavailable: true,
-    summary: "Details unavailable.",
-    columns: [],
-    rows: [],
-    completeness: "UNKNOWN",
-    returnedItemCount: 0,
-    totalItemCount: null,
-    omittedItemCount: null,
-    groupKeys: []
-  };
-}
-
-function normalizeEvidence(value) {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  if (
-    value.version !== "1.0" ||
-    !Array.isArray(value.columns) ||
-    !Array.isArray(value.rows) ||
-    value.columns.length > 20 ||
-    !["COMPLETE", "TRUNCATED", "UNKNOWN"].includes(value.completeness)
-  ) {
-    return unavailableEvidence();
-  }
-  const seen = new Set();
-  const columns = [];
-  for (const column of value.columns) {
-    const type = column?.type || column?.dataType;
-    if (
-      !column ||
-      typeof column.key !== "string" ||
-      !/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(column.key) ||
-      seen.has(column.key) ||
-      typeof column.label !== "string" ||
-      column.label.trim() === "" ||
-      column.label.length > 80 ||
-      !EVIDENCE_TYPES.has(type)
-    ) {
-      return unavailableEvidence();
-    }
-    seen.add(column.key);
-    columns.push({ ...column, type });
-  }
-  const rows = [];
-  for (let rowIndex = 0; rowIndex < value.rows.length; rowIndex += 1) {
-    const row = value.rows[rowIndex];
-    if (!Array.isArray(row) || row.length !== columns.length) {
-      return unavailableEvidence();
-    }
-    const cells = row.map((cell, columnIndex) => ({
-      key: `${rowIndex}-${columns[columnIndex].key}`,
-      value: cell == null ? "—" : String(cell),
-      raw: cell
-    }));
-    rows.push({ key: `evidence-row-${rowIndex}`, cells, raw: row });
-  }
-  return {
-    ...value,
-    unavailable: false,
-    columns,
-    rows,
-    groupKeys: Array.isArray(value.groupKeys) ? value.groupKeys : []
-  };
-}
-
-function evidenceGroups(evidence, rows) {
-  const [stepKey, ruleKey] = evidence.groupKeys;
-  const stepIndex = evidence.columns.findIndex(
-    (column) => column.key === stepKey
-  );
-  const ruleIndex = evidence.columns.findIndex(
-    (column) => column.key === ruleKey
-  );
-  if (stepIndex < 0 || ruleIndex < 0) {
-    return [{ key: "all", label: null, step: null, rows }];
-  }
-  const groups = new Map();
-  for (const row of rows) {
-    const step = row.raw[stepIndex];
-    const rule = row.raw[ruleIndex];
-    const key = `${step == null ? "null" : step}\u0000${rule == null ? "" : rule}`;
-    if (!groups.has(key)) {
-      groups.set(key, { key, step, rule, rows: [] });
-    }
-    groups.get(key).rows.push(row);
-  }
-  return [...groups.values()]
-    .sort((left, right) => {
-      if (left.step == null) {
-        return right.step == null ? 0 : 1;
-      }
-      if (right.step == null) {
-        return -1;
-      }
-      const stepDifference = Number(left.step) - Number(right.step);
-      return (
-        stepDifference || String(left.rule).localeCompare(String(right.rule))
-      );
-    })
-    .map((group) => ({
-      ...group,
-      label: `Step ${group.step == null ? "—" : group.step} · ${group.rule == null ? "—" : group.rule} (${group.rows.length} returned)`
-    }));
-}
-
 export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
   const uiState = c.uiState;
   const result = c.result || {};
@@ -633,11 +516,9 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     : [];
   const hasValues = foundNodes.length > 0 || expectedNodes.length > 0;
 
-  // The Expected side normally reads "Expected"; a Formula check echoing its
-  // pass/fail condition (rather than a comparison value) overrides this with its
-  // own key, e.g. "Passes when". Found always reads "Found".
-  const expectedKeyLabel =
-    (isResolved && result.expectedValueLabel) || "Expected";
+  // Comparison headings are fixed across Check types. Metadata controls which
+  // sides appear and where; a server-provided semantic label cannot rename them.
+  const expectedKeyLabel = "Expected";
 
   const showInlineComparison =
     isResolved && hasValues && (!isPass || mode === "AllRows");
@@ -785,23 +666,6 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
       : "";
   const showDiagnosticsMeta = !!diagnosticsMeta;
   const showRowAccent = !!rowAccentClass;
-  const evidence = isResolved ? normalizeEvidence(result.evidence) : null;
-  const showEvidence = evidence != null;
-  const evidenceExpanded = showEvidence && c.evidenceExpanded === true;
-  const evidenceRows = evidence?.rows || [];
-  const visibleEvidenceRows = c.evidenceShowAll
-    ? evidenceRows
-    : evidenceRows.slice(0, 10);
-  const showAllEvidence =
-    evidenceExpanded && !c.evidenceShowAll && evidenceRows.length > 10;
-  const evidenceRegionId = showEvidence
-    ? `rhc-evidence-${String(evidence.runId || "run").replace(/[^A-Za-z0-9_-]/g, "-")}-${String(c.qualifiedApiName || c.developerName || "check").replace(/[^A-Za-z0-9_-]/g, "-")}`
-    : null;
-  const evidenceDownloadLabel =
-    evidence?.completeness === "COMPLETE"
-      ? "Download full details"
-      : "Download returned details";
-
   return {
     ...c,
     isPending,
@@ -848,23 +712,6 @@ export function annotateCheck(c, showDiagnostics, comparisonMode, isExpanded) {
     showDiagnosis,
     diagnosticsMeta,
     showDiagnosticsMeta,
-    showEvidence,
-    evidenceUnavailable: evidence?.unavailable === true,
-    evidenceSummary: evidence?.summary,
-    evidenceExpanded,
-    evidenceExpandLabel: evidenceExpanded ? "Hide details" : "Show details",
-    evidenceRegionId,
-    evidenceColumns: evidence?.columns || [],
-    evidenceGroups: evidence
-      ? evidenceGroups(evidence, visibleEvidenceRows)
-      : [],
-    evidenceVisibleRowCount: visibleEvidenceRows.length,
-    showAllEvidence,
-    evidenceShowAllLabel: `Show all ${evidenceRows.length} returned items`,
-    evidenceDownloadLabel,
-    evidenceDownloadJson: evidence?.unavailable
-      ? null
-      : JSON.stringify(result.evidence),
     accessibleLabel
   };
 }

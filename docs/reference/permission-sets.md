@@ -132,8 +132,8 @@ authorized diagnostic detail. It includes only:
 
 It does not include the Run Custom Permission, Apex class access, Custom Metadata access, business
 data access, or Platform Event access. The existing runner Permission Set continues to determine how
-the user can run a Check. The permission can expose the Formula **Passes when** expression in its
-documented display mode. Broader troubleshooting output appears only when **Show Diagnostics** is
+the user can run a Check. The permission can expose the Formula pass-condition expression (under
+**Expected**) in its documented display mode. Broader troubleshooting output appears only when **Show Diagnostics** is
 also selected on the applicable Check Set.
 
 Remove the assignment and clear **Show Diagnostics** after the investigation. Diagnostic output can

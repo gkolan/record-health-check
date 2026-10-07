@@ -5,6 +5,11 @@ import { createRequire } from "node:module";
 import { readFileSync, readdirSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
+import {
+  apexSourceSnapshot,
+  apexEvidenceStatus
+} from "../lib/apex-source-evidence.mjs";
+
 const require = createRequire(import.meta.url);
 const { createCoverageMap } = require("istanbul-lib-coverage");
 const root = resolve(import.meta.dirname, "../..");
@@ -35,10 +40,26 @@ const apexPercent = fixed(metrics.apex.sourceCoveragePercent);
 const packagePercent = fixed(metrics.apex.packageCoveragePercent);
 const lwcLines = fixed(metrics.lwc.linesPercent);
 const sourceVersion = metrics.apex.sourceVersion;
+let evidenceStatus;
+try {
+  evidenceStatus = apexEvidenceStatus(metrics.apex, apexSourceSnapshot(root));
+} catch (error) {
+  fail(error.message);
+}
+if (
+  evidenceStatus !== "source-matched" &&
+  !readme.includes(
+    `Historical Apex coverage (${metrics.apex.verifiedAt}); current source coverage is unverified.`
+  )
+) {
+  fail(
+    "README must label unmatched Apex coverage as historical and current source coverage as unverified."
+  );
+}
 for (const text of [
-  `Apex_coverage-${apexPercent}%25-brightgreen`,
+  `Historical_Apex_coverage-${apexPercent}%25-brightgreen`,
   `LWC_lines-${lwcLines}%25-brightgreen`,
-  `${apexPercent}% coverage from the complete namespaced ${sourceVersion} source test run`,
+  `${apexPercent}% coverage from the namespaced ${sourceVersion} run dated ${metrics.apex.verifiedAt}`,
   `Salesforce-validated ${metrics.apex.packageVersion} package coverage: ${Number(packagePercent)}%`,
   `${lwcLines}% line coverage`
 ]) {
@@ -167,6 +188,6 @@ if (apexOrg) {
 
 if (!process.exitCode) {
   console.log(
-    `Quality metrics match ${sourceVersion} source evidence: Apex ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}), stable ${metrics.apex.packageVersion} package ${Number(packagePercent)}%, and LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
+    `Quality metric records are consistent; Apex evidence is ${evidenceStatus} (run ${metrics.apex.testRunId}, ${metrics.apex.verifiedAt}). This does not verify deployed source. Apex ${apexPercent}% (${metrics.apex.coveredLines}/${metrics.apex.executableLines}), stable ${metrics.apex.packageVersion} package ${Number(packagePercent)}%, and LWC ${lwcLines}% lines, ${fixed(metrics.lwc.statementsPercent)}% statements, ${fixed(metrics.lwc.functionsPercent)}% functions, ${fixed(metrics.lwc.branchesPercent)}% branches.`
   );
 }

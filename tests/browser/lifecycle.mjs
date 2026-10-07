@@ -32,31 +32,71 @@ export async function exerciseRefreshAndNavigation(page) {
   }
 
   let auraRequestsAfterSave = 0;
+  let refreshedCheckResponses = 0;
   const countAuraRequest = (request) => {
     if (request.method() === "POST" && request.url().includes("/aura")) {
       auraRequestsAfterSave += 1;
     }
   };
   page.on("request", countAuraRequest);
+  const countRefreshedChecks = (request) => {
+    if (request.method() !== "POST" || !request.url().includes("/aura")) return;
+    const message = new URLSearchParams(request.postData() ?? "").get(
+      "message"
+    );
+    if (!message) return;
+    for (const action of JSON.parse(message).actions ?? []) {
+      const params = action.params?.params ?? action.params;
+      if (
+        (action.descriptor?.endsWith("/ACTION$evaluateCheckJson") ||
+          action.params?.method === "evaluateCheckJson") &&
+        params?.source === "RUN_ON_LOAD"
+      ) {
+        refreshedCheckResponses += 1;
+      }
+    }
+  };
+  page.on("requestfinished", countRefreshedChecks);
 
   const inlinePhoneEdit = page.locator('button[title="Edit Phone"]').first();
+  const phoneInput = page.getByLabel("Phone", { exact: true });
   if (await inlinePhoneEdit.isVisible().catch(() => false)) {
     await inlinePhoneEdit.click();
   } else {
-    await page
+    const recordEdit = page
       .getByRole("button", { name: "Edit", exact: true })
-      .first()
-      .click();
+      .first();
+    await recordEdit.click();
+    const openedFromAction = await phoneInput
+      .waitFor({ state: "visible", timeout: 5000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!openedFromAction) {
+      // Salesforce occasionally paints the standard action before its Aura
+      // handler is ready. Use the record's own edit route so this lifecycle
+      // gate measures LDS refresh behavior instead of an action-bar race.
+      const editLink = page.locator('a[href$="/edit"]').first();
+      await expect(editLink).toBeVisible();
+      await editLink.click();
+    }
   }
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-  await dialog.getByLabel("Phone", { exact: true }).fill("3125550199");
+  // Depending on Salesforce's current record-page shell, Edit can render as
+  // a modal dialog or as inline page detail fields. The lifecycle contract is
+  // the save notification and card refresh, not either shell presentation.
+  await expect(phoneInput).toBeVisible();
+  await phoneInput.fill("3125550199");
   auraRequestsAfterSave = 0;
-  await dialog.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(dialog).toBeHidden();
+  refreshedCheckResponses = 0;
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(phoneInput).toBeHidden();
   await expect.poll(() => auraRequestsAfterSave).toBeGreaterThanOrEqual(2);
+  // Both populated cards refresh after save (25 manual + 4 automatic Checks).
+  // Old completed totals can still be painted while that refresh starts; wait
+  // for its actual responses before navigating away and destroying the page.
+  await expect.poll(() => refreshedCheckResponses).toBeGreaterThanOrEqual(29);
   await expectAutomaticRunCompleted(page);
   page.off("request", countAuraRequest);
+  page.off("requestfinished", countRefreshedChecks);
 
   const origin = new URL(page.url()).origin;
   await page.goto(`${origin}/lightning/o/Account/list?filterName=Recent`, {

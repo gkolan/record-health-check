@@ -397,6 +397,7 @@
         <members>RecordHealthCheckContractTestData</members>
         <members>RecordHealthCheckContractTypesTest</members>
         <members>RecordHealthCheckController</members>
+        <members>RecordHealthCheckControllerErrorTest</members>
         <members>RecordHealthCheckControllerShellTest</members>
         <members>RecordHealthCheckControllerTest</members>
         <members>RecordHealthCheckCurrencySupport</members>
@@ -488,6 +489,7 @@
         <members>RecordHealthCheckPluginDisplayDispatch</members>
         <members>RecordHealthCheckPluginDispatchTest</members>
         <members>RecordHealthCheckPresentationResolver</members>
+        <members>RHCFormatPrecedenceTest</members>
         <members>RHCPresentationResolverTest</members>
         <members>RecordHealthCheckQualifiedIdentity</members>
         <members>RecordHealthCheckQueryEvaluatorSupport</members>

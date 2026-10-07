@@ -206,7 +206,8 @@ private class RecordHealthCheckConfigValidationTest {
       validSet('Run_Mode', true),
       validSet('Reveal_Mode', true),
       validSet('Run_Button_Display', true),
-      validSet('Manual_Hide', true)
+      validSet('Manual_Hide', true),
+      validSet('Manual_Hidden_Heading', true)
     };
     invalidSets[1].ObjectApiName__c = null;
     invalidSets[2].PassedChecksDisplay__c = 'INVALID';
@@ -215,6 +216,7 @@ private class RecordHealthCheckConfigValidationTest {
     invalidSets[5].CardRevealMode__c = 'INVALID';
     invalidSets[6].RunButtonDisplay__c = 'INVALID';
     invalidSets[7].RunButtonDisplay__c = 'HIDE';
+    invalidSets[8].CardHeadingDisplay__c = 'HIDE';
 
     Test.startTest();
     for (Record_Health_Check_Set__mdt checkSet : invalidSets) {
@@ -283,7 +285,8 @@ private class RecordHealthCheckConfigValidationTest {
         'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
         'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
         'CardRunMode__c' => 'RUN_ON_REQUEST',
-        'CardRevealMode__c' => 'ALL_AT_ONCE'
+        'CardRevealMode__c' => 'ALL_AT_ONCE',
+        'CardTitle__c' => developerName
       }
     );
   }

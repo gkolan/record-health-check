@@ -77,8 +77,9 @@ tests, and rerun both demo commands. Do not rely on results produced by an older
 
 ## How a person or agent verifies an installed package
 
-Source deployment does not prove the package artifact. After a candidate `04t` exists, create a
-customer-style subscriber org and install that exact ID:
+Source deployment does not prove the package artifact. After a candidate `04t` exists, reuse a
+matching retained subscriber org. Creating a new customer-style org requires explicit owner
+authorization for that creation; the following command creates one and installs the exact ID:
 
 ```bash
 npm run package:verify -- \
@@ -93,8 +94,9 @@ npm run package:verify -- \
 Omit `--keep-org` for an automated run. Without that flag, the verifier deletes every org it
 created on normal exit and on interrupt. With the flag, the creator must delete the org after human
 review. The verifier installs the namespaced package into an org without a namespace of its own,
-deploys only subscriber-owned fixtures, seeds the deterministic demo unless explicitly disabled,
-and verifies the package, APIs, permissions, examples, and browser behavior.
+deploys only subscriber-owned fixtures, and verifies the package, APIs, permissions and browser
+behavior. The upgrade phase additionally seeds and verifies deterministic demo outcomes unless
+explicitly disabled; `--skip-upgrade` does not run that demo phase.
 
 Do not deploy `packages/record-health-check/integration-tests` into this org. Those fixtures test
 the repository source boundary; packaged examples and `subscriber-app` test the installed package
@@ -126,6 +128,14 @@ release-pair workflow uses each org first for a clean candidate installation, re
 harness, uninstalls the candidate, installs the exact current stable version, and then upgrades that
 same org to the candidate. Clean-install and upgrade evidence therefore do not require separate
 orgs.
+
+Rerunning an authorized rehearsal can reuse the retained pair with
+`--release-pair --keep-org --reuse-existing-org`. An occupied org additionally requires
+`--reset-installed-package <04t>` selecting its one exact installed version. The verifier confirms
+one active Dev Hub release receipt, the absence of an org namespace, and the actual LWS/Locker
+setting before resetting anything. It never deletes a reused org. Security settings retrieval must
+use a non-hidden directory inside the Salesforce project: the CLI rejects external output paths
+and can silently skip hidden directories. The temporary directory is removed after the read.
 
 Keep at most two release pairs, or four retained scratch orgs, at one time:
 

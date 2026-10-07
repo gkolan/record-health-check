@@ -33,6 +33,12 @@ Check, and the reader has just pressed a button, so the wait is expected.
 | Record-save refresh                             | `_scheduleRecordRefresh` in `recordHealthCheck.js`         |
 | Server response, deliberately not cacheable     | `getCheckDefinitions` in `RecordHealthCheckController.cls` |
 
+Definition response validation and namespace-aware prerequisite resolution live in the pure
+`healthCheckDefinitions.js` helper. `_loadDefinitions` owns request lifecycle, server-verified
+entitlement, state updates, and scheduling. It captures entitlement before validation so malformed
+responses retain useful detail for authorized administrators. The extraction preserves validation
+order and never reuses definitions from an earlier run.
+
 **Supporting behaviors that must survive a refactor.**
 
 - The `preserveRows` argument to `_loadDefinitions` keeps the previous rows, the **Rerun** label,
@@ -75,11 +81,19 @@ added later cannot reintroduce the header-only card without also being added to 
 condition. Adding an `await` to the load path means giving that window a loading state, because the
 scheduled-load handle is cleared before the awaited call begins.
 
-Card Heading Display and Run Button Display are independent. `TITLE_ONLY` suppresses only the
-subtitle. `HIDE` removes the normal heading; a visible Run/Rerun action moves to the first visual body
-row and remains right aligned. If both settings hide their elements, no empty heading or action container renders. The body
-retains top clearance equal to the card radius so the first status accent remains straight. Error cards retain their setup heading, and App Builder retains the selected Check
-Set identity. The normal card article keeps the resolved Card Title as its accessible name.
+`TITLE_ONLY` suppresses only the subtitle. `HIDE` removes the complete normal heading, including the
+Run/Rerun action, and is valid only with `RUN_ON_LOAD`; `RUN_ON_REQUEST` fails as invalid configuration.
+No empty heading or action container renders. The body retains top clearance equal to the card radius
+so the first status accent remains straight. Error cards retain their setup heading without inheriting
+that headerless-card clearance, and App Builder retains the selected Check Set identity. The normal
+card article keeps the resolved Card Title as its accessible name.
+
+`INVALID_CONFIG` is recoverable without a page reload. The error card offers **Try Again**, which
+rereads the full definition after an administrator corrects the Check Set. A directly assigned
+Record Health Check Admin or Diagnostics Viewer sees the exact rejected setting under
+**Administrator detail**; other users are shown only the generic setup message. The entitlement is
+verified on the server and travels with the structured configuration error, because a rejected
+definition cannot return its normal response DTO.
 
 Summary Display also supports `HIDE`: it suppresses overall and category summaries without changing
 Check evaluation or the hidden-results notice. When the list is the final body block, bottom padding
@@ -189,23 +203,31 @@ which holds the request open deliberately.
 - [Configure the Lightning component](../lightning-record-page/configure-the-component.md)
 - [Setup and troubleshooting FAQ](../faqs/setup-and-troubleshooting.md)
 
-## Nullable evidence transport
+## Card-only result transport
 
 The card calls `RecordHealthCheckController.evaluateCheckJson`, which delegates to the existing
 typed `evaluateCheck` method and serializes its display plus the five card evaluation fields
 (`recordId`, `checkQualifiedApiName`, `status`, `severity`, and `reasonCode`). Raw machine operands
-are excluded. Null object properties are omitted, while null array cells retain their positions.
-`healthCheckModel.normalizeResult`
-decodes that JSON before validating the result. Aura otherwise removes null entries from nested
-Apex lists: a valid one-column evidence row `[[null]]` arrives as `[[]]` and correctly fails the
-browser's row-width validation. Do not pad malformed rows or weaken that validation to compensate.
+and structured evidence are excluded from the card-specific response. Null object properties are
+omitted. `healthCheckModel.normalizeResult` decodes the JSON before validating the result. The
+card keeps the verdict, message, Found/Expected comparison, remediation, and authorized diagnostics;
+it never renders evidence summaries, tables, Show details/Show all, or downloads. Evidence remains
+available to authorized callers through the typed evaluation APIs and is tested there independently.
+
+Comparison headings are fixed as **Found** and **Expected** for every Check type, including
+Formula condition fallbacks and Apex plugin display content. Server-provided `expectedValueLabel`
+cannot rename the card heading or accessible row label. `ComparisonDisplayMode__c` controls eligible
+sides, and the Check Set's comparison placement controls inline/expanded visibility. Typed APIs
+retain their existing optional label field. The Jest block `fixed comparison labels respect Custom
+Metadata visibility` guards PASS and FAIL across all placement and visibility combinations.
 
 The Preview controller already returns JSON text. Public Apex, REST and native action contracts
 retain their existing typed or JSON responses; the new adapter changes only the card transport.
 The adapter preserves authorization, Check membership, source validation and per-Check execution.
 
-The LWC regression `preserves typed null cells through serialized Apex responses` verifies a rendered
-null cell and the retained evidence summary. `RHCControllerEvidenceTransportTest` verifies PASS and
-FAIL through the saved typed-null fixture and confirms that the adapter rejects an unauthorized
-caller. It also guards omitted raw operands and text nodes without null link properties. The
-malformed serialized-response and malformed evidence-row tests must continue to pass.
+The LWC regressions verify that PASS and FAIL retain the comparison while no structured evidence
+controls or summary appear, even if an older server includes evidence in the display payload.
+`RHCControllerEvidenceTransportTest` verifies PASS and FAIL through the saved typed-null fixture,
+confirms the adapter omits evidence, and rejects an unauthorized caller. It also guards omitted raw
+operands and text nodes without null link properties. `RHCEvidenceFixtureTest` continues to verify
+typed null cells and evidence validity through the public evaluation API.

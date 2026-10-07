@@ -172,6 +172,20 @@ export class SalesforceClient {
         );
       }
       if (parsed.data.correlationId !== input.correlationId) {
+        // REST denies Run permission before parsing the body, so that denial
+        // has a server-generated ID. Keep its category; the tool attaches the
+        // caller's ID to this safe service error. No evaluation was returned.
+        if (
+          response.status === 403 &&
+          !parsed.data.success &&
+          parsed.data.errorType === "AUTHORIZATION"
+        ) {
+          throw new ServiceError(
+            "SALESFORCE_AUTH",
+            "Salesforce authorization failed.",
+            502
+          );
+        }
         throw new ServiceError(
           "UPSTREAM_CONTRACT",
           "Salesforce returned an invalid response.",

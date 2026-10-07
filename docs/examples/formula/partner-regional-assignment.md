@@ -131,13 +131,13 @@ not apply.
 
 Formula applicability and the Pass Condition produce these health results and card values:
 
-| Health result or card value | What the user sees                                                                                        |
-| --------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **`PASS`**                  | A Partner Account passes when Billing Country is populated.                                               |
-| **`FAIL`**                  | A Partner Account with blank Billing Country shows Needs attention with Critical severity.                |
-| **`SKIPPED`**               | A non-Partner Account is skipped because the Check does not apply to its regional-assignment process.     |
-| **Found**                   | Blank because **Display: Found Formula** is blank.                                                        |
-| **Expected**                | The expanded details label the Pass Condition as **Passes when** and show `NOT(ISBLANK(BillingCountry))`. |
+| Health result or card value | What the user sees                                                                                     |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **`PASS`**                  | A Partner Account passes when Billing Country is populated.                                            |
+| **`FAIL`**                  | A Partner Account with blank Billing Country shows Needs attention with Critical severity.             |
+| **`SKIPPED`**               | A non-Partner Account is skipped because the Check does not apply to its regional-assignment process.  |
+| **Found**                   | Blank because **Display: Found Formula** is blank.                                                     |
+| **Expected**                | The expanded details label the Pass Condition as **Expected** and show `NOT(ISBLANK(BillingCountry))`. |
 
 This Check Set uses **Show passed count only** for passed Checks so successful partner requirements do not
 crowd the card. Skipped Checks remain visible because the `SKIPPED` result explains why the Check did

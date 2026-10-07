@@ -73,6 +73,19 @@ Keep:
   Platform Events;
 - one record that should pass and one that should need attention for each important Check Set.
 
+### Required 2.0.11 compatibility audit
+
+Before upgrading from 2.0.10.1, find Check Sets whose heading is hidden even though they run only
+after a user clicks Run:
+
+```bash
+npm run audit:upgrade-2.0.11 -- --target-org <validation-org>
+```
+
+The command exits unsuccessfully while findings remain. For each finding, either show the heading
+to preserve the manual Run/Rerun action, or change the run mode to run when the page opens. Run the
+audit again and require zero findings before installing 2.0.11. The audit does not modify metadata.
+
 Open the retrieved metadata files and confirm that every Check Set and Check created by an
 administrator in your org is present. Store the backup somewhere the person responsible for the
 release can restore it. Prove the restoration in a safe org before relying on it for rollback.

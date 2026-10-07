@@ -213,3 +213,13 @@ test("release-owner instructions make scratch-org workflows optional and authori
     /full\nrelease needs eight scratch-org creations|four-org source matrix|ten scratch-org creations/
   );
 });
+
+test("package runbook does not make optional scratch validation a promotion prerequisite", () => {
+  const guide = fs.readFileSync(
+    new URL("../../.github/RELEASING.md", import.meta.url),
+    "utf8"
+  );
+  assert.match(guide, /Optional subscriber validation before promotion/);
+  assert.doesNotMatch(guide, /1\. Run the subscriber release-pair workflow/);
+  assert.match(guide, /--resume <08c-request-id>/);
+});

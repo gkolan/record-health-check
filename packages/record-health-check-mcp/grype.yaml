@@ -1,23 +1,79 @@
-# Keep the High/Critical gate enabled. These exact package/CVE pairs are ignored only after the
-# reachability review documented in OPERATIONS.md. Unexpected findings still fail the artifact job.
+# Exact reviewed runtime findings only; see OPERATIONS.md. Fixed findings must fail.
 ignore:
-  - vulnerability: CVE-2026-5450
-    package:
-      name: libc6
-      type: deb
-  - vulnerability: CVE-2026-5928
-    package:
-      name: libc6
-      type: deb
   - vulnerability: CVE-2026-5435
+    namespace: debian:distro:debian:13
+    fix-state: wont-fix
     package:
       name: libc6
-      type: deb
-  - vulnerability: CVE-2026-14456
-    package:
-      name: libssl3t64
+      version: "2.41-12+deb13u4"
       type: deb
   - vulnerability: CVE-2026-85091
+    namespace: debian:distro:debian:13
+    fix-state: not-fixed
     package:
       name: zlib1g
+      version: "1:1.3.dfsg+really1.3.1-1+b1"
+      type: deb
+  - vulnerability: CVE-2026-19499
+    namespace: debian:distro:debian:13
+    fix-state: wont-fix
+    package:
+      name: libc6
+      version: "2.41-12+deb13u4"
+      type: deb
+  - vulnerability: CVE-2026-95619
+    namespace: debian:distro:debian:13
+    fix-state: not-fixed
+    package:
+      name: gcc-14-base
+      version: "14.2.0-19"
+      type: deb
+  - vulnerability: CVE-2026-95619
+    namespace: debian:distro:debian:13
+    fix-state: not-fixed
+    package:
+      name: libgcc-s1
+      version: "14.2.0-19"
+      type: deb
+  - vulnerability: CVE-2026-95619
+    namespace: debian:distro:debian:13
+    fix-state: not-fixed
+    package:
+      name: libgomp1
+      version: "14.2.0-19"
+      type: deb
+  - vulnerability: CVE-2026-95619
+    namespace: debian:distro:debian:13
+    fix-state: not-fixed
+    package:
+      name: 'libstdc\+\+6'
+      version: "14.2.0-19"
+      type: deb
+  - vulnerability: CVE-2026-102010
+    namespace: debian:distro:debian:13
+    fix-state: wont-fix
+    package:
+      name: gcc-14-base
+      version: "14.2.0-19"
+      type: deb
+  - vulnerability: CVE-2026-102010
+    namespace: debian:distro:debian:13
+    fix-state: wont-fix
+    package:
+      name: libgcc-s1
+      version: "14.2.0-19"
+      type: deb
+  - vulnerability: CVE-2026-102010
+    namespace: debian:distro:debian:13
+    fix-state: wont-fix
+    package:
+      name: libgomp1
+      version: "14.2.0-19"
+      type: deb
+  - vulnerability: CVE-2026-102010
+    namespace: debian:distro:debian:13
+    fix-state: wont-fix
+    package:
+      name: 'libstdc\+\+6'
+      version: "14.2.0-19"
       type: deb

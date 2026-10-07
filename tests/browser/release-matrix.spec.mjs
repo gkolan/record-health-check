@@ -81,7 +81,13 @@ test("renders manual and on-load cards without a component or page-loading failu
   });
 
   const pageErrors = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("pageerror", (error) =>
+    pageErrors.push({
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    })
+  );
   await page.goto("", { waitUntil: "domcontentloaded" });
   const components = page.locator(COMPONENT_SELECTOR);
   await expect(components).toHaveCount(2);
@@ -126,6 +132,23 @@ test("renders manual and on-load cards without a component or page-loading failu
   await runButton.click();
   await expectRunCompleted(manualCard, 25);
 
+  const activityRow = manualCard.locator(".rhc-row").filter({
+    hasText: "Account activity meets the 60-day cadence"
+  });
+  await expect(activityRow).toHaveCount(1);
+  await expect(activityRow.locator(".rhc-cmp__key")).toHaveText([
+    "Found",
+    "Expected"
+  ]);
+  await expect(
+    manualCard
+      .locator(".rhc-row")
+      .locator(".rhc-cmp__key")
+      .filter({
+        hasNotText: /^(Found|Expected)$/
+      })
+  ).toHaveCount(0);
+
   // The load slot hands over and disappears; it must not outlive the load.
   await expect(components.locator(".rhc-card-loading")).toHaveCount(0);
 
@@ -134,5 +157,9 @@ test("renders manual and on-load cards without a component or page-loading failu
   for (const failure of COMPONENT_FAILURES) {
     await expect(page.getByText(failure, { exact: false })).toHaveCount(0);
   }
+  await testInfo.attach("page-runtime-errors", {
+    body: JSON.stringify(pageErrors, null, 2),
+    contentType: "application/json"
+  });
   expect(pageErrors).toEqual([]);
 });

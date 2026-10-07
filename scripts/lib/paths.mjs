@@ -20,6 +20,14 @@ export const paths = {
     "packages/record-health-check/sfdx-project.json"
   ),
   subscriberApp: path.join(repoRoot, "subscriber-app"),
+  subscriberUpgradePreflight: path.join(
+    repoRoot,
+    "subscriber-upgrade-fixtures/pre-upgrade"
+  ),
+  subscriberUpgradeCorrected: path.join(
+    repoRoot,
+    "subscriber-upgrade-fixtures/corrected"
+  ),
   demoMetadata: path.join(repoRoot, "scripts/demo/metadata"),
   packageReleases: path.join(repoRoot, "config/package-releases.json"),
   subscriberScratchDef: path.join(

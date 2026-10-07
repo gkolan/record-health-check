@@ -313,7 +313,7 @@ Set's run mode, title, subtitle, active Check count, and Run-button presentation
 waits for Run; automatic mode waits for browser idle.
 
 When execution begins, the component calls `getCheckDefinitions` once, then `evaluateCheck` once per
-Check, at most five calls in flight, so each Check is its own Apex transaction. On a
+Check, at most eight calls in flight across the page, so each Check is its own Apex transaction. On a
 `USER_INITIATED` run, `completeRun` does not evaluate the Checks again. It filters the completed
 browser results to the current record and the Checks in the resolved Check Set, rejects duplicates,
 calculates the summary from the accepted results, and then publishes the Check Result and Check Set
@@ -617,7 +617,7 @@ One bundle, four modules. Keep them together as one component.
 | Module                    | Responsibility                                                                                                                                                                                                                           |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `recordHealthCheck`       | The component itself: shell and definition loading, rendering, and user interaction. `_loadDefinitions` is the single entry point for every evaluation the card starts, so no run can execute against configuration it did not just read |
-| `healthCheckRunner`       | Run sequence: prerequisite checks, no more than five Apex calls at once, and results shown as they finish                                                                                                                                |
+| `healthCheckRunner`       | Run sequence: prerequisite checks, no more than eight Apex calls at once, and results shown as they finish                                                                                                                               |
 | `healthCheckModel`        | Consistent result fields, error handling, run IDs, and circular-dependency detection                                                                                                                                                     |
 | `healthCheckPresentation` | Display shaping, summary counts, and link safety                                                                                                                                                                                         |
 

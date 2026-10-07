@@ -21,6 +21,11 @@ count-derived status are additionally checked at runtime; JSON Schema discovery 
 that arithmetic. The initialization version identifies this service package (currently 0.1.0),
 separately from the agent-tool payload contract version 1.0.
 
+REST Run-permission denial happens before body parsing and can carry a different correlation ID.
+The service preserves HTTP `403` / `AUTHORIZATION` as an authorization failure and returns the
+caller's effective ID with a generic message. It does not retry the denial or relax correlation
+validation for completed evaluations or other failures.
+
 ## Security model
 
 Inbound clients use JWT bearer authentication in production. The verifier checks the signature,

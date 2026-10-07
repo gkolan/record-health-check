@@ -6,7 +6,7 @@ interfaces and product-generation terminology.
 
 ## Current release
 
-**Subscriber install:** promoted unlocked package `Record Health Check@2.0.10-1`. Stable `04t` and
+**Subscriber install:** promoted unlocked package `Record Health Check@2.0.11-4`. Stable `04t` and
 install URLs are recorded in [`config/package-releases.json`](./config/package-releases.json).
 
 > **Known issue:** unlocked `2.0.0-*` package tests can fail when they are selected explicitly,
@@ -16,8 +16,8 @@ install URLs are recorded in [`config/package-releases.json`](./config/package-r
 > version 2.0.6 removes business-object DML from packaged tests.
 
 - Production and Sandbox install links: see `installUrl` in `config/package-releases.json`
-- Current stable release: `Record Health Check@2.0.10-1` (`04tak000000h2wDAAQ`).
-- Previous stable release: `Record Health Check@2.0.9-2` (`04tak000000gX9FAAU`).
+- Current stable release: `Record Health Check@2.0.11-4`; exact package ID is in the release registry.
+- Previous stable release: `Record Health Check@2.0.10-1`; exact package ID is in the release registry.
 
 ### Evaluation and integration
 
@@ -71,7 +71,37 @@ For installation and verification, start with
 
 ## Unreleased
 
-No changes yet.
+This work is targeted for **2.0.11**, a corrective patch to the 2.0.10 card-heading controls. The
+patch closes an unreachable-action configuration without restoring a duplicate body-level Run
+action. Administrators upgrading from 2.0.10.1 must run the
+[2.0.11 compatibility audit](./docs/reference/release-2.0.11.md#upgrade-action-from-20101) and
+resolve every hidden manual-run Check Set before installation.
+
+### Changed
+
+- Comparison headings are always Found and Expected, including Formula and Apex Checks. Custom
+  Metadata still controls which sides appear and the Check Set controls their placement.
+- Explicit Display: Value Format takes precedence over Apex plugin format overrides. Automatic
+  retains plugin formatting and structured comparison content; explicit formats render typed
+  operands without changing verdicts or machine values. A plugin's currency code still names the
+  values' unit under an explicit Currency format, so amounts never switch to the viewing user's
+  currency; a configured Expected currency takes precedence for Expected.
+
+- The record-page card no longer exposes structured evidence summaries, Show details, Show all,
+  evidence tables, or downloads. Verdicts, comparisons, messages, and remediation remain. The
+  card-specific response omits evidence rows; typed evaluation APIs keep their evidence contract.
+
+- A Check Set that hides its card heading must run when the page opens. Manual Check Sets now reject
+  a hidden heading as invalid configuration because the heading owns the Run/Rerun action. The setup
+  error can be retried after correction without reloading the page, and verified administrators can
+  see the exact rejected setting without exposing it to ordinary users.
+
+- Checks finish sooner. Run-on-load Check Sets wait at most one second for the record page to go
+  idle and no longer wait a second time before loading definitions. Up to eight Check evaluations
+  run at once across the page, up from five. Configuration is still reread before every run.
+
+- The separately distributed MCP server correctly reports early Salesforce permission denials as
+  `AUTHORIZATION` while preserving the caller's correlation ID.
 
 ## Version 2.0.10
 

@@ -2,7 +2,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { demoOutcomeCoverageGaps } from "../lib/demo-outcome-coverage.mjs";
+import {
+  demoOutcomeCoverageGaps,
+  exampleCategoryGaps
+} from "../lib/demo-outcome-coverage.mjs";
 import { paths } from "../lib/paths.mjs";
 
 const matrix = JSON.parse(
@@ -11,10 +14,15 @@ const matrix = JSON.parse(
     "utf8"
   )
 );
-const gaps = demoOutcomeCoverageGaps(
-  path.join(paths.forceApp, "main/default/customMetadata"),
-  matrix
-);
+const gaps = [
+  ...demoOutcomeCoverageGaps(
+    path.join(paths.forceApp, "main/default/customMetadata"),
+    matrix
+  ),
+  ...exampleCategoryGaps(
+    path.join(paths.integrationTests, "main/default/customMetadata")
+  )
+];
 if (gaps.length) {
   console.error("Demo outcome coverage failed:\n- " + gaps.join("\n- "));
   process.exit(1);

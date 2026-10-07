@@ -12,6 +12,26 @@ function metadataValues(xml) {
   return values;
 }
 
+/** Categories are opt-in subscriber configuration, never example defaults. */
+export function exampleCategoryGaps(metadataDirectory) {
+  return fs
+    .readdirSync(metadataDirectory)
+    .filter(
+      (name) =>
+        name.startsWith("Record_Health_Check.Example_") &&
+        name.endsWith(".md-meta.xml")
+    )
+    .filter((name) =>
+      metadataValues(
+        fs.readFileSync(path.join(metadataDirectory, name), "utf8")
+      ).get("Category__c")
+    )
+    .map(
+      (name) =>
+        `${name.replace("Record_Health_Check.", "").replace(".md-meta.xml", "")} must leave Category__c blank; packaged examples must not set a category.`
+    );
+}
+
 /** Return gaps between packaged example Checks and executable demo outcomes. */
 export function demoOutcomeCoverageGaps(metadataDirectory, matrix) {
   const allowedStatuses = new Set([
@@ -21,6 +41,7 @@ export function demoOutcomeCoverageGaps(metadataDirectory, matrix) {
     "UNABLE_TO_EVALUATE",
     "SYSTEM_ERROR"
   ]);
+  const gaps = exampleCategoryGaps(metadataDirectory);
   const checksBySet = new Map();
   const requirementsByCheck = new Map();
   for (const fileName of fs
@@ -49,7 +70,6 @@ export function demoOutcomeCoverageGaps(metadataDirectory, matrix) {
 
   const outcomesByCheck = new Map();
   const scenarioSets = new Set();
-  const gaps = [];
   for (const [scenarioName, scenario] of Object.entries(matrix)) {
     scenarioSets.add(scenario.checkSet);
     const packagedChecks = checksBySet.get(scenario.checkSet);

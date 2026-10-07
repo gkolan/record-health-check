@@ -8,8 +8,8 @@
 
 The 28 Check Sets and 28 paired Checks exist in integration metadata. The
 `CardHeadingDisplay__c` field, shell and definition transport, strict full-definition validation,
-and LWC rendering are implemented in framework source. Jest covers all three modes, independent
-button hiding, shell fallback, App Builder identity and focus restoration. No Salesforce deployment,
+and LWC rendering are implemented in framework source. Jest covers all three modes, automatic-only
+hidden headings, shell fallback, App Builder identity and focus restoration. No Salesforce deployment,
 formula execution, painted-browser, installed-package or upgrade evidence has been recorded for
 these fixtures.
 
@@ -18,6 +18,12 @@ The offline guard runs automatically with `npm run test:scripts` (or directly wi
 field values, paired relationships and scenario procedures. It does not simulate Salesforce or prove
 painted layout. The handwritten configuration/outcome contract is
 [contract.json](../../../tests/fixtures/card-heading/contract.json).
+
+`RHCCardHeadingTest` is the Salesforce integration regression. It requires Full, Title and None to
+produce the same independently specified PASS and FAIL outcomes, verifies valid shell/definition
+transport, and requires all four hidden-heading/manual-run combinations to stop with the exact
+`INVALID_CONFIG` explanation before a definition response can reach evaluation. This separation is
+intentional: a rejected configuration is not a business FAIL.
 
 ## Fixture catalog
 
@@ -30,7 +36,7 @@ replaces the specification's duplicate placeholder titles with names compatible 
 | ---------------------------- | ------------------ | -------------- | -------------- | -------------------------------------- |
 | RHC_Heading_Full             | TITLE_AND_SUBTITLE | LABEL_AND_ICON | RUN_ON_REQUEST | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
 | RHC_Heading_Title            | TITLE_ONLY         | LABEL_AND_ICON | RUN_ON_REQUEST | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
-| RHC_Heading_Action           | HIDE               | LABEL_AND_ICON | RUN_ON_REQUEST | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
+| RHC_Heading_Action           | HIDE               | LABEL_AND_ICON | RUN_ON_REQUEST | Invalid manual/hidden heading          |
 | RHC_Heading_None             | HIDE               | HIDE           | RUN_ON_LOAD    | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
 | RHC_Heading_Legacy           | TITLE_AND_SUBTITLE | LABEL_AND_ICON | RUN_ON_REQUEST | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
 | RHC_Heading_FullAuto         | TITLE_AND_SUBTITLE | HIDE           | RUN_ON_LOAD    | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
@@ -47,9 +53,9 @@ replaces the specification's duplicate placeholder titles with names compatible 
 | RHC_Heading_TitleIconManual  | TITLE_ONLY         | ICON_ONLY      | RUN_ON_REQUEST | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
 | RHC_Heading_NoneBothAuto     | HIDE               | LABEL_AND_ICON | RUN_ON_LOAD    | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
 | RHC_Heading_NoneLabelAuto    | HIDE               | LABEL_ONLY     | RUN_ON_LOAD    | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
-| RHC_Heading_NoneLabelManual  | HIDE               | LABEL_ONLY     | RUN_ON_REQUEST | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
+| RHC_Heading_NoneLabelManual  | HIDE               | LABEL_ONLY     | RUN_ON_REQUEST | Invalid manual/hidden heading          |
 | RHC_Heading_NoneIconAuto     | HIDE               | ICON_ONLY      | RUN_ON_LOAD    | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
-| RHC_Heading_NoneIconManual   | HIDE               | ICON_ONLY      | RUN_ON_REQUEST | BOTTOM / SHOW_EACH_CHECK / ALL_AT_ONCE |
+| RHC_Heading_NoneIconManual   | HIDE               | ICON_ONLY      | RUN_ON_REQUEST | Invalid manual/hidden heading          |
 | RHC_Heading_NoneTop          | HIDE               | HIDE           | RUN_ON_LOAD    | TOP / SHOW_EACH_CHECK / ALL_AT_ONCE    |
 | RHC_Heading_NoneCount        | HIDE               | HIDE           | RUN_ON_LOAD    | BOTTOM / SHOW_COUNT_ONLY / ALL_AT_ONCE |
 | RHC_Heading_NoneProgressive  | HIDE               | HIDE           | RUN_ON_LOAD    | BOTTOM / SHOW_EACH_CHECK / ONE_BY_ONE  |
@@ -80,9 +86,15 @@ This feature adds no outcome reason code. Do not assert one invented from the fi
 Exceptions: `RHC_Heading_NoneSkipped` uses applicability `NumberOfEmployees > 0`: Healthy yields
 PASS, Needs Review yields SKIPPED (PASS=0, FAIL=0, SKIPPED=1). The blank applicability result is
 not part of this fixture's declared oracle. `RHC_Heading_NoneEmpty` has one inactive Check and
-must report NO_ACTIVE_CHECKS, not an empty successful run. `RHC_Heading_NoneManual` deliberately
-uses a hidden button with manual execution and must report INVALID_CONFIG with no evaluations.
-Neither negative fixture is a business FAIL. They remain separate from the ordinary outcomes.
+must report NO_ACTIVE_CHECKS, not an empty successful run. `RHC_Heading_Action`,
+`RHC_Heading_NoneLabelManual`, and `RHC_Heading_NoneIconManual` deliberately combine a hidden heading
+with manual execution; `RHC_Heading_NoneManual` also hides its button. All four must report
+INVALID_CONFIG with no evaluations. These negative fixtures are not business FAILs and remain
+separate from the ordinary outcomes. A regular user sees the safe configuration-problem message.
+A directly assigned Record Health Check Admin or Diagnostics Viewer also sees the exact rejected
+setting under **Administrator detail**. After correcting the Set to `RUN_ON_LOAD`, select **Try
+Again**: the error must clear, the headerless rounded-card inset must return, and evaluation must
+start without a Run/Rerun action bar.
 
 Add the chosen Check Sets to a dedicated maintainer Account Lightning record page in App Builder.
 Use multiple pages or swap the selection rather than rendering every matrix cell at once. Save and
@@ -106,29 +118,29 @@ omitting a value from XML does not clear it in an existing org.
 These procedures are the concrete verifier for every catalog row. Salesforce/browser cases remain pending;
 transient and malformed-payload conditions require test doubles rather than fabricated metadata.
 
-| Scenario | Fixtures and verification procedure                                                                                                                                                                                                   |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| S-01     | Describe the new field; require the exact three values/labels/default and explicit package member. Offline field guard owns source assertions.                                                                                        |
-| S-02     | Full, Title, Action, None, Legacy, FullAuto, TitleAuto: load shell and full definitions; require same normalized heading mode and unchanged title/subtitle. Apex transport assertions are implemented; org execution remains pending. |
-| S-03     | All ordinary matrix rows: verify both run modes and three visible button styles; hidden heading puts exactly one right-aligned body button.                                                                                           |
-| S-04     | None, FullAuto, TitleAuto: automatic hidden-button runs; only None removes the whole normal header.                                                                                                                                   |
-| S-05     | Legacy: explicit declared default. Inject null/blank/invalid tokens in unit payloads; illegal restricted values cannot be stored as deployable metadata.                                                                              |
-| S-06     | NoneManual: require existing INVALID_CONFIG before evaluation. Use in-memory missing title and bad token combinations to test precedence; correct inputs and rerun.                                                                   |
-| S-07     | Action and None: hold shell/definition promises in Jest; switch Set identity, disconnect and resolve stale calls. No stale assignment or cached evaluation fallback.                                                                  |
-| S-08     | NoneEmpty: visible setup error. NoneCount: hidden-results notice and count. None with denied access or failed requests: existing error/retry contract; use controlled failure tests.                                                  |
-| S-09     | NoneLabelAuto and NoneIconAuto: keyboard, long labels, 280/320px sidebar and 200% zoom; body button remains right-aligned.                                                                                                            |
-| S-10     | None in App Builder: selected identity/guidance visible, no evaluations even with hidden heading and button.                                                                                                                          |
-| S-11     | Every ordinary matrix fixture: execute paired records and same-record PASS/FAIL/PASS transition; compare outcomes independent of heading.                                                                                             |
-| S-12     | Legacy and Title: source/installed LWS/Locker, explicit default and subscriber-owned explicit setting preserved across authorized upgrade.                                                                                            |
-| S-13     | Convert clean package source, inspect field inclusion, run maximum supported Checks and query-counter tests; heading adds no queries. Those runtime cases need test doubles beyond one-Check fixtures.                                |
-| S-14     | None and NoneProgressive: hold initial shell, definitions and evaluations separately; default initial heading allowed only before mode is known; subsequent body loading never reserves header/action space.                          |
-| S-15     | None and NoneTop: Healthy/Needs Review have exact single-result counts; TOP/BOTTOM summaries determine first content, no normal header.                                                                                               |
-| S-16     | NoneCount healthy: PASS count and hidden-results notice. NoneEmpty: NO_ACTIVE_CHECKS setup heading. Defensive valid-empty response is a Jest-only variant. NoneSkipped on zero: visible SKIPPED result.                               |
-| S-17     | None with controlled denied/failed definitions: visible error heading and allowed Try Again; zero evaluations after rejection. Successful retry restores body-only content.                                                           |
-| S-18     | None on the owned Healthy ID: change 1 to 0 to 1 and reload; automatic PASS/FAIL/PASS without synthetic button clicks; separately exercise record-save refresh.                                                                       |
-| S-19     | Use None, NoneLabelAuto and TitleAuto as immutable endpoints. For actual same-Set transitions temporarily change owned None configuration, reload and verify creation/removal of body action row/title; restore saved values.         |
-| S-20     | None: narrow/wide/zoom geometry, accessible name matching its configured title, live announcements, no hidden tab stop and usable result controls.                                                                                    |
-| S-21     | None in Builder stays identifiable; NoneManual rejects manual hidden-button configuration. Correct that owned negative Set to RUN_ON_LOAD, verify auto-run, then restore RUN_ON_REQUEST.                                              |
+| Scenario | Fixtures and verification procedure                                                                                                                                                                                                                                                                                                                           |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S-01     | Describe the new field; require the exact three values/labels/default and explicit package member. Offline field guard owns source assertions.                                                                                                                                                                                                                |
+| S-02     | Full, Title, None and Legacy: load shell and full definitions; require the same normalized heading mode and unchanged title/subtitle. Action belongs to the rejected S-06 matrix and must never be treated as a valid full definition. Apex transport assertions are implemented; org execution remains pending.                                              |
+| S-03     | Full and Title matrix rows: verify both run modes and three visible button styles. Hidden-heading automatic rows render no Run/Rerun action or top action bar, regardless of Run Button Display.                                                                                                                                                              |
+| S-04     | None, FullAuto, TitleAuto: automatic hidden-button runs; only None removes the whole normal header.                                                                                                                                                                                                                                                           |
+| S-05     | Legacy: explicit declared default. Inject null/blank/invalid tokens in unit payloads; illegal restricted values cannot be stored as deployable metadata.                                                                                                                                                                                                      |
+| S-06     | Action, NoneLabelManual, NoneIconManual, and NoneManual: require INVALID_CONFIG before evaluation. Regular users get the generic setup message; directly assigned Admin/Diagnostics Viewer users also get the exact invalid setting. Correct to RUN_ON_LOAD and select Try Again; require the body-only automatic card and an evaluation without page reload. |
+| S-07     | Action and None: hold shell/definition promises in Jest; switch Set identity, disconnect and resolve stale calls. No stale assignment or cached evaluation fallback.                                                                                                                                                                                          |
+| S-08     | NoneEmpty: visible setup error. NoneCount: hidden-results notice and count. None with denied access or failed requests: existing error/retry contract; use controlled failure tests.                                                                                                                                                                          |
+| S-09     | NoneLabelAuto and NoneIconAuto: at 280/320px and 200% zoom, confirm configured labels/icons do not create a hidden tab stop, action row, or reserved top bar.                                                                                                                                                                                                 |
+| S-10     | None in App Builder: selected identity/guidance visible, no evaluations even with hidden heading and button.                                                                                                                                                                                                                                                  |
+| S-11     | Every ordinary matrix fixture: execute paired records and same-record PASS/FAIL/PASS transition; compare outcomes independent of heading.                                                                                                                                                                                                                     |
+| S-12     | Legacy and Title: source/installed LWS/Locker, explicit default and subscriber-owned explicit setting preserved across authorized upgrade.                                                                                                                                                                                                                    |
+| S-13     | Convert clean package source, inspect field inclusion, run maximum supported Checks and query-counter tests; heading adds no queries. Those runtime cases need test doubles beyond one-Check fixtures.                                                                                                                                                        |
+| S-14     | None and NoneProgressive: hold initial shell, definitions and evaluations separately; default initial heading allowed only before mode is known; subsequent body loading never reserves header/action space.                                                                                                                                                  |
+| S-15     | None and NoneTop: Healthy/Needs Review have exact single-result counts; TOP/BOTTOM summaries determine first content, no normal header.                                                                                                                                                                                                                       |
+| S-16     | NoneCount healthy: PASS count and hidden-results notice. NoneEmpty: NO_ACTIVE_CHECKS setup heading. Defensive valid-empty response is a Jest-only variant. NoneSkipped on zero: visible SKIPPED result.                                                                                                                                                       |
+| S-17     | None with controlled denied/failed definitions: visible error heading with no white spacer above it and allowed Try Again; zero evaluations after rejection. Successful retry restores body-only content.                                                                                                                                                     |
+| S-18     | None on the owned Healthy ID: change 1 to 0 to 1 and reload; automatic PASS/FAIL/PASS without synthetic button clicks; separately exercise record-save refresh.                                                                                                                                                                                               |
+| S-19     | Use None, NoneLabelAuto and TitleAuto as immutable endpoints. For actual same-Set transitions temporarily change owned None configuration, reload and verify creation/removal of the title while no body action row is ever created; restore saved values.                                                                                                    |
+| S-20     | None: narrow/wide/zoom geometry, accessible name matching its configured title, live announcements, no hidden tab stop and usable result controls.                                                                                                                                                                                                            |
+| S-21     | None in Builder stays identifiable; all four manual hidden-heading fixtures reject their configuration. Correct an owned negative Set to RUN_ON_LOAD, select Try Again, verify auto-run with no action bar, then restore RUN_ON_REQUEST.                                                                                                                      |
 
 ## Remaining evidence
 

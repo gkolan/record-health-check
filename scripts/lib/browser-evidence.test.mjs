@@ -78,3 +78,12 @@ test("browser evidence rejects empty, skipped, flaky, and failed runs", () => {
   );
   assert.throws(() => assertBrowserReport({}));
 });
+
+test("redacts Salesforce-generated content-door session and encrypted login parameters", () => {
+  const raw =
+    "https://example.invalid/secur/contentDoor?sid=new-session-token&lm=encrypted-login&skipRedirect=1";
+  const result = redactBrowserEvidence(raw, {});
+  assert.ok(!result.includes("new-session-token"));
+  assert.ok(!result.includes("encrypted-login"));
+  assert.ok(result.includes("skipRedirect=1"));
+});

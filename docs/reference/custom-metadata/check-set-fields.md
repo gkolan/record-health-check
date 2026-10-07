@@ -95,10 +95,11 @@ the user should run the Check Set. Example: `Review before the weekly pipeline m
 
 Optional restricted picklist: `TITLE_AND_SUBTITLE` (Show title and subtitle, default),
 `TITLE_ONLY` (Show title only), or `HIDE` (Hide). Blank values preserve the existing title-and-subtitle
-card. **Hide** removes the normal heading strip; when Run Button Display remains visible, the action
-moves to a right-aligned row at the top of the body. Hiding the heading never hides the button.
-Card Title remains required and supplies the card's accessible name. App Builder always keeps the
-selected Check Set visible. See the
+card. **Hide** removes the complete heading strip, including the Run/Rerun action, so it is valid only
+when **When Checks Run** is **When the page opens**. A manual Check Set with a hidden heading reports
+an invalid-configuration setup error instead of rendering a separate action bar. Card Title remains
+required and supplies the card's accessible name. App Builder always keeps the selected Check Set
+visible. See the
 [integration fixture matrix](../../../packages/record-health-check/integration-tests/card-heading-display.md).
 
 ### Reveal Mode (`CardRevealMode__c`)
