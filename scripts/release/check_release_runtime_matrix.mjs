@@ -503,7 +503,9 @@ requireText("tests/browser/lifecycle.mjs", [
   'button[title="Edit Phone"]',
   'performance.getEntriesByType("navigation").length',
   "navigationEntriesAfterClick",
-  "expectAutomaticRunCompleted(page)"
+  "expectAutomaticRunCompleted(page)",
+  'page.on("requestfinished", countRefreshedChecks)',
+  "await expect.poll(() => refreshedCheckResponses).toBeGreaterThanOrEqual(29)"
 ]);
 requireText("scripts/release/verify_mcp_salesforce_contract.mjs", [
   "RUN_CHECK_SET must account for every Check in the four-type release set.",

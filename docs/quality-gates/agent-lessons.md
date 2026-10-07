@@ -253,6 +253,12 @@ attaches the errors as evidence. Do not expand that exception to arbitrary error
 component failures. Successful Chromium execution does not establish Firefox or Locker behavior.
 The browser evidence helper rejects empty, skipped, flaky and failed reports and redacts secrets.
 
+For record-save lifecycle verification, wait for fresh evaluation responses from both populated
+cards before navigating away. Previous completed totals and generic Aura request counts can pass
+while the save-triggered refresh is still running. Destroying that page early can also raise a
+Salesforce wire-refresh error in Firefox. Keep the actual response assertion and strict page-error
+check; do not suppress that error or count stale totals as a refreshed run.
+
 ## Lesson 10: Preserve release truth and include new guards in the handoff
 
 A branch name does not prove the package version was bumped or that a candidate exists. Consult
