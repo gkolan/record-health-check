@@ -46,7 +46,7 @@ ignore:
     namespace: debian:distro:debian:13
     fix-state: not-fixed
     package:
-      name: libstdc++6
+      name: 'libstdc\+\+6'
       version: "14.2.0-19"
       type: deb
   - vulnerability: CVE-2026-102010
@@ -74,6 +74,6 @@ ignore:
     namespace: debian:distro:debian:13
     fix-state: wont-fix
     package:
-      name: libstdc++6
+      name: 'libstdc\+\+6'
       version: "14.2.0-19"
       type: deb

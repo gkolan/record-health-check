@@ -41,8 +41,18 @@ test("MCP reachability dispositions stay limited to the reviewed runtime", () =>
     ["CVE-2026-19499", "libc6", "2.41-12+deb13u4", "wont-fix"],
     ...["gcc-14-base", "libgcc-s1", "libgomp1", "libstdc++6"].flatMap(
       (name) => [
-        ["CVE-2026-95619", name, "14.2.0-19", "not-fixed"],
-        ["CVE-2026-102010", name, "14.2.0-19", "wont-fix"]
+        [
+          "CVE-2026-95619",
+          name === "libstdc++6" ? "'libstdc\\+\\+6'" : name,
+          "14.2.0-19",
+          "not-fixed"
+        ],
+        [
+          "CVE-2026-102010",
+          name === "libstdc++6" ? "'libstdc\\+\\+6'" : name,
+          "14.2.0-19",
+          "wont-fix"
+        ]
       ]
     )
   ];
@@ -87,6 +97,7 @@ test("MCP reachability dispositions stay limited to the reviewed runtime", () =>
   );
   assert.match(workflow, /grep -q 'call\.\*posix_memalign'/);
   assert.match(workflow, /ERR_DLOPEN_DISABLED/);
-  assert.match(workflow, /strfmon/);
+  assert.match(workflow, /if grep[^\n]+strfmon[^\n]+then exit 1; fi/);
+  assert.doesNotMatch(workflow, /\n {10}! grep/);
   assert.match(workflow, /__gnu_pbds/);
 });

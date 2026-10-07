@@ -40,11 +40,11 @@ jobs:
           docker cp "$container":/usr/lib/x86_64-linux-gnu "$runtime/libraries"
           objdump -d --disassemble=_ZnwmSt11align_val_t "$runtime/libraries/libstdc++.so.6.0.33" > "$runtime/aligned-new.txt"
           grep -q 'call.*posix_memalign' "$runtime/aligned-new.txt"
-          ! grep -q 'call.*aligned_alloc' "$runtime/aligned-new.txt"
+          if grep -q 'call.*aligned_alloc' "$runtime/aligned-new.txt"; then exit 1; fi
           objdump -T "$runtime/node" > "$runtime/symbols.txt"
           find "$runtime/libraries" -type f -name '*.so*' -exec objdump -T {} + >> "$runtime/symbols.txt"
-          ! grep -E '\*UND\*.*(__)?strfmon(_l)?([[:space:]]|$)' "$runtime/symbols.txt"
-          ! grep -q '__gnu_pbds' "$runtime/symbols.txt"
+          if grep -E '\*UND\*.*(__)?strfmon(_l)?([[:space:]]|$)' "$runtime/symbols.txt"; then exit 1; fi
+          if grep -q '__gnu_pbds' "$runtime/symbols.txt"; then exit 1; fi
           docker run --rm "$IMAGE" -e 'try { process.dlopen({}, "/missing.node"); process.exit(1); } catch (error) { if (error.code !== "ERR_DLOPEN_DISABLED") throw error; }'
       - name: Scan container for high-severity vulnerabilities
         id: container-scan
