@@ -394,6 +394,15 @@ the public evaluation API, separately for PASS and FAIL. Both layers matter: the
 allocator is another safeguard and could mask a projector-only overflow. Record card verdicts and
 typed API results separately; the automated tests are the byte-count authority.
 
+`RHC_Evidence_Bytes_Exact` sizes the same evidence at exactly 262,144 bytes. The projector keeps all
+13 rows, so only the shared response budget trims it beside the Check's display content. Assign
+yourself the Record Health Check Diagnostics Viewer permission set and run it on the card with the
+same Account at 0 and then 1 employees: expect PASS then FAIL, and the administrator detail must not
+say that optional presentation was omitted, because the card never receives evidence. The typed API
+must still return 12 rows marked TRUNCATED and that omission warning. `RHCCardEvidenceBudgetTest`
+pins the projector precondition, both card verdicts, the typed control, and that an evidence-free
+request never projects evidence.
+
 ### Fixed Found / Expected card labels
 
 Use the existing `Example_Guide_Recent_Activity` Check in `Example_Account_Check_Builder_Guide`
@@ -420,12 +429,16 @@ manual configuration procedure above.
 and Automatic. `RHCFormatPrecedencePlugin` supplies Found 0.75 and Expected 0.75 (PASS) or
 0.80 (FAIL), plus NUMBER overrides. Use any accessible Account. With RATIO_PERCENT, expect
 Found 75% / Expected 75% or 80%; with AUTO, expect Found 0.75 / Expected 0.75 or 0.8.
-Run each Check alone and the mixed Set; all four verdicts and raw values must remain unchanged.
+Its fifth Check, `RHC_Format_Ratio_No_Operand`, keeps RATIO_PERCENT while the plugin returns
+UNABLE_TO_EVALUATE with no operands and linked display values: expect Found "Source: Open record"
+with a link to the Account and Expected "Target: Open Accounts" with a link to the Account home.
+There is no value to format, so the explicit format must not replace those links with plain text.
+Run each Check alone and the mixed Set; all five verdicts and raw values must remain unchanged.
 Change the explicit format to RAW, rerun, and verify the stored spelling; restore it afterward.
 
-`RHCFormatPrecedenceTest` pins the resolver's ordinary, empty, structured-content, RAW and
-currency paths. `RecordHealthCheckApexResultFinalizerTest.configuredFormatWinsOverTypedPluginFormat`
-guards the legacy typed fallback. Subscriber-owned equivalents under `subscriber-app` use
+`RHCFormatPrecedenceTest` pins the resolver's ordinary, empty, structured-content, no-operand link,
+RAW and currency paths. `RHCFormatPrecedenceFixtureTest` runs the saved no-operand Check alone and
+in the mixed Set through the public API. Subscriber-owned equivalents under `subscriber-app` use
 `Subscriber_Format_Precedence`, `RHCSubscriberFormatPlugin`, and `RHCSubscriberFormatTest`;
 never deploy these integration source fixtures to a subscriber org. The subscriber test verifies
 both Check and mixed-Set public API paths. Its `Subscriber_Format_Currency_Pass` and

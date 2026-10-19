@@ -105,16 +105,6 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
           ' characters.'
       );
     }
-    String displayContractError = applyTypedDisplayValues(check, apexResult);
-    if (displayContractError != null) {
-      return contractError(
-        check,
-        fallbackResult,
-        RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID,
-        apexResult.reasonCode,
-        '"' + check.ApexClass__c + '" ' + displayContractError
-      );
-    }
     if (
       (apexResult.status == 'PASS' || apexResult.status == 'FAIL') &&
       (apexResult.pluginValueViolation?.reasonCode ==
@@ -213,76 +203,6 @@ public with sharing class RecordHealthCheckApexResultFinalizer {
     fallbackResult.detailMessage = detailMessage;
     fallbackResult.pluginValueViolation = valueViolation;
     return fallbackResult;
-  }
-
-  private static String applyTypedDisplayValues(
-    Record_Health_Check__mdt check,
-    RecordHealthCheckInternalResult apexResult
-  ) {
-    if (
-      String.isBlank(apexResult.actualValue) &&
-      apexResult.actualDisplayValue != null
-    ) {
-      if (!isValidPluginFormat(apexResult.actualDisplayFormat)) {
-        return 'returned an invalid actualDisplayFormat. Use a canonical uppercase format API name.';
-      }
-      apexResult.actualDisplayFormat = effectiveFormat(
-        check,
-        apexResult.actualDisplayFormat
-      );
-      apexResult.actualValue = RecordHealthCheckDisplayFormat.render(
-        apexResult.actualDisplayValue,
-        apexResult.actualDisplayFormat,
-        apexResult.actualCurrencyIsoCode
-      );
-    }
-    if (
-      String.isBlank(apexResult.expectedValue) &&
-      apexResult.expectedDisplayValue != null
-    ) {
-      if (!isValidPluginFormat(apexResult.expectedDisplayFormat)) {
-        return 'returned an invalid expectedDisplayFormat. Use a canonical uppercase format API name.';
-      }
-      apexResult.expectedDisplayFormat = effectiveFormat(
-        check,
-        apexResult.expectedDisplayFormat
-      );
-      if (
-        hasConfiguredFormat(check) &&
-        String.isNotBlank(check.ExpectedCurrencyIsoCode__c)
-      ) {
-        apexResult.expectedCurrencyIsoCode = check.ExpectedCurrencyIsoCode__c;
-      }
-      apexResult.expectedValue = RecordHealthCheckDisplayFormat.render(
-        apexResult.expectedDisplayValue,
-        apexResult.expectedDisplayFormat,
-        apexResult.expectedCurrencyIsoCode
-      );
-    }
-    return null;
-  }
-
-  private static Boolean hasConfiguredFormat(Record_Health_Check__mdt check) {
-    return String.isNotBlank(check.DisplayValueFormat__c) &&
-      check.DisplayValueFormat__c !=
-      RecordHealthCheckDisplayFormat.FORMAT_AUTO &&
-      RecordHealthCheckDisplayFormat.isFormatApiName(
-        check.DisplayValueFormat__c
-      );
-  }
-
-  private static String effectiveFormat(
-    Record_Health_Check__mdt check,
-    String pluginFormat
-  ) {
-    return hasConfiguredFormat(check)
-      ? check.DisplayValueFormat__c
-      : pluginFormat;
-  }
-
-  private static Boolean isValidPluginFormat(String formatName) {
-    return String.isBlank(formatName) ||
-      RecordHealthCheckDisplayFormat.isFormatApiName(formatName);
   }
 
   private static String safeCannotEvaluateMessage(

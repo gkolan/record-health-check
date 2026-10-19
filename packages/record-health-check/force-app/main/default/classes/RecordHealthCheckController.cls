@@ -182,11 +182,6 @@ public with sharing class RecordHealthCheckController {
       runId,
       source
     );
-    // The record-page card has no evidence viewer. Keep evidence in the typed
-    // evaluation APIs, but do not send its potentially large rows to the LWC.
-    if (item.display != null) {
-      item.display.evidence = null;
-    }
     return JSON.serialize(
       new Map<String, Object>{
         'evaluation' => new Map<String, Object>{
@@ -203,7 +198,8 @@ public with sharing class RecordHealthCheckController {
   }
 
   /**
-   * Evaluates a single check and returns one split evaluation/display item.
+   * Evaluates a single check and returns one split evaluation/display item
+   * without evidence rows; typed evaluation APIs keep evidence.
    * checkSetQualifiedApiName is validated server-side to confirm the Check belongs to the
    * named Check Set, preventing direct invocation of arbitrary checks.
    *
@@ -266,7 +262,9 @@ public with sharing class RecordHealthCheckController {
             ? RecordHealthCheckExecutionOrigin.USER_INITIATED
             : RecordHealthCheckExecutionOrigin.RUN_ON_LOAD
         )
-        .withRunId(runId);
+        .withRunId(runId)
+        // The card has no evidence viewer; evidence must not spend its budget.
+        .withoutEvidence();
       RecordHealthCheckResponse response = RecordHealthCheck.evaluate(request);
       return response.results[0];
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {

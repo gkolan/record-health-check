@@ -122,7 +122,11 @@ public with sharing class RecordHealthCheckPresentationResolver {
     }
     // Structured plugin comparisons belong to Automatic. A named metadata
     // format renders machine operands, so stale nodes cannot mask that value.
-    if (explicitFormat && result.displayContent != null) {
+    // Without an operand there is nothing to render; keep the plugin nodes.
+    RecordHealthCheckValue operand = foundSide
+      ? result.evaluationFound
+      : result.evaluationExpected;
+    if (explicitFormat && operand != null && result.displayContent != null) {
       if (foundSide) {
         result.displayContent.found = null;
       } else {
@@ -141,6 +145,9 @@ public with sharing class RecordHealthCheckPresentationResolver {
     if (String.isBlank(formatName)) {
       formatName = RecordHealthCheckDisplayFormat.FORMAT_AUTO;
     }
+    // A malformed plugin format is reported even when a named metadata format
+    // ignores it: it is still a plugin contract violation, and it would break
+    // the same plugin on a Check left on Automatic.
     if (
       !String.isBlank(overrideFormat) &&
       !RecordHealthCheckDisplayFormat.isFormatApiName(overrideFormat)
@@ -149,22 +156,17 @@ public with sharing class RecordHealthCheckPresentationResolver {
       formatName = validConfiguredFormat(check.DisplayValueFormat__c);
       overrideIsoCode = null;
     }
-    if (explicitFormat && !String.isBlank(overrideIsoCode)) {
-      // The configured format wins, but a currency code names the value's
-      // unit, not its formatting: keep the plugin's unit unless the admin set
-      // an Expected currency or the configured format is not Currency.
-      if (!Pattern.matches('[A-Z]{3}', overrideIsoCode.trim().toUpperCase())) {
-        recordInvalid(
-          result,
-          foundSide ? 'foundCurrencyIsoCode' : 'expectedCurrencyIsoCode'
-        );
-        overrideIsoCode = null;
-      } else if (
-        formatName != RecordHealthCheckDisplayFormat.FORMAT_CURRENCY ||
-        (!foundSide && String.isNotBlank(check.ExpectedCurrencyIsoCode__c))
-      ) {
-        overrideIsoCode = null;
-      }
+    // The configured format wins, but a currency code names the value's unit,
+    // not its formatting: drop a valid plugin unit only when the configured
+    // format is not Currency or the admin set an Expected currency. A malformed
+    // code still reaches resolveIsoCode, which reports it.
+    if (
+      explicitFormat &&
+      isIsoCode(overrideIsoCode) &&
+      (formatName != RecordHealthCheckDisplayFormat.FORMAT_CURRENCY ||
+      (!foundSide && String.isNotBlank(check.ExpectedCurrencyIsoCode__c)))
+    ) {
+      overrideIsoCode = null;
     }
     applyResolvedFormat(check, result, formatName, overrideIsoCode, foundSide);
   }
@@ -229,23 +231,22 @@ public with sharing class RecordHealthCheckPresentationResolver {
     }
 
     if (!String.isBlank(overrideIsoCode)) {
-      String overrideCandidate = overrideIsoCode.trim().toUpperCase();
-      if (Pattern.matches('[A-Z]{3}', overrideCandidate)) {
-        return overrideCandidate;
+      if (isIsoCode(overrideIsoCode)) {
+        return overrideIsoCode.trim().toUpperCase();
       }
       recordInvalid(
         result,
         foundSide ? 'foundCurrencyIsoCode' : 'expectedCurrencyIsoCode'
       );
     }
-
-    if (String.isBlank(configuredIsoCode)) {
-      return null;
-    }
-    String configuredCandidate = configuredIsoCode.trim().toUpperCase();
-    return Pattern.matches('[A-Z]{3}', configuredCandidate)
-      ? configuredCandidate
+    return isIsoCode(configuredIsoCode)
+      ? configuredIsoCode.trim().toUpperCase()
       : null;
+  }
+
+  private static Boolean isIsoCode(String value) {
+    return !String.isBlank(value) &&
+      Pattern.matches('[A-Z]{3}', value.trim().toUpperCase());
   }
 
   private static Object displayValue(RecordHealthCheckValue value) {

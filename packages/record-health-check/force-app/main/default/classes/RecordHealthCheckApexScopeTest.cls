@@ -176,39 +176,6 @@ private with sharing class RecordHealthCheckApexScopeTest {
   }
 
   @IsTest
-  static void invalidExpectedFormatFailsSafely() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
-      'Missing plugin outcome'
-    );
-    Record_Health_Check__mdt check = checkFor(
-      'AccountHasRecentActivityCheck',
-      null
-    );
-    Test.startTest();
-    RecordHealthCheckInternalResult invalidFormat = new RecordHealthCheckInternalResult();
-    invalidFormat.status = RecordHealthCheckStatus.PASS;
-    invalidFormat.expectedDisplayValue = 3;
-    invalidFormat.expectedDisplayFormat = 'not_canonical';
-    RecordHealthCheckInternalResult formatFallback = new RecordHealthCheckInternalResult();
-    formatFallback.checkDeveloperName = check.DeveloperName;
-    formatFallback.evaluatorType = 'APEX';
-    RecordHealthCheckInternalResult formatted = RecordHealthCheckApexResultFinalizer.finalizeResult(
-      check,
-      accountRecord,
-      formatFallback,
-      invalidFormat,
-      new RecordHealthCheckFormulaEvaluator()
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      RecordHealthCheckStatus.ERROR,
-      formatted.status,
-      'An invalid Expected display format must become a contract error.'
-    );
-  }
-
-  @IsTest
   static void pluginExceptionsBecomeStableEvaluatorResults() {
     Account accountRecord = RecordHealthCheckTestDataFactory.accountFixture(
       'Plugin exception'

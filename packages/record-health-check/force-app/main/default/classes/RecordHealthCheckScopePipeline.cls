@@ -81,6 +81,7 @@ public with sharing class RecordHealthCheckScopePipeline {
       ? RecordHealthCheckScopeRuntime.newRunId()
       : request.options.runId;
     context.executionOrigin = String.valueOf(request.options.executionOrigin);
+    context.omitEvidence = request.omitsEvidence();
     response.recordIds.addAll(recordIds);
     for (Record_Health_Check__mdt check : context.checks) {
       response.checkQualifiedApiNames.add(check.QualifiedApiName);
@@ -512,6 +513,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     public Boolean showDiagnostics;
     public Boolean fullCheckSetSelection = false;
     public String executionOrigin;
+    public Boolean omitEvidence = false;
     public RecordHealthCheckResultMode resultMode;
     public Map<Id, RecordHealthCheckExecutionTrace> activeExecutionTraces;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();

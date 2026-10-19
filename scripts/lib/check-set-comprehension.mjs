@@ -115,6 +115,7 @@ export const PURPOSES = {
   RHC_Link_Grammar: "coverage",
   RHC_Evidence_Projection: "coverage",
   RHC_Evidence_Bytes_Complete: "coverage",
+  RHC_Evidence_Bytes_Exact: "coverage",
   RHC_Evidence_Bytes_Truncated: "coverage",
   RHC_Evidence_Bytes_Unknown: "coverage",
 

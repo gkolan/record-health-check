@@ -231,3 +231,9 @@ controls or summary appear, even if an older server includes evidence in the dis
 confirms the adapter omits evidence, and rejects an unauthorized caller. It also guards omitted raw
 operands and text nodes without null link properties. `RHCEvidenceFixtureTest` continues to verify
 typed null cells and evidence validity through the public evaluation API.
+
+The controller's `evaluateCheck`, and therefore the adapter, requests its result without evidence, so
+evidence the card never shows cannot spend the response presentation budget or add an
+omitted-presentation warning to administrator detail.
+`RHCCardEvidenceBudgetTest` pins this with an exact 256 KiB evidence fixture: PASS and FAIL cards
+report no omission, while the typed API still receives the trimmed rows and the warning.

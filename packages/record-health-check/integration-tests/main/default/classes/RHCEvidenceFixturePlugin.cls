@@ -157,7 +157,12 @@ global with sharing class RHCEvidenceFixturePlugin implements RecordHealthCheckP
       evidence.row(fullRow);
       expected.rows.add(new List<Object>(wireRow));
     }
-    appendBoundaryRow(evidence, expected);
+    // Exact fits the projector at 256 KiB; the others exceed it by one byte.
+    appendBoundaryRow(
+      evidence,
+      expected,
+      scope.checkDeveloperName.endsWith('_Exact') ? 262144 : 262145
+    );
     if (completeness == 'TRUNCATED') {
       for (Integer row = 13; row < 101; row++) {
         evidence.row(emptyRow);
@@ -202,14 +207,16 @@ global with sharing class RHCEvidenceFixturePlugin implements RecordHealthCheckP
   }
   private static void appendBoundaryRow(
     RecordHealthCheckEvidence evidence,
-    RecordHealthCheckEvidenceEnvelope expected
+    RecordHealthCheckEvidenceEnvelope expected,
+    Integer targetBytes
   ) {
     List<Object> wireRow = new List<Object>();
     for (Integer column = 0; column < 20; column++) {
       wireRow.add('');
     }
     expected.rows.add(wireRow);
-    Integer remaining = 262145 - Blob.valueOf(JSON.serialize(expected)).size();
+    Integer remaining =
+      targetBytes - Blob.valueOf(JSON.serialize(expected)).size();
     List<RecordHealthCheckEvidenceCell> boundary = new List<RecordHealthCheckEvidenceCell>();
     for (Integer column = 0; column < 20; column++) {
       Integer bytes = Math.min(1024, remaining);
@@ -225,10 +232,12 @@ global with sharing class RHCEvidenceFixturePlugin implements RecordHealthCheckP
     }
     if (
       remaining != 0 ||
-      Blob.valueOf(JSON.serialize(expected)).size() != 262145
+      Blob.valueOf(JSON.serialize(expected)).size() != targetBytes
     ) {
       throw new FixtureException(
-        'The evidence fixture must exceed 256 KiB by exactly one byte.'
+        'The evidence fixture must serialize to exactly ' +
+          targetBytes +
+          ' bytes.'
       );
     }
     evidence.row(boundary);

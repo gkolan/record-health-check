@@ -56,6 +56,54 @@ private class RHCFormatPrecedenceTest {
     );
   }
   @IsTest
+  static void explicitFormatKeepsFoundLinkWithoutOperand() {
+    RecordHealthCheckInternalResult result = linkedWithoutOperands();
+    Test.startTest();
+    RecordHealthCheckPresentationResolver.apply(
+      configured('RATIO_PERCENT'),
+      result
+    );
+    Test.stopTest();
+    Assert.isNotNull(
+      result.displayContent.found,
+      'With no Found operand to format, the plugin Found nodes are the only value.'
+    );
+    Assert.areEqual(
+      'link',
+      result.displayContent.found[1].kind,
+      'The plugin Found link must survive an explicit metadata format.'
+    );
+    Assert.areEqual(
+      'Source: Open record',
+      result.actualValue,
+      'The plain Found fallback must stay the plugin text.'
+    );
+  }
+  @IsTest
+  static void explicitFormatKeepsExpectedLinkWithoutOperand() {
+    RecordHealthCheckInternalResult result = linkedWithoutOperands();
+    Test.startTest();
+    RecordHealthCheckPresentationResolver.apply(
+      configured('RATIO_PERCENT'),
+      result
+    );
+    Test.stopTest();
+    Assert.isNotNull(
+      result.displayContent.expected,
+      'With no Expected operand to format, the plugin Expected nodes are the only value.'
+    );
+    Assert.areEqual(
+      'link',
+      result.displayContent.expected[1].kind,
+      'The plugin Expected link must survive an explicit metadata format.'
+    );
+    Assert.areEqual(
+      'UNABLE_TO_EVALUATE',
+      result.status,
+      'Presentation must not change the unable outcome.'
+    );
+  }
+  @IsTest
   static void emptyOperandStaysAbsent() {
     RecordHealthCheckInternalResult result = numbers('UNABLE_TO_EVALUATE');
     result.evaluationFound = null;
@@ -140,6 +188,30 @@ private class RHCFormatPrecedenceTest {
       'The admin format replaced the plugin format; that is not a plugin error.'
     );
   }
+  @IsTest
+  static void explicitNonCurrencyFormatReportsMalformedPluginUnit() {
+    RecordHealthCheckInternalResult result = numbers('FAIL');
+    result.presentationOverride = new RecordHealthCheckDisplayOverride()
+      .withFoundFormat('CURRENCY', 'US');
+    Test.startTest();
+    RecordHealthCheckPresentationResolver.apply(configured('NUMBER'), result);
+    Test.stopTest();
+    Assert.areEqual(
+      'NUMBER',
+      result.actualDisplayFormat,
+      'The configured format must still win.'
+    );
+    Assert.isNull(
+      result.actualCurrencyIsoCode,
+      'A Number value carries no currency.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.PLUGIN_DISPLAY_INVALID +
+      ': foundCurrencyIsoCode',
+      result.detailMessage,
+      'A malformed plugin unit is a plugin contract violation even when ignored.'
+    );
+  }
   private static void verify(
     String formatName,
     String pluginFormat,
@@ -188,6 +260,28 @@ private class RHCFormatPrecedenceTest {
         'DisplayValueFormat__c' => formatName
       }
     );
+  }
+  // An unable plugin outcome has no operands; only its display hook names values.
+  private static RecordHealthCheckInternalResult linkedWithoutOperands() {
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.status = 'UNABLE_TO_EVALUATE';
+    result.presentationOverride = new RecordHealthCheckDisplayOverride()
+      .withFound(
+        new RecordHealthCheckDisplayText()
+          .text('Source: ')
+          .link('Open record', '/lightning/o/Account/home')
+      )
+      .withExpected(
+        new RecordHealthCheckDisplayText()
+          .text('Target: ')
+          .link('Open policy', '/lightning/o/Account/list')
+      );
+    result.displayContent = new RecordHealthCheckDisplayContent();
+    result.displayContent.found = result.presentationOverride.found.copyNodes();
+    result.displayContent.expected = result.presentationOverride.expected.copyNodes();
+    result.actualValue = 'Source: Open record';
+    result.expectedValue = 'Target: Open policy';
+    return result;
   }
   private static RecordHealthCheckInternalResult numbers(String status) {
     RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();

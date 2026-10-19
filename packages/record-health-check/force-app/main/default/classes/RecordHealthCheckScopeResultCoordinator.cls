@@ -62,6 +62,10 @@ public with sharing class RecordHealthCheckScopeResultCoordinator {
         internalResult
       );
       internalResult.executionTrace = traces.get(recordId);
+      if (context.omitEvidence == true) {
+        // The caller never receives evidence: do not project or budget it.
+        internalResult.evidence = null;
+      }
       traces.get(recordId)?.begin('DISPLAY_RENDER');
       resultSupport.finalizeDisplay(
         check,

@@ -58,7 +58,7 @@ run the Checks.
 | `getCheckSetShellConfig(checkSetQualifiedApiName)`                                            | Lightweight active Check Set run mode, card text, active Check count, and Run-button presentation used before definitions load |
 | `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)`                              | Display settings and ordered Check definitions for the card                                                                    |
 | `evaluateCheckJson(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)` | JSON transport for one card Check; preserves null cells that Aura omits from nested lists                                      |
-| `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)`     | Typed evaluation used by the JSON adapter and existing Apex callers                                                            |
+| `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)`     | Typed evaluation used by the JSON adapter and existing Apex callers; omits evidence rows                                       |
 | `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)`                 | After a user-initiated run: filters completed card results, calculates the summary, and publishes the Set completion event     |
 
 **Notable behavior:**

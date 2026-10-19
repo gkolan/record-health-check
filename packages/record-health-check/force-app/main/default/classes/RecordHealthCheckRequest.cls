@@ -8,6 +8,7 @@ global class RecordHealthCheckRequest {
   global RecordHealthCheckOptions options { get; private set; }
 
   private List<Id> recordIdsInternal;
+  private Boolean evidenceOmitted = false;
 
   /** Detached record scope supplied by the caller. */
   global List<Id> recordIds {
@@ -103,8 +104,29 @@ global class RecordHealthCheckRequest {
     return copyWith(options.withDiagnosticContractVersion(value));
   }
 
+  /**
+   * Package-internal: returns a copy whose response carries no evidence, so
+   * evidence never spends or reports the optional presentation byte budget.
+   */
+  public RecordHealthCheckRequest withoutEvidence() {
+    RecordHealthCheckRequest copy = copyWith(options);
+    copy.evidenceOmitted = true;
+    return copy;
+  }
+
+  /** Package-internal: whether this request's response omits evidence. */
+  public Boolean omitsEvidence() {
+    return evidenceOmitted;
+  }
+
   private RecordHealthCheckRequest copyWith(RecordHealthCheckOptions value) {
-    return new RecordHealthCheckRequest(selection, recordIdsInternal, value);
+    RecordHealthCheckRequest copy = new RecordHealthCheckRequest(
+      selection,
+      recordIdsInternal,
+      value
+    );
+    copy.evidenceOmitted = evidenceOmitted;
+    return copy;
   }
 
   /** Invalid immutable-request construction. */

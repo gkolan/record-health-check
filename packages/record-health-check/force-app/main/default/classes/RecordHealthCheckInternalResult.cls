@@ -59,10 +59,8 @@ public class RecordHealthCheckInternalResult {
   // comparing against the operand reads evaluationExpected, and the operator
   // travels separately on the evaluation result.
   public String expectedValue;
-  // Server-side display values used while an evaluator result is shaped for
-  // the Lightning response. Named formats use official uppercase API names.
-  public Object actualDisplayValue;
-  public Object expectedDisplayValue;
+  // Resolved display formats for the Lightning response. Named formats use
+  // official uppercase API names.
   public String actualDisplayFormat;
   public String expectedDisplayFormat;
   public String actualCurrencyIsoCode;

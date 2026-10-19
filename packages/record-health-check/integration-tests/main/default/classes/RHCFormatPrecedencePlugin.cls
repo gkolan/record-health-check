@@ -4,8 +4,17 @@ global with sharing class RHCFormatPrecedencePlugin implements RecordHealthCheck
     RecordHealthCheckScope scope
   ) {
     Boolean passing = scope.parameters.get('passing') == true;
+    Boolean unable = scope.parameters.get('unable') == true;
     Map<Id, RecordHealthCheckOutcome> results = new Map<Id, RecordHealthCheckOutcome>();
     for (Id recordId : scope.recordIds) {
+      if (unable) {
+        // No operands: only the display hook names the Found and Expected values.
+        results.put(
+          recordId,
+          RecordHealthCheckOutcome.unableToEvaluate('FORMAT_NO_OPERAND')
+        );
+        continue;
+      }
       RecordHealthCheckValue found = RecordHealthCheckValue.ofNumber(
         Decimal.valueOf('0.75')
       );
@@ -28,15 +37,27 @@ global with sharing class RHCFormatPrecedencePlugin implements RecordHealthCheck
   global Map<Id, RecordHealthCheckDisplayOverride> getDisplay(
     RecordHealthCheckScope scope
   ) {
+    Boolean unable = scope.parameters.get('unable') == true;
     Map<Id, RecordHealthCheckDisplayOverride> results = new Map<Id, RecordHealthCheckDisplayOverride>();
     for (Id recordId : scope.recordIds) {
-      results.put(
-        recordId,
-        new RecordHealthCheckDisplayOverride()
-          .withFoundFormat('NUMBER', null)
-          .withExpectedFormat('NUMBER', null)
-          .withExpectedLabel('Plugin target')
-      );
+      RecordHealthCheckDisplayOverride display = new RecordHealthCheckDisplayOverride()
+        .withFoundFormat('NUMBER', null)
+        .withExpectedFormat('NUMBER', null)
+        .withExpectedLabel('Plugin target');
+      if (unable) {
+        display
+          .withFound(
+            new RecordHealthCheckDisplayText()
+              .text('Source: ')
+              .link('Open record', '/lightning/r/Account/' + recordId + '/view')
+          )
+          .withExpected(
+            new RecordHealthCheckDisplayText()
+              .text('Target: ')
+              .link('Open Accounts', '/lightning/o/Account/home')
+          );
+      }
+      results.put(recordId, display);
     }
     return results;
   }
