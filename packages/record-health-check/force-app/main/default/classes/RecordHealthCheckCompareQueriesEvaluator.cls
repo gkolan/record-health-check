@@ -60,9 +60,16 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
     scopeZeroCountSoql = new Set<String>();
     scopeExecutionActive = true;
     try {
-      cacheScopeRows(check.SourceQuery__c, recordIds, loadedRecords, maxRows);
+      cacheScopeRows(
+        check.SourceQuery__c,
+        check.SourceQueryField__c,
+        recordIds,
+        loadedRecords,
+        maxRows
+      );
       cacheScopeRows(
         check.ComparisonQuery__c,
+        check.ComparisonQueryField__c,
         recordIds,
         loadedRecords,
         maxRows
@@ -84,6 +91,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
 
   private void cacheScopeRows(
     String template,
+    String fieldName,
     List<Id> recordIds,
     Map<Id, SObject> loadedRecords,
     Integer maxRows
@@ -105,7 +113,7 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
           bulkResult.rowsByRecordId.get(recordId)
         );
         if (
-          RecordHealthCheckSoqlTemplate.isSingleCountQuery(template) &&
+          RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(template, fieldName) &&
           bulkResult.rowsByRecordId.get(recordId).isEmpty()
         ) {
           scopeZeroCountSoql.add(boundSoql);

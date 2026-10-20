@@ -27,6 +27,12 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     '(?i)\\bSELECT\\s+COUNT\\s*\\(\\s*(?:Id)?\\s*\\)' +
     '(?:\\s+[A-Za-z_][A-Za-z0-9_]*)?\\s+FROM\\b'
   );
+  private static final Pattern PATTERN_ALIASED_COUNT = Pattern.compile(
+    '(?i)\\bCOUNT(?:_DISTINCT)?\\s*\\([^()]*\\)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?:,|\\bFROM\\b)'
+  );
+  private static final Pattern PATTERN_ONLY_COUNT = Pattern.compile(
+    '(?i)^\\s*SELECT\\s+COUNT(?:_DISTINCT)?\\s*\\([^()]*\\)(?:\\s+[A-Za-z_][A-Za-z0-9_]*)?\\s+FROM\\b'
+  );
   private static final Pattern PATTERN_LIMIT = Pattern.compile(
     '(?i)\\bLIMIT\\s+(\\d+)'
   );
@@ -273,6 +279,37 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     Integer count = 0;
     while (matcher.find()) {
       if (depthAt(selectList, matcher.start()) == 0 && ++count > 1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // No scope group means 0 for COUNT(), COUNT(field) and COUNT_DISTINCT(field);
+  // SUM, AVG, MIN and MAX have no value over no rows.
+  public static Boolean isZeroWhenEmpty(String soql, String fieldName) {
+    if (isSingleCountQuery(soql)) {
+      return true;
+    }
+    if (String.isBlank(soql)) {
+      return false;
+    }
+    String masked = maskStringLiterals(soql);
+    if (firstDepth0Match(masked, PATTERN_GROUP_BY) >= 0) {
+      return false;
+    }
+    // A blank field or expr0 reads the only value of a one-item SELECT.
+    if (
+      String.isBlank(fieldName) || fieldName.trim().equalsIgnoreCase('expr0')
+    ) {
+      return PATTERN_ONLY_COUNT.matcher(masked).find();
+    }
+    Matcher matcher = PATTERN_ALIASED_COUNT.matcher(masked);
+    while (matcher.find()) {
+      if (
+        depthAt(masked, matcher.start()) == 0 &&
+        matcher.group(1).equalsIgnoreCase(fieldName.trim())
+      ) {
         return true;
       }
     }

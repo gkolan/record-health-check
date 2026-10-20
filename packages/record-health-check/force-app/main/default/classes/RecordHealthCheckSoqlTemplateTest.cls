@@ -362,4 +362,87 @@ private class RecordHealthCheckSoqlTemplateTest {
       'A child aggregate must not make the outer record query aggregate.'
     );
   }
+
+  @IsTest
+  static void zeroWhenEmptyOnlyForCountedSelectedField() {
+    String distinctCities = 'SELECT COUNT_DISTINCT(MailingCity) cities FROM Contact WHERE AccountId = {!record.Id}';
+    Assert.isTrue(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(distinctCities, 'cities'),
+      'An aliased COUNT_DISTINCT counts 0 when no rows match.'
+    );
+    Assert.isTrue(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT COUNT(Email) withEmail, MAX(LastName) last FROM Contact',
+        'WITHEMAIL'
+      ),
+      'An aliased COUNT(field) counts 0, matched case-insensitively.'
+    );
+    Assert.isTrue(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT COUNT() FROM Contact',
+        null
+      ),
+      'COUNT() keeps its existing zero meaning without a field.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT COUNT(Email) withEmail, MAX(LastName) last FROM Contact',
+        'last'
+      ),
+      'MAX has no value over no rows, even beside a count.'
+    );
+    Assert.isTrue(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT COUNT_DISTINCT(MailingCity) FROM Contact',
+        null
+      ),
+      'A blank field reads the only value of an unaliased COUNT_DISTINCT.'
+    );
+    Assert.isTrue(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT COUNT(Email) FROM Contact',
+        'expr0'
+      ),
+      'expr0 names the only value of an unaliased COUNT(field).'
+    );
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT COUNT(Email), MAX(LastName) FROM Contact',
+        null
+      ),
+      'A blank field cannot choose among several values.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT SUM(Amount) FROM Opportunity',
+        null
+      ),
+      'An unaliased SUM still has no value over no rows.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT SUM(Amount) total FROM Opportunity',
+        'total'
+      ),
+      'SUM has no value over no rows.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(distinctCities, 'other'),
+      'Only the selected field decides.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT COUNT(Email) n FROM Contact GROUP BY LastName',
+        'n'
+      ),
+      'A grouped query can legitimately return no groups.'
+    );
+    Assert.isFalse(
+      RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(
+        'SELECT SUM(Amount) total FROM Opportunity WHERE Name = \'COUNT(Id) total FROM\'',
+        'total'
+      ),
+      'Text inside a string literal is not a count.'
+    );
+  }
 }

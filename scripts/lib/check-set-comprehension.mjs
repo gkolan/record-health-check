@@ -118,6 +118,7 @@ export const PURPOSES = {
   RHC_Evidence_Bytes_Exact: "coverage",
   RHC_Evidence_Bytes_Truncated: "coverage",
   RHC_Evidence_Bytes_Unknown: "coverage",
+  RHC_Zero_Aggregate: "coverage",
 
   RHC_Negative_Runtime: "diagnostics",
   RHC_No_Active_Checks: "diagnostics",

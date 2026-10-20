@@ -447,3 +447,24 @@ declares EUR for both values: the card must use the Currency format and keep EUR
 user's currency. That pair failed on 2.0.11.3 (Found currency `null`) and is fixed in 2.0.11.4. Package 2.0.11.3 passed its packaged tests, and the subscriber formatting regression passed
 on that exact candidate in LWS and Locker, after both clean installation and upgrade. See the
 release document for the completed runtime evidence.
+
+## Zero aggregate counts
+
+`RHC_Zero_Aggregate` (Account) proves that `COUNT_DISTINCT(field)` and `COUNT(field)` mean 0 when
+no rows match, even though the scope query groups by record and returns no group for that record.
+Every Check sets No Rows Result to Unable to Evaluate, so a regression shows up as Unable to
+Evaluate with `NO_ROWS_RETURNED` instead of a verdict.
+
+| Account data                        | Distinct = count | Emails = Contacts | At least 1 city | Query comparison | SUM control        |
+| ----------------------------------- | ---------------- | ----------------- | --------------- | ---------------- | ------------------ |
+| No Contacts, no open Opportunities  | PASS             | PASS              | FAIL (Found 0)  | PASS             | UNABLE_TO_EVALUATE |
+| Two Contacts in Austin, no Email    | FAIL             | FAIL              | PASS            | FAIL             | UNABLE_TO_EVALUATE |
+| One Contact in Austin with an Email | PASS             | PASS              | PASS            | PASS             | UNABLE_TO_EVALUATE |
+
+The SUM control is deliberate: SUM has no value over no rows, so No Rows Result still governs it.
+Run the Set on one Account of each kind, then run the Set on two of them together from Apex
+(`RecordHealthCheckRequest.forCheckSet` with both Ids); each record must keep its own row. Add a
+Contact with an Email and city to the empty Account and rerun to see the recovery to PASS.
+`RHCZeroAggregateFixtureTest` asserts these outcomes alone, in the Set and in a mixed scope;
+`RecordHealthCheckSoqlTemplateTest.zeroWhenEmptyOnlyForCountedSelectedField` pins which query and
+field shapes count as zero.

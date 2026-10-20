@@ -7,13 +7,13 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `docs/reference/evaluation/bulk-query-grammar.md`.
 
-**294 templates · 6 strategies · 0 unclassified**
+**302 templates · 6 strategies · 0 unclassified**
 
 ## Strategy totals
 
 | Strategy | Templates | How one scope-wide query is built |
 | --- | --- | --- |
-| `CHILD_DIRECT` | 202 | Group child rows by the lookup field that carried the token |
+| `CHILD_DIRECT` | 210 | Group child rows by the lookup field that carried the token |
 | `SELF` | 39 | Query the evaluated records themselves; correlation column is Id |
 | `CHILD_PATH` | 24 | Group child rows by the relationship path that carried the token |
 | `TOKEN_INDIRECT` | 16 | Collect distinct token values across the scope, query them once, map back |
@@ -227,6 +227,14 @@ predicate to issue a single query.
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Compare_Missing` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Diag_Query_Max_Rows` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `RHC_Negative_Row_Cap` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Distinct_Equals_Count` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Distinct_Equals_Count` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Distinct_Threshold` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Emails_Cover_Contacts` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Emails_Cover_Contacts` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Query_Comparison_Count` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Query_Comparison_Count` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
+| `CHILD_DIRECT` | integration-tests | `RHC_Zero_Sum_Has_No_Value` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Release_On_Load_Compare` | `ComparisonQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Release_On_Load_Compare` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |
 | `CHILD_DIRECT` | integration-tests | `Release_On_Load_Query` | `SourceQuery__c` | `AccountId = record.Id` | GROUP BY AccountId |

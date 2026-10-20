@@ -67,13 +67,20 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
         check.ComparisonOperator__c == 'LIST_CONTAINS_ANY' ||
         check.ComparisonOperator__c == 'LIST_CONTAINS_NONE';
       if (!isListOperator) {
-        cacheScopeRows(check.SourceQuery__c, recordIds, loadedRecords, maxRows);
+        cacheScopeRows(
+          check.SourceQuery__c,
+          check.SourceQueryField__c,
+          recordIds,
+          loadedRecords,
+          maxRows
+        );
       }
       if (
         isListOperator || check.ExpectedValueSource__c == 'COMPARISON_QUERY'
       ) {
         cacheScopeRows(
           check.ComparisonQuery__c,
+          check.ComparisonQueryField__c,
           recordIds,
           loadedRecords,
           maxRows
@@ -97,6 +104,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
 
   private void cacheScopeRows(
     String template,
+    String fieldName,
     List<Id> recordIds,
     Map<Id, SObject> loadedRecords,
     Integer maxRows
@@ -118,7 +126,7 @@ public with sharing class RecordHealthCheckSoqlEvaluator {
           bulkResult.rowsByRecordId.get(recordId)
         );
         if (
-          RecordHealthCheckSoqlTemplate.isSingleCountQuery(template) &&
+          RecordHealthCheckSoqlTemplate.isZeroWhenEmpty(template, fieldName) &&
           bulkResult.rowsByRecordId.get(recordId).isEmpty()
         ) {
           scopeZeroCountSoql.add(boundSoql);
