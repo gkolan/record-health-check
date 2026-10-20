@@ -170,7 +170,14 @@ public with sharing class RecordHealthCheckMetadataValidator {
     }
 
     Set<String> hiddenAutomaticSetKeys = new Set<String>();
+    Set<String> runPublishingSetKeys = new Set<String>();
     for (Record_Health_Check_Set__mdt cs : checkSets) {
+      if (cs.PublishUserRunEvent__c == true) {
+        runPublishingSetKeys.add(cs.DeveloperName);
+        if (cs.Id != null) {
+          runPublishingSetKeys.add(String.valueOf(cs.Id));
+        }
+      }
       if (
         cs.CardRunMode__c == 'RUN_ON_LOAD' &&
         (RecordHealthCheckConstants.normalizedRunButtonDisplay(
@@ -235,6 +242,13 @@ public with sharing class RecordHealthCheckMetadataValidator {
         );
       }
       issues.addAll(RHCMetadataDependencyValidator.validate(csName, setChecks));
+      issues.addAll(
+        RecordHealthCheckMetadataSetValidator.publicationBudgetIssues(
+          csName,
+          setChecks,
+          runPublishingSetKeys.contains(csName)
+        )
+      );
     }
 
     return issues;

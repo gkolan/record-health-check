@@ -237,3 +237,8 @@ evidence the card never shows cannot spend the response presentation budget or a
 omitted-presentation warning to administrator detail.
 `RHCCardEvidenceBudgetTest` pins this with an exact 256 KiB evidence fixture: PASS and FAIL cards
 report no omission, while the typed API still receives the trimmed rows and the warning.
+
+The card resolves Prerequisite Checks in the browser and calls a dependent Check only after its
+prerequisite passed, so `evaluateCheck` asks the server to evaluate only the requested Check. Other
+single-Check callers run the prerequisite chain on the server. Without this, every dependent Check
+would repeat its whole chain in its own transaction. `RHCSingleCheckPrerequisiteTest` pins both paths.

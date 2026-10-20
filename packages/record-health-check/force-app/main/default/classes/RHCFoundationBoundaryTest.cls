@@ -321,7 +321,7 @@ private class RHCFoundationBoundaryTest {
   static void missingSelectionIsRejected() {
     Test.startTest();
     try {
-      new RecordHealthCheckScopePlanner().resolveSelection(null);
+      new RecordHealthCheckScopePlanner().resolveSelection(null, true);
       Assert.fail('A missing qualified selection must be rejected.');
     } catch (RecordHealthCheckScopePipeline.ScopePipelineException error) {
       Assert.isTrue(

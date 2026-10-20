@@ -7,6 +7,13 @@ public abstract with sharing class RecordHealthCheckResourcePlan {
     public String reasonCode = 'TRANSACTION_BUDGET_EXCEEDED';
   }
 
+  /** Whether a request failed because the planner rejected its budget before any Check ran. */
+  public static Boolean isBudgetRejection(Exception ex) {
+    return ex instanceof BudgetException ||
+      (ex instanceof RecordHealthCheckScopePipeline.ScopePipelineException &&
+      ex.getMessage()?.startsWith('TRANSACTION_BUDGET_EXCEEDED:') == true);
+  }
+
   /** Returns the conservative FormulaEval calls required by a scope. */
   public static Integer formulaCalls(
     List<Record_Health_Check__mdt> checks,

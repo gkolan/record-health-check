@@ -6,7 +6,6 @@
 import {
   synthesizeResult,
   normalizeResult,
-  toCompletionResult,
   detectDependencyCycles,
   newRunId,
   parseAuraError,
@@ -425,16 +424,12 @@ export class HealthCheckRunner {
       this.host.hasCompletedRunOnce = true;
       this._runInProgress = false;
       if (this._source === "USER_INITIATED") {
+        // The server publishes its own evaluation, so browser results are not sent.
         this.completeRun({
           checkSetQualifiedApiName: this.host.checkSetName,
           runId: this._runId,
           source: this._source,
-          recordId: this.host.recordId,
-          resultsJson: JSON.stringify(
-            Array.from(this._resultBuffer.values()).map((result) =>
-              toCompletionResult(result, this.host.recordId)
-            )
-          )
+          recordId: this.host.recordId
         }).catch((error) => {
           if (token === this._runToken) {
             this.host._handleCompletionFailure?.(error);

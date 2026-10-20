@@ -59,7 +59,8 @@ export class ClientRateLimiter {
 
   constructor(
     private readonly perMinute: number,
-    private readonly now: () => number = Date.now
+    private readonly now: () => number = Date.now,
+    private readonly maxClients = 10_000
   ) {}
 
   /** Returns 0 when the request is admitted, otherwise seconds to wait. */
@@ -67,20 +68,34 @@ export class ClientRateLimiter {
     const now = this.now();
     let window = this.windows.get(clientId);
     if (!window || now - window.start >= WINDOW_MS) {
-      if (this.windows.size >= 10_000) this.evictExpired(now);
+      // Re-insert so the map stays ordered by window start.
+      this.windows.delete(clientId);
+      this.evictExpired(now);
+      const oldest = this.windows.values().next().value;
+      if (oldest && this.windows.size >= this.maxClients) {
+        // Every tracked window is live: memory stays bounded and a new client
+        // waits until the oldest window expires.
+        return secondsUntilReset(oldest.start, now);
+      }
       window = { start: now, count: 0 };
       this.windows.set(clientId, window);
     }
     if (window.count >= this.perMinute) {
-      return Math.max(1, Math.ceil((window.start + WINDOW_MS - now) / 1000));
+      return secondsUntilReset(window.start, now);
     }
     window.count += 1;
     return 0;
   }
 
+  /** Expired windows are at the front because windows are inserted in start order. */
   private evictExpired(now: number): void {
     for (const [clientId, window] of this.windows) {
-      if (now - window.start >= WINDOW_MS) this.windows.delete(clientId);
+      if (now - window.start < WINDOW_MS) return;
+      this.windows.delete(clientId);
     }
   }
+}
+
+function secondsUntilReset(start: number, now: number): number {
+  return Math.max(1, Math.ceil((start + WINDOW_MS - now) / 1000));
 }

@@ -110,13 +110,55 @@ private class RHCSingleCheckPrerequisiteTest {
     }
   }
 
+  /**
+   * The card calls a dependent Check only after its prerequisite passed in the
+   * browser, so the server must not evaluate the prerequisite chain again. With
+   * no Contacts, a re-run chain would return SKIPPED / PREREQUISITE_NOT_MET; the
+   * dependent's own query returns FAIL.
+   */
+  @IsTest
+  static void cardCallEvaluatesOnlyTheRequestedCheck() {
+    Account noContacts = RHCIntegrationTestDataFactory.createAccount(
+      'RHC Prereq Card'
+    );
+    String dependent = RecordHealthCheckTestDataFactory.qualifiedCheckName(
+      DEPENDENT
+    );
+
+    Test.startTest();
+    RecordHealthCheckResultItem item = RecordHealthCheckController.evaluateCheck(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(CHECK_SET),
+      dependent,
+      noContacts.Id,
+      'rhc-card-prerequisite',
+      'USER_INITIATED'
+    );
+    Test.stopTest();
+
+    Assert.areEqual(
+      dependent,
+      item.evaluation.checkQualifiedApiName,
+      'The card receives the Check it asked for.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckStatus.FAIL,
+      item.evaluation.status,
+      'The card enforces prerequisites itself; the server evaluates only the Check.'
+    );
+    Assert.areNotEqual(
+      RecordHealthCheckReasonCodes.PREREQUISITE_NOT_MET,
+      item.evaluation.reasonCode,
+      'The server must not re-run the prerequisite chain for the card.'
+    );
+  }
+
   @IsTest
   static void singleCheckSelectionRunsChainButReportsOnlyTheCheck() {
     String dependent = RecordHealthCheckTestDataFactory.qualifiedCheckName(
       DEPENDENT
     );
     RecordHealthCheckScopePipeline.SelectionContext context = new RecordHealthCheckScopePlanner()
-      .resolveCheck(dependent);
+      .resolveCheck(dependent, true);
 
     Assert.areEqual(
       2,

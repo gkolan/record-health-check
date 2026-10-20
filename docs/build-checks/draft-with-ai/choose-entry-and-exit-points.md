@@ -34,7 +34,7 @@ Check Set, mode, and record scope. It is not ordinary result history and is not 
 | `RecordHealthCheckScheduled` | One Check Set and a fixed record-ID population captured when scheduled; later delegates to Batch | `CronTrigger` schedule ID                                                             | Follow the later Batch job and its configured event or subscriber-owned persistence path. Newly qualifying records are not discovered automatically.            |
 
 Use a Check Set rather than a single Check whenever the complete assessment matters. A single-Check
-Lightning, Flow, or Apex call still runs the selected Check's prerequisite chain first.
+Flow, Agent, MCP, or Apex call still runs the selected Check's prerequisite chain first.
 
 The card, Flow, and Apex paths all apply the effective running user's sharing and object, field, and
 record access. Moving work to Queueable, Batch, or Scheduled Apex does not elevate access. Test with

@@ -9,6 +9,7 @@ global class RecordHealthCheckRequest {
 
   private List<Id> recordIdsInternal;
   private Boolean evidenceOmitted = false;
+  private Boolean prerequisitesEnforcedByCaller = false;
 
   /** Detached record scope supplied by the caller. */
   global List<Id> recordIds {
@@ -119,6 +120,21 @@ global class RecordHealthCheckRequest {
     return evidenceOmitted;
   }
 
+  /**
+   * Package-internal: returns a copy for a caller that has already enforced the
+   * Check's prerequisites, so a single-Check request evaluates only that Check.
+   */
+  public RecordHealthCheckRequest withPrerequisitesEnforcedByCaller() {
+    RecordHealthCheckRequest copy = copyWith(options);
+    copy.prerequisitesEnforcedByCaller = true;
+    return copy;
+  }
+
+  /** Package-internal: whether the caller has already enforced prerequisites. */
+  public Boolean callerEnforcesPrerequisites() {
+    return prerequisitesEnforcedByCaller;
+  }
+
   private RecordHealthCheckRequest copyWith(RecordHealthCheckOptions value) {
     RecordHealthCheckRequest copy = new RecordHealthCheckRequest(
       selection,
@@ -126,6 +142,7 @@ global class RecordHealthCheckRequest {
       value
     );
     copy.evidenceOmitted = evidenceOmitted;
+    copy.prerequisitesEnforcedByCaller = prerequisitesEnforcedByCaller;
     return copy;
   }
 

@@ -57,7 +57,10 @@ Automatic Lightning record-page evaluation does not publish. A receiving-event t
 source, or unknown source also does not publish.
 
 `USER_INITIATED` events contain the outcome of a server evaluation of the Check Set that runs when
-the card's Run or Rerun completes. The browser's own results are not used.
+the card's Run or Rerun completes. The browser's own results are not used. That evaluation runs
+every active Check for the record in one transaction. If it cannot fit, no events are published and
+the miss is logged as `TRANSACTION_BUDGET_EXCEEDED`; metadata validation reports such a Check Set as
+`USER_PUBLICATION_OVER_BUDGET`.
 
 Reason Code can be blank for an ordinary business `FAIL`; it is not required on every event. Source
 values are API contract values written by the framework, not choices an administrator makes on the

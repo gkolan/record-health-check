@@ -143,20 +143,6 @@ export function normalizeResult(result, check) {
   return normalized;
 }
 
-/** Convert the card's flattened view model back to the Apex completion DTO. */
-export function toCompletionResult(result, recordId) {
-  return {
-    evaluation: {
-      recordId: result?.recordId || recordId,
-      checkQualifiedApiName:
-        result?.checkQualifiedApiName || result?.checkDeveloperName,
-      status: result?.status,
-      severity: result?.severity,
-      reasonCode: result?.reasonCode
-    }
-  };
-}
-
 /** Developer names that participate in a RequiresCheck dependency cycle. */
 export function detectDependencyCycles(checks) {
   const depMap = new Map();

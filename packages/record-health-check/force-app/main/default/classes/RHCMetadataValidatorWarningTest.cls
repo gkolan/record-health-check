@@ -180,4 +180,99 @@ private class RHCMetadataValidatorWarningTest {
       'A hidden automatic heading must warn when it removes an enabled Check publication path.'
     );
   }
+
+  /**
+   * Card Run/Rerun publication re-evaluates the whole Check Set for one record
+   * in one transaction. Each Formula Check below plans 1 + 8 + 8 = 17
+   * FormulaEval calls (condition plus two Automatic display formulas): six
+   * plan 102, above the 95-call budget, and five plan 85.
+   */
+  @IsTest
+  static void warnsWhenCardPublicationCannotFitOneTransaction() {
+    Assert.areEqual(
+      new List<String>{ 'PublishUserRunEvent__c' },
+      publicationBudgetWarnings(6, true, false),
+      'Six such Checks cannot fit the completion evaluation of a publishing Check Set.'
+    );
+    Assert.areEqual(
+      new List<String>{ 'PublishUserResultEvent__c' },
+      publicationBudgetWarnings(6, false, true),
+      'Check-level publication triggers the same whole-Set evaluation.'
+    );
+    Assert.areEqual(
+      new List<String>(),
+      publicationBudgetWarnings(5, true, true),
+      'Five active Checks fit; the inactive sixth is never evaluated.'
+    );
+    Assert.areEqual(
+      new List<String>(),
+      publicationBudgetWarnings(6, false, false),
+      'Without card publication there is no completion evaluation to warn about.'
+    );
+  }
+
+  /** Fields named by budget warnings for a Set of heavy Formula Checks plus one inactive one. */
+  private static List<String> publicationBudgetWarnings(
+    Integer activeChecks,
+    Boolean setPublishes,
+    Boolean checksPublish
+  ) {
+    Id setId = Id.valueOf('m00' + '000000000011');
+    Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+      new Map<String, Object>{
+        'DeveloperName' => String.valueOf(setId),
+        'ObjectApiName__c' => 'Account',
+        'CardTitle__c' => 'Publication budget',
+        'CardRunMode__c' => 'RUN_ON_REQUEST',
+        'CardRevealMode__c' => 'ALL_AT_ONCE',
+        'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+        'PublishUserRunEvent__c' => setPublishes
+      }
+    );
+    List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
+    for (Integer index = 0; index <= activeChecks; index++) {
+      checks.add(
+        RecordHealthCheckTestDataFactory.check(
+          new Map<String, Object>{
+            'DeveloperName' => 'Publication_Budget_' + index,
+            'MasterLabel' => 'Publication Budget ' + index,
+            'CheckTitle__c' => 'Publication Budget ' + index,
+            'IsActive__c' => index < activeChecks,
+            'EvaluationType__c' => 'FORMULA',
+            'FailureSeverity__c' => 'WARNING',
+            'PassConditionFormula__c' => 'TRUE',
+            'DisplayFoundFormula__c' => 'Name',
+            'DisplayExpectedFormula__c' => 'Name',
+            'FailureMessage__c' => 'Formula failure',
+            'UnableToEvaluateMessage__c' => 'Cannot evaluate Formula Check.',
+            'EvaluationOrder__c' => index + 1,
+            'ApplicabilityMode__c' => 'ALL_RECORDS',
+            'NoRowsResult__c' => 'FAIL',
+            'EmptyValueHandling__c' => 'SKIP_RECORD',
+            'PublishUserResultEvent__c' => checksPublish,
+            'Record_Health_Check_Set__c' => setId
+          }
+        )
+      );
+    }
+    List<String> warnedFields = new List<String>();
+    for (
+      RecordHealthCheckMetadataValidator.ValidationIssue issue : new RecordHealthCheckMetadataValidator()
+        .validateRecords(
+          new List<Record_Health_Check_Set__mdt>{ checkSet },
+          checks
+        )
+    ) {
+      if (issue.reasonCode == 'USER_PUBLICATION_OVER_BUDGET') {
+        Assert.areEqual(
+          'WARNING',
+          issue.severity,
+          'The card still runs; only publication is affected.'
+        );
+        warnedFields.add(issue.fieldName);
+      }
+    }
+    return warnedFields;
+  }
 }

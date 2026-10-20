@@ -12,6 +12,12 @@ private class RecordHealthCheckControllerTest {
     ) {
       return new Set<String>();
     }
+
+    public override Boolean isErrorEventPublicationEnabled(
+      String checkSetQualifiedApiName
+    ) {
+      return true;
+    }
   }
 
   static {
@@ -206,6 +212,47 @@ private class RecordHealthCheckControllerTest {
     Assert.isNull(
       response,
       'Completion must not publish events about a record the user cannot read.'
+    );
+  }
+
+  // When the whole-Set completion plan cannot fit one transaction, nothing is
+  // published, the miss is logged by its own code, and the card sees no failure.
+  @IsTest
+  static void completionPublishesNothingWhenTheCheckSetCannotFitOneTransaction() {
+    RecordHealthCheckLifecyclePublisher.settingsProvider = new InteractivePublicationSettingsProvider();
+    RecordHealthCheckLogger.settingsProvider = new InteractivePublicationSettingsProvider();
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'Example_Account_Relationship_Risk'
+    );
+    // The Check Set has an active Formula Check and no FormulaEval calls remain.
+    RecordHealthCheckFormulaEvaluator.formulaEvalCallCount = RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET;
+
+    Test.startTest();
+    RecordHealthCheckResponse response = RecordHealthCheckController.completionResponse(
+      checkSetName,
+      'over-budget',
+      accountRecord.Id
+    );
+    List<Record_Health_Check_Log__e> logged = RecordHealthCheckLogger.pendingEventsForTest()
+      .clone();
+    RecordHealthCheckController.completeRun(
+      checkSetName,
+      'over-budget',
+      RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED,
+      accountRecord.Id,
+      null
+    );
+    Test.stopTest();
+
+    Assert.isNull(
+      response,
+      'Without a server evaluation that fits, completion publishes nothing.'
+    );
+    Assert.areEqual(
+      'TRANSACTION_BUDGET_EXCEEDED',
+      logged.size() == 1 ? logged[0].Code__c : null,
+      'One log names the budget miss, not a generic completion failure.'
     );
   }
 

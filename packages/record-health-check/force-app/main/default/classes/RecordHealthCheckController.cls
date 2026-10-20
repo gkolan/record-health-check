@@ -264,7 +264,10 @@ public with sharing class RecordHealthCheckController {
         )
         .withRunId(runId)
         // The card has no evidence viewer; evidence must not spend its budget.
-        .withoutEvidence();
+        .withoutEvidence()
+        // The card calls a Check only after its prerequisites passed in the
+        // browser, so the server must not evaluate the chain again.
+        .withPrerequisitesEnforcedByCaller();
       RecordHealthCheckResponse response = RecordHealthCheck.evaluate(request);
       return response.results[0];
     } catch (RecordHealthCheckPluginDispatch.SideEffectException ex) {
@@ -367,20 +370,44 @@ public with sharing class RecordHealthCheckController {
     }
   }
 
-  /** Server outcome to publish, or null when the user cannot read the record. */
+  /**
+   * Server outcome to publish, or null when the user cannot read the record or
+   * the whole Check Set cannot be evaluated in one transaction.
+   */
   @TestVisible
   private static RecordHealthCheckResponse completionResponse(
     String checkSetQualifiedApiName,
     String runId,
     Id recordId
   ) {
-    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
-      RecordHealthCheckRequest.forCheckSet(checkSetQualifiedApiName, recordId)
-        .withExecutionOrigin(RecordHealthCheckExecutionOrigin.USER_INITIATED)
-        .withEventPublication(RecordHealthCheckEventPublication.NONE)
-        .withRunId(runId)
-        .withoutEvidence()
-    );
+    RecordHealthCheckResponse response;
+    try {
+      response = RecordHealthCheck.evaluate(
+        RecordHealthCheckRequest.forCheckSet(checkSetQualifiedApiName, recordId)
+          .withExecutionOrigin(RecordHealthCheckExecutionOrigin.USER_INITIATED)
+          .withEventPublication(RecordHealthCheckEventPublication.NONE)
+          .withRunId(runId)
+          .withoutEvidence()
+      );
+    } catch (Exception ex) {
+      if (!RecordHealthCheckResourcePlan.isBudgetRejection(ex)) {
+        throw ex;
+      }
+      // The budget plan rejects the Check Set before any Check runs. The card ran
+      // each Check in its own transaction, but only a server evaluation may be
+      // published, so nothing is. Metadata validation warns about this setup.
+      RecordHealthCheckLogger.log(
+        RecordHealthCheckLogger.Level.ERROR,
+        runId,
+        checkSetQualifiedApiName,
+        recordId,
+        null,
+        'TRANSACTION_BUDGET_EXCEEDED',
+        null,
+        ex
+      );
+      return null;
+    }
     for (RecordHealthCheckResultItem item : response.results) {
       // Events must not describe records the user cannot see.
       if (item?.evaluation?.reasonCode == 'RECORD_NOT_VISIBLE') {

@@ -19,11 +19,11 @@
     "sourceSnapshotSha256": null
   },
   "lwc": {
-    "verifiedAt": "2026-10-06",
-    "testCount": 406,
+    "verifiedAt": "2026-10-20",
+    "testCount": 415,
     "linesPercent": 98.93,
     "statementsPercent": 98.95,
-    "functionsPercent": 99.15,
-    "branchesPercent": 93.86
+    "functionsPercent": 99.14,
+    "branchesPercent": 93.84
   }
 }

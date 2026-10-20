@@ -13,7 +13,10 @@ public with sharing class RecordHealthCheckScopePipeline {
    */
   public RecordHealthCheckResponse evaluate(RecordHealthCheckRequest request) {
     List<Id> recordIds = prepare(request);
-    SelectionContext context = scopePlanner.resolveSelection(request.selection);
+    SelectionContext context = scopePlanner.resolveSelection(
+      request.selection,
+      !request.callerEnforcesPrerequisites()
+    );
     return evaluatePrepared(request, recordIds, context);
   }
   /** Evaluates an already authorized detached definition context. */

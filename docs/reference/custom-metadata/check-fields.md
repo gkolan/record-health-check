@@ -727,9 +727,10 @@ Any prerequisite result other than `PASS` makes this Check `SKIPPED`. A missing,
 misspelled prerequisite is also skipped with the Check Set dependency result; run Check Set
 validation to find the configuration error.
 
-The same rule applies to a single-Check request. Lightning, Flow **Run Record Health Check**,
-Agent, MCP, and Apex `RecordHealthCheckRequest.forCheck(...)` calls run the selected Check's active
-prerequisite chain first and report only the selected Check.
+The same rule applies to a single-Check request. Flow **Run Record Health Check**, Agent, MCP,
+and Apex `RecordHealthCheckRequest.forCheck(...)` calls run the selected Check's active prerequisite
+chain first and report only the selected Check. The record-page card always runs its whole Check
+Set and evaluates a dependent Check only after its prerequisite passed.
 Example: `Account_Phone_Is_Present`.
 
 ## 10. Custom Apex (`APEX`)

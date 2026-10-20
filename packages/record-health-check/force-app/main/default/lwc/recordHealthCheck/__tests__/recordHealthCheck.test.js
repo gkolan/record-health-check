@@ -26,8 +26,7 @@ import {
   normalizeResult,
   parseAuraError,
   prerequisiteIdentity,
-  synthesizeResult,
-  toCompletionResult
+  synthesizeResult
 } from "../healthCheckModel";
 import {
   buildInactiveCheckStat,
@@ -1506,10 +1505,6 @@ describe("c-record-health-check — load and error states", () => {
       evaluateCheck.mock.calls.map(([request]) => request.checkQualifiedApiName)
     ).toEqual(["package__Shared_Check", "Shared_Check"]);
     expect(element.shadowRoot.querySelectorAll("li.rhc-row")).toHaveLength(2);
-    const completed = JSON.parse(completeRun.mock.calls[0][0].resultsJson);
-    expect(
-      completed.map((item) => item.evaluation.checkQualifiedApiName)
-    ).toEqual(["package__Shared_Check", "Shared_Check"]);
   });
 
   it("shows a load error when a definition is missing its developerName", async () => {
@@ -1926,8 +1921,6 @@ describe("c-record-health-check — run orchestration", () => {
     const row = element.shadowRoot.querySelector("li[aria-label]");
     expect(row.textContent).toContain("don't have access");
     expect(row.textContent).not.toContain("Please try again");
-    const completed = JSON.parse(completeRun.mock.calls[0][0].resultsJson);
-    expect(completed[0].evaluation.reasonCode).toBe("NOT_AUTHORIZED");
   });
 
   afterEach(() => {
@@ -1953,12 +1946,9 @@ describe("c-record-health-check — run orchestration", () => {
     expect(completeRun).toHaveBeenCalledWith(
       expect.objectContaining({ source: "USER_INITIATED" })
     );
-    expect(completeRun.mock.calls[0][0]).toEqual(
-      expect.objectContaining({ resultsJson: expect.any(String) })
-    );
   });
 
-  it("sends completion results in the nested Apex result-item contract", async () => {
+  it("sends no browser results to completion, which publishes a server evaluation", async () => {
     getCheckDefinitions.mockResolvedValue(makeDefinitions());
     evaluateCheck.mockImplementation(({ checkQualifiedApiName }) =>
       Promise.resolve(NESTED_PASS_RESULT(checkQualifiedApiName))
@@ -1967,21 +1957,16 @@ describe("c-record-health-check — run orchestration", () => {
 
     await clickRun(element);
 
-    const completed = JSON.parse(completeRun.mock.calls[0][0].resultsJson);
-    expect(completed).toHaveLength(2);
-    expect(completed[0]).toEqual(
-      expect.objectContaining({
-        evaluation: expect.objectContaining({
-          checkQualifiedApiName: "Check_A",
-          recordId: "001000000000001AAA",
-          status: "PASS"
-        })
-      })
-    );
-    expect(completed[1].evaluation.checkQualifiedApiName).toBe("Check_B");
+    expect(completeRun).toHaveBeenCalledTimes(1);
+    expect(completeRun.mock.calls[0][0]).toEqual({
+      checkSetQualifiedApiName: "Account_Data_Quality",
+      runId: expect.any(String),
+      source: "USER_INITIATED",
+      recordId: "001000000000001AAA"
+    });
   });
 
-  it("keeps qualified names for synthesized completion results", () => {
+  it("keeps qualified names for synthesized results", () => {
     const check = {
       developerName: "Check_A",
       qualifiedApiName: "rhc__Check_A",
@@ -1989,17 +1974,14 @@ describe("c-record-health-check — run orchestration", () => {
       priority: 10
     };
 
-    const completed = toCompletionResult(
-      synthesizeResult(
-        check,
-        "ERROR",
-        "CLIENT_CALL_FAILED",
-        "The request failed."
-      ),
-      "001000000000001AAA"
+    const synthesized = synthesizeResult(
+      check,
+      "ERROR",
+      "CLIENT_CALL_FAILED",
+      "The request failed."
     );
 
-    expect(completed.evaluation.checkQualifiedApiName).toBe("rhc__Check_A");
+    expect(synthesized.checkQualifiedApiName).toBe("rhc__Check_A");
   });
 
   it("maps the nested Apex expected-value label", () => {

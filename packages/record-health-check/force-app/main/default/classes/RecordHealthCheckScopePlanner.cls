@@ -3,7 +3,8 @@ public with sharing class RecordHealthCheckScopePlanner {
   private static final Integer FORMULA_CALL_BUDGET = RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET;
 
   public RecordHealthCheckScopePipeline.SelectionContext resolveSelection(
-    RecordHealthCheckSelection selection
+    RecordHealthCheckSelection selection,
+    Boolean includePrerequisites
   ) {
     if (selection == null) {
       throw new RecordHealthCheckScopePipeline.ScopePipelineException(
@@ -11,13 +12,17 @@ public with sharing class RecordHealthCheckScopePlanner {
       );
     }
     if (String.isNotBlank(selection.checkQualifiedApiName)) {
-      return resolveCheck(selection.checkQualifiedApiName);
+      return resolveCheck(
+        selection.checkQualifiedApiName,
+        includePrerequisites
+      );
     }
     return resolveCheckSet(selection.checkSetQualifiedApiName);
   }
 
   public RecordHealthCheckScopePipeline.SelectionContext resolveCheck(
-    String qualifiedApiName
+    String qualifiedApiName,
+    Boolean includePrerequisites
   ) {
     List<Record_Health_Check__mdt> checks = queryChecks(
       'QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
@@ -33,7 +38,10 @@ public with sharing class RecordHealthCheckScopePlanner {
     );
     context.fullCheckSetSelection = false;
     context.checks.add(checks[0]);
-    if (String.isNotBlank(checks[0].PrerequisiteCheck__c)) {
+    if (
+      includePrerequisites == true &&
+      String.isNotBlank(checks[0].PrerequisiteCheck__c)
+    ) {
       addPrerequisiteChain(context, checks[0]);
     }
     return context;

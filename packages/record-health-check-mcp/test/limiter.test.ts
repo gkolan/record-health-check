@@ -73,4 +73,21 @@ describe("client rate limiter", () => {
     now += 500;
     expect(limiter.admit("a")).toBe(0);
   });
+
+  it("tracks a bounded number of clients and admits new ones as windows expire", () => {
+    let now = 1_000_000;
+    const limiter = new ClientRateLimiter(5, () => now, 2);
+    const tracked = () =>
+      (limiter as unknown as { windows: Map<string, unknown> }).windows.size;
+    expect(limiter.admit("a")).toBe(0);
+    now += 10_000;
+    expect(limiter.admit("b")).toBe(0);
+    // Both windows are live, so a third client waits for the oldest to expire.
+    expect(limiter.admit("c")).toBe(50);
+    expect(tracked()).toBe(2);
+    expect(limiter.admit("a")).toBe(0);
+    now += 50_000;
+    expect(limiter.admit("c")).toBe(0);
+    expect(tracked()).toBe(2);
+  });
 });

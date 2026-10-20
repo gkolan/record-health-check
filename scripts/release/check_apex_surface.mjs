@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import { auraEnabledStaticMethods } from "../lib/apex-aura-surface.mjs";
+
 const classRoot = "packages/record-health-check/force-app/main/default/classes";
 // Measured no-growth ceilings, set to the current worst method so the gate
 // actually bites. Existing hotspots are recorded in the Step 10 review;
@@ -57,6 +59,7 @@ for (const file of fs
   const relative = path.join(classRoot, file);
   const source = fs.readFileSync(relative, "utf8");
   const lines = source.split(/\r?\n/);
+  const classAuraMethods = auraEnabledStaticMethods(source);
 
   if (/\bwithout sharing\b/.test(source)) {
     failures.push(
@@ -65,7 +68,7 @@ for (const file of fs
   }
   if (
     className === "RecordHealthCheck" ||
-    /@AuraEnabled(?:\([^)]*\))?\s+(?:global|public)\s+static\b/s.test(source) ||
+    classAuraMethods.length > 0 ||
     source.includes("@InvocableMethod") ||
     source.includes("@RestResource") ||
     /implements\s+(?:Queueable|Database\.Batchable|Schedulable)\b/.test(
@@ -94,9 +97,7 @@ for (const file of fs
     );
   }
   approvedSystemModeUses += systemModeDmlUses + systemModeQueryUses;
-  for (const [, method] of source.matchAll(
-    /@AuraEnabled(?:\([^)]*\))?\s+(?:global|public)\s+static\s+[\w<>,.\s]+?\s+(\w+)\s*\(/g
-  )) {
+  for (const method of classAuraMethods) {
     auraMethods.push(`${className}.${method}`);
   }
 

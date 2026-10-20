@@ -27,6 +27,52 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
     return issues;
   }
 
+  /**
+   * Card Run/Rerun publication evaluates the whole Check Set again for one
+   * record in one transaction, so warn when that plan cannot fit.
+   */
+  public static List<RecordHealthCheckMetadataValidator.ValidationIssue> publicationBudgetIssues(
+    String csName,
+    List<Record_Health_Check__mdt> setChecks,
+    Boolean setPublishes
+  ) {
+    // Mirrors completeRun: any Check flagged for publication triggers the
+    // evaluation, which plans only the active Checks.
+    List<Record_Health_Check__mdt> activeChecks = new List<Record_Health_Check__mdt>();
+    Boolean checksPublish = false;
+    for (Record_Health_Check__mdt check : setChecks) {
+      checksPublish = checksPublish || check.PublishUserResultEvent__c == true;
+      if (check.IsActive__c == true) {
+        activeChecks.add(check);
+      }
+    }
+    Integer plannedCalls = RecordHealthCheckResourcePlan.formulaCalls(
+      activeChecks,
+      1
+    );
+    if (
+      !(setPublishes || checksPublish) ||
+      plannedCalls <= RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET
+    ) {
+      return new List<RecordHealthCheckMetadataValidator.ValidationIssue>();
+    }
+    return new List<RecordHealthCheckMetadataValidator.ValidationIssue>{
+      new RecordHealthCheckMetadataValidator.ValidationIssue(
+        'WARNING',
+        csName,
+        setPublishes ? 'PublishUserRunEvent__c' : 'PublishUserResultEvent__c',
+        'Card Run and Rerun publish events from one server evaluation of the whole Check Set. ' +
+          'For one record it plans ' +
+          plannedCalls +
+          ' FormulaEval calls, above the ' +
+          RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET +
+          '-call budget, so the card shows results but publishes no events. ' +
+          'Remove Formula Checks or display formulas, or split the Check Set.',
+        'USER_PUBLICATION_OVER_BUDGET'
+      )
+    };
+  }
+
   private static void validateIdentityAndTitle(
     Record_Health_Check_Set__mdt cs,
     List<RecordHealthCheckMetadataValidator.ValidationIssue> issues
