@@ -24,9 +24,11 @@ public with sharing class RecordHealthCheckQueryEvaluatorSupport {
       );
     }
 
+    // Access comes from the API, not from the clause the template parser inserted.
+    queryToRun = RecordHealthCheckSoqlTemplate.removeOuterUserMode(queryToRun);
     List<SObject> rows;
     try {
-      rows = Database.query(queryToRun);
+      rows = Database.query(queryToRun, AccessLevel.USER_MODE);
     } catch (System.QueryException ex) {
       throw new RecordHealthCheckEvaluatorException(
         RecordHealthCheckValueResolver.classifyQueryException(ex),

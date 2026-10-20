@@ -84,7 +84,9 @@ public with sharing class RecordHealthCheckScopePipeline {
     context.omitEvidence = request.omitsEvidence();
     response.recordIds.addAll(recordIds);
     for (Record_Health_Check__mdt check : context.checks) {
-      response.checkQualifiedApiNames.add(check.QualifiedApiName);
+      if (context.reports(check)) {
+        response.checkQualifiedApiNames.add(check.QualifiedApiName);
+      }
     }
     if (recordIds.isEmpty() || context.checks.isEmpty()) {
       RecordHealthCheckDiagnosticRuntime.attach(
@@ -517,6 +519,13 @@ public with sharing class RecordHealthCheckScopePipeline {
     public RecordHealthCheckResultMode resultMode;
     public Map<Id, RecordHealthCheckExecutionTrace> activeExecutionTraces;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
+    /** Null reports every Check; a single-Check request reports only that Check. */
+    public Set<String> reportedCheckNames;
+
+    public Boolean reports(Record_Health_Check__mdt check) {
+      return reportedCheckNames == null ||
+        reportedCheckNames.contains(check.QualifiedApiName);
+    }
   }
 
   public class ScopePipelineException extends Exception {

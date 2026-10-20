@@ -23,6 +23,7 @@ const failures = [];
 let globalMembers = 0;
 let methods = 0;
 let approvedSystemModeUses = 0;
+const auraMethods = [];
 
 function hasAdjacentApexDoc(lines, declarationIndex) {
   let previous = declarationIndex - 1;
@@ -93,6 +94,34 @@ for (const file of fs
     );
   }
   approvedSystemModeUses += systemModeDmlUses + systemModeQueryUses;
+  for (const [, method] of source.matchAll(
+    /@AuraEnabled(?:\([^)]*\))?\s+(?:global|public)\s+static\s+[\w<>,.\s]+?\s+(\w+)\s*\(/g
+  )) {
+    auraMethods.push(`${className}.${method}`);
+  }
+
+  // Admin-written SOQL must not depend on parsed query text for its access mode.
+  let queriesWithoutAccessLevel = 0;
+  for (const call of source.matchAll(
+    /\bDatabase\.(?:query|queryWithBinds|countQuery|countQueryWithBinds)\s*\(/g
+  )) {
+    let end = call.index + call[0].length;
+    for (let open = 1; end < source.length && open > 0; end++) {
+      if (source[end] === "(") open++;
+      if (source[end] === ")") open--;
+    }
+    if (!/\bAccessLevel\.\w+_MODE\b/.test(source.slice(call.index, end))) {
+      queriesWithoutAccessLevel++;
+    }
+  }
+  // The record loader builds its own SELECT with a literal WITH USER_MODE.
+  const reviewedQueriesWithoutAccessLevel =
+    { "RecordHealthCheckScopeRecordLoader.cls": 1 }[file] ?? 0;
+  if (queriesWithoutAccessLevel !== reviewedQueriesWithoutAccessLevel) {
+    failures.push(
+      `${relative}: expected ${reviewedQueriesWithoutAccessLevel} dynamic queries without an explicit AccessLevel; found ${queriesWithoutAccessLevel}. Pass AccessLevel.USER_MODE.`
+    );
+  }
 
   for (let index = 0; index < lines.length; index++) {
     if (!/^\s*global\s/.test(lines[index])) continue;
@@ -212,6 +241,26 @@ for (const file of fs
       );
     start = end;
   }
+}
+
+// A browser-callable method no packaged component imports is attack surface with no user.
+const lwcRoot = "packages/record-health-check/force-app/main/default/lwc";
+const lwcSource = fs
+  .readdirSync(lwcRoot)
+  .flatMap((bundle) =>
+    fs
+      .readdirSync(path.join(lwcRoot, bundle))
+      .filter((name) => name.endsWith(".js"))
+      .map((name) => fs.readFileSync(path.join(lwcRoot, bundle, name), "utf8"))
+  )
+  .join("\n");
+const unusedAuraMethods = auraMethods.filter(
+  (method) => !lwcSource.includes(`"@salesforce/apex/${method}"`)
+);
+if (unusedAuraMethods.length > 0) {
+  failures.push(
+    `@AuraEnabled methods no packaged component imports: ${unusedAuraMethods.join(", ")}. Remove @AuraEnabled.`
+  );
 }
 
 if (approvedSystemModeUses !== 5) {

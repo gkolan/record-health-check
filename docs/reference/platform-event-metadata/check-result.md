@@ -56,9 +56,8 @@ the event only after the transaction completes successfully.
 Automatic Lightning record-page evaluation does not publish. A receiving-event transaction, blank
 source, or unknown source also does not publish.
 
-`USER_INITIATED` events contain the outcomes returned by the progressive Lightning browser run.
-They are client-attested advisory notifications: the completion endpoint filters Check identity but
-does not re-evaluate the submitted status.
+`USER_INITIATED` events contain the outcome of a server evaluation of the Check Set that runs when
+the card's Run or Rerun completes. The browser's own results are not used.
 
 Reason Code can be blank for an ordinary business `FAIL`; it is not required on every event. Source
 values are API contract values written by the framework, not choices an administrator makes on the
@@ -68,10 +67,11 @@ Assign receiver event access and destination permissions through an approved Per
 prove Publish After Commit, publish from a sandbox Flow transaction that deliberately rolls back
 and confirm no event-driven destination record appears.
 
-Events are filtered to the requested record and the Checks in the resolved Check Set. Publication
-does not run those Checks again. Treat events as advisory monitoring data. Automation that makes a
-security-sensitive or business-critical change must run the Check again through Apex or Flow before
-acting. Other supported sources publish directly from their Apex evaluations.
+Events cover the requested record and the Checks in the resolved Check Set, and none are
+published for a record the user cannot read. Data can change after the event is published, so
+automation that makes a security-sensitive or business-critical change should still run the Check
+through Apex or Flow at the moment it acts. Other supported sources publish directly from their
+Apex evaluations.
 
 ## Event definition
 

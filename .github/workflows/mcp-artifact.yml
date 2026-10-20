@@ -21,9 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Build immutable test image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: packages/record-health-check-mcp
           load: true
@@ -48,7 +48,7 @@ jobs:
           docker run --rm "$IMAGE" -e 'try { process.dlopen({}, "/missing.node"); process.exit(1); } catch (error) { if (error.code !== "ERR_DLOPEN_DISABLED") throw error; }'
       - name: Scan container for high-severity vulnerabilities
         id: container-scan
-        uses: anchore/scan-action@v7
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: record-health-check-mcp:${{ github.sha }}
           config: packages/record-health-check-mcp/grype.yaml
@@ -65,7 +65,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           image: record-health-check-mcp:${{ github.sha }}
           format: spdx-json

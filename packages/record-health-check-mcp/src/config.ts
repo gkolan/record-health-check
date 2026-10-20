@@ -45,6 +45,12 @@ const environmentShape = {
     .max(1048576)
     .default(65536),
   SALESFORCE_MAX_RETRIES: z.coerce.number().int().min(0).max(2).default(1),
+  MCP_CLIENT_REQUESTS_PER_MINUTE: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(10000)
+    .default(120),
   MAX_CONCURRENT_SALESFORCE_CALLS: z.coerce
     .number()
     .int()
@@ -155,6 +161,7 @@ export type ServiceConfig = {
   authAudience?: string;
   authJwksUrl?: URL;
   requiredScope: string;
+  clientRequestsPerMinute: number;
   salesforce: {
     loginUrl: URL;
     clientId: string;
@@ -197,6 +204,7 @@ export function loadConfig(
       ? { authJwksUrl: new URL(parsed.MCP_AUTH_JWKS_URL) }
       : {}),
     requiredScope: parsed.MCP_AUTH_REQUIRED_SCOPE,
+    clientRequestsPerMinute: parsed.MCP_CLIENT_REQUESTS_PER_MINUTE,
     salesforce: {
       loginUrl: new URL(parsed.SALESFORCE_LOGIN_URL),
       clientId: parsed.SALESFORCE_CLIENT_ID,

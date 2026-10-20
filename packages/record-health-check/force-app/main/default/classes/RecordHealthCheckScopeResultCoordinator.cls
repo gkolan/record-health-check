@@ -114,6 +114,9 @@ public with sharing class RecordHealthCheckScopeResultCoordinator {
     List<RecordHealthCheckResultItem> allItems = new List<RecordHealthCheckResultItem>();
     for (Id recordId : recordIds) {
       for (Record_Health_Check__mdt check : context.checks) {
+        if (!context.reports(check)) {
+          continue;
+        }
         RecordHealthCheckResultItem item = itemsByIdentity.get(
           RecordHealthCheckScopeRuntime.itemKey(
             recordId,

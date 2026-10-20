@@ -21,12 +21,12 @@ private class RecordHealthCheckSoqlBoundaryTest {
 
   @IsTest
   static void conjunctiveEqualityRejectsInvalidArguments() {
-    Assert.isFalse(
-      RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(null, 'Id'),
+    Assert.isNull(
+      RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(null, 'Id'),
       'A missing query cannot require an equality.'
     );
-    Assert.isFalse(
-      RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(
+    Assert.isNull(
+      RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
         'SELECT Id FROM Account',
         'Name OR Id'
       ),
@@ -36,8 +36,9 @@ private class RecordHealthCheckSoqlBoundaryTest {
 
   @IsTest
   static void conjunctiveEqualityStopsBeforeOrderBy() {
-    Assert.isTrue(
-      RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(
+    Assert.areEqual(
+      'USD',
+      RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
         'SELECT Id FROM Account WHERE CurrencyIsoCode = \'USD\' ORDER BY Name',
         'CurrencyIsoCode'
       ),
@@ -47,8 +48,9 @@ private class RecordHealthCheckSoqlBoundaryTest {
 
   @IsTest
   static void conjunctiveEqualityStopsBeforeWithClause() {
-    Assert.isTrue(
-      RecordHealthCheckSoqlTemplate.hasConjunctiveEqualityFilter(
+    Assert.areEqual(
+      'USD',
+      RecordHealthCheckSoqlTemplate.equalityLiteralRequiredByWhere(
         'SELECT Id FROM Account WHERE CurrencyIsoCode = \'USD\' WITH USER_MODE',
         'CurrencyIsoCode'
       ),

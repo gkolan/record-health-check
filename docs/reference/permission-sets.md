@@ -3,14 +3,14 @@
 Use this reference to choose the least-privilege Record Health Check Permission Set for a person,
 automation principal, or integration user.
 
-This reference describes six Permission Sets. Diagnostics requires a direct, active assignment of
+This reference describes seven Permission Sets. Diagnostics requires a direct, active assignment of
 the packaged Admin or Diagnostics Viewer set. Run is the only packaged Custom Permission. Cloned
 sets and group-only assignments do not confer diagnostics access. See
 [version availability](../install/choose-a-package-version.md#documentation-and-installed-version).
 
 Four authorize a specific way to run health
-checks. Two are additive: one grants diagnostic viewing and one grants restricted error-log event
-publication. These Permission Sets grant package access; they do not grant access to Account,
+checks. Three are additive: one grants diagnostic viewing, one grants restricted error-log event
+publication, and one grants read-only access to Preview readiness receipts. These Permission Sets grant package access; they do not grant access to Account,
 Opportunity, Case, or any other business object or field used by a Check.
 
 ## Choose an installed Permission Set
@@ -23,6 +23,7 @@ Opportunity, Case, or any other business object or field used by a Check.
 | Call the versioned REST adapter from a dedicated MCP integration            | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`)         | It grants only the REST adapter and the package metadata access that adapter needs.                                                                        |
 | Let an existing runner view diagnostics without granting Admin              | **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`)   | Its explicit assignment authorizes diagnostics. Assign it directly and temporarily alongside Card User or User.                                            |
 | Publish restricted error-log events                                         | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | It grants Create and Read access only to the restricted Log Platform Event. Assign it in addition to the appropriate runner access.                        |
+| Review which draft Checks were verified in Preview                          | **Record Health Check Readiness Auditor** (`rhc__Record_Health_Check_Readiness_Auditor`)     | It grants read-only access to readiness receipts. It cannot run Checks, use Preview, or delete receipts.                                                   |
 
 Do not assign **Record Health Check Admin** merely to make a card, Flow, Apex class, or integration
 run. Choose the runner Permission Set for that entry point and add organization-owned business-data
@@ -98,8 +99,9 @@ configuration, or perform authorized troubleshooting. It includes the package ru
 and adds:
 
 - diagnostics access through this set's direct, active assignment;
-- read access to both packaged Custom Metadata Types; and
-- the package metadata-validation entry points.
+- read access to both packaged Custom Metadata Types;
+- the package metadata-validation entry points; and
+- the **Record Health Check Builder** tab, which opens the Preview component for draft Checks.
 
 The Permission Set does not grant business-record access. It also does not grant Salesforce's
 **Customize Application** permission, which is required to create or edit Custom Metadata through
@@ -151,6 +153,16 @@ This Permission Set does not include the Run Custom Permission or any package Ap
 must be combined with the runner Permission Set appropriate to the transaction. The event can
 contain user and record IDs, error messages, exception types, and stack traces, so do not assign it
 as general runtime access.
+
+## Record Health Check Readiness Auditor
+
+Assign **Record Health Check Readiness Auditor** to a reviewer who needs to see which draft Checks
+were verified in Preview. It grants Read access to `rhc__Record_Health_Check_Readiness__c` and its
+fields. Receipts hold identities, a definition fingerprint, aggregate counts, the actor, and an
+expiry; they hold no record IDs or business values.
+
+This Permission Set does not include the Run Custom Permission, Preview, receipt cleanup, or any
+package Apex entry point.
 
 ## Assign and verify access
 

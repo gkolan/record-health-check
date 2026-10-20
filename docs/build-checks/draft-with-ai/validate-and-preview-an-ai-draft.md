@@ -15,7 +15,9 @@ record IDs. It never publishes user-result, user-run, or error-log events.
   The reviewer also needs the package run permission supplied by that Permission Set.
 - Save the parent Check Set first with **Active** unchecked. A detached Check can be unsaved, but
   its parent must already exist so the server can own its object and card configuration.
-- Add **Record Health Check Preview** to an administrator-only Lightning App Page, Home Page, or tab.
+- Open **Record Health Check Builder** from the App Launcher. The tab hosts the Preview component
+  and is visible to anyone assigned **Record Health Check Admin**. You can also place **Record Health
+  Check Preview** on another administrator-only Lightning page.
 - Choose representative records for PASS, FAIL, each SKIPPED path, empty data, restricted access,
   and the largest realistic data shape.
 

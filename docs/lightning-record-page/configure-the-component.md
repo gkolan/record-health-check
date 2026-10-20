@@ -169,10 +169,10 @@ not have been finalized.
 ## Event outputs for Run and Rerun
 
 > [!WARNING]
-> `USER_INITIATED` completion events are client-attested advisory notifications. The server confirms
-> that submitted Check names belong to the selected Check Set, but it does not re-evaluate their
-> submitted statuses during completion. Use Apex or Flow to re-evaluate before a
-> compliance-sensitive or irreversible action.
+> `USER_INITIATED` completion events come from a fresh server evaluation of the Check Set at
+> completion, not from the browser. Data can change between the card run and that evaluation, so
+> the event reports the completion-time result. Enabling publication therefore costs one extra
+> Check Set evaluation per Run or Rerun.
 
 ### Check Set Run event
 

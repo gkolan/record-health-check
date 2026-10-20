@@ -203,9 +203,9 @@ publication or receiver failure rather than an expected clean-run omission.
 The event contains a Salesforce Record ID. Protect saved history according to the referenced
 record's sensitivity. Receiving automation cannot change the completed health-check result.
 
-A `USER_INITIATED` Set Run summary is client-attested advisory data; the completion endpoint does
-not re-evaluate browser-submitted statuses. Re-evaluate through Apex or Flow before using it for a
-compliance-sensitive decision. For Batch, earlier per-record events can remain committed when a
+A `USER_INITIATED` Set Run summary comes from a server evaluation when the card run completes.
+Re-evaluate through Apex or Flow at decision time when a compliance-sensitive decision depends on
+current data. For Batch, earlier per-record events can remain committed when a
 later scope fails, so wait for the terminal job envelope before declaring the complete job outcome.
 
 Process the entire Apex trigger group. Keep queries and record saves outside loops, as shown above.

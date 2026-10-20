@@ -297,7 +297,7 @@ public with sharing class RecordHealthCheckMetadataValidator {
         err(
           check,
           'FailureMessage__c',
-          'Message When Check Fails is required.',
+          'Message When Failed is required.',
           'MISSING_REQUIRED_FIELD'
         )
       );

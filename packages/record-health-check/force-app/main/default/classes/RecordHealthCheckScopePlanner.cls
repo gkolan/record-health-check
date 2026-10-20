@@ -33,7 +33,50 @@ public with sharing class RecordHealthCheckScopePlanner {
     );
     context.fullCheckSetSelection = false;
     context.checks.add(checks[0]);
+    if (String.isNotBlank(checks[0].PrerequisiteCheck__c)) {
+      addPrerequisiteChain(context, checks[0]);
+    }
     return context;
+  }
+
+  /**
+   * A single Check honors its Prerequisite Check exactly as a Check Set run does:
+   * its active prerequisite chain runs first, and only the requested Check is
+   * reported. A missing prerequisite or a cycle gets the Check Set run's result.
+   */
+  private void addPrerequisiteChain(
+    RecordHealthCheckScopePipeline.SelectionContext context,
+    Record_Health_Check__mdt target
+  ) {
+    Map<String, Record_Health_Check__mdt> setChecks = new Map<String, Record_Health_Check__mdt>();
+    for (
+      Record_Health_Check__mdt check : queryChecks(
+        'Record_Health_Check_Set__r.QualifiedApiName = :qualifiedApiName AND IsActive__c = TRUE',
+        target.Record_Health_Check_Set__r.QualifiedApiName
+      )
+    ) {
+      setChecks.put(check.QualifiedApiName, check);
+    }
+    List<Record_Health_Check__mdt> chain = new List<Record_Health_Check__mdt>{
+      target
+    };
+    Set<String> inChain = new Set<String>{ target.QualifiedApiName };
+    Record_Health_Check__mdt current = target;
+    while (String.isNotBlank(current.PrerequisiteCheck__c)) {
+      String prerequisite = RHCDefinitionDependencyIdentity.resolveQualified(
+        current,
+        setChecks.keySet()
+      );
+      if (prerequisite == null || !inChain.add(prerequisite)) {
+        break;
+      }
+      current = setChecks.get(prerequisite);
+      chain.add(current);
+    }
+    context.checks = RHCDefinitionDependencyIdentity.orderForEvaluation(chain);
+    context.reportedCheckNames = new Set<String>{ target.QualifiedApiName };
+    // Check Set run rules: a missing prerequisite skips, a cycle is reported.
+    context.fullCheckSetSelection = true;
   }
 
   public RecordHealthCheckScopePipeline.SelectionContext resolveCheckSet(

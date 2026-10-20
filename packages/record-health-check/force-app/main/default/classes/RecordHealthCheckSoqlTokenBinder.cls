@@ -236,7 +236,7 @@ public with sharing class RecordHealthCheckSoqlTokenBinder {
    * Rejects SOQL containing DML/dangerous keywords matched as whole words only.
    * Uses \b word-boundary so field names like IsDeleted or Last_Update__c
    * do not trigger a false positive on DELETE or UPDATE.
-   * Multi-word phrases (FOR UPDATE, ALL ROWS) are still matched literally.
+   * Multi-word phrases (FOR UPDATE, FOR VIEW, FOR REFERENCE, ALL ROWS) are matched across whitespace.
    */
   public static void validateNoDisallowedKeywords(String soql) {
     try {

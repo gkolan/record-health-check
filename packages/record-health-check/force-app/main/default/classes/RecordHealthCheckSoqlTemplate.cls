@@ -100,7 +100,7 @@ public with sharing class RecordHealthCheckSoqlTemplate {
     }
     String masked = maskStringLiterals(soql);
     Matcher disallowedPhrase = Pattern.compile(
-        '(?i)\\b(FOR\\s+UPDATE|ALL\\s+ROWS)\\b'
+        '(?i)\\b(FOR\\s+(?:UPDATE|VIEW|REFERENCE)|ALL\\s+ROWS)\\b'
       )
       .matcher(masked);
     if (disallowedPhrase.find()) {
@@ -361,17 +361,6 @@ public with sharing class RecordHealthCheckSoqlTemplate {
       return null;
     }
     return soql.substring(selectBounds[1], fromBounds[0]).trim();
-  }
-
-  /**
-   * True when the main WHERE clause requires the field to equal one value for every row.
-   * Only AND conditions are accepted; OR and NOT return false.
-   */
-  public static Boolean hasConjunctiveEqualityFilter(
-    String soql,
-    String fieldApiName
-  ) {
-    return equalityLiteralRequiredByWhere(soql, fieldApiName) != null;
   }
 
   /**

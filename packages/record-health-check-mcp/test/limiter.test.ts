@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ConcurrencyLimiter } from "../src/limiter.js";
+import { ClientRateLimiter, ConcurrencyLimiter } from "../src/limiter.js";
 
 describe("concurrency limiter", () => {
   it("queues only the configured number of requests and then sheds load", async () => {
@@ -57,5 +57,20 @@ describe("concurrency limiter", () => {
     releaseQueued?.();
     await Promise.all([first, second, third!]);
     expect(active).toBe(0);
+  });
+});
+
+describe("client rate limiter", () => {
+  it("keeps each client's budget separate and resets after one minute", () => {
+    let now = 1_000_000;
+    const limiter = new ClientRateLimiter(2, () => now);
+    expect(limiter.admit("a")).toBe(0);
+    expect(limiter.admit("a")).toBe(0);
+    expect(limiter.admit("a")).toBe(60);
+    expect(limiter.admit("b")).toBe(0);
+    now += 59_500;
+    expect(limiter.admit("a")).toBe(1);
+    now += 500;
+    expect(limiter.admit("a")).toBe(0);
   });
 });

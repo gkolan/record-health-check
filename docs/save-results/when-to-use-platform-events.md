@@ -194,15 +194,14 @@ Check captures an `ERROR` only after a Set explicitly opts in. Assign the packag
 permission to every running identity first. Missing Check Set configuration fails closed without
 publishing restricted details.
 
-For a user-initiated Lightning run, the completion call publishes the outcomes returned by the
-progressive browser evaluation after filtering them to the requested record and the Checks in the
-resolved Check Set. It does not run the Checks again while publishing. These `USER_INITIATED`
-events are **client-attested advisory notifications**, not server-attested compliance evidence. A
-user with Run permission controls the browser request that supplies the completion statuses.
+For a user-initiated Lightning run, the completion call evaluates the Check Set again on the
+server and publishes that result. The browser's own results are ignored, so a user cannot publish an
+outcome the server did not produce, and nothing is published for a record the user cannot read. The
+extra evaluation runs only when publication is enabled.
 
-A receiving process that makes a security-sensitive, compliance, or business-critical change must
-run the Check again through Apex or Flow before acting. Apex- and Flow-originated events come
-directly from their server-side evaluations.
+Every event describes the record when it was evaluated. A receiving process that makes a
+security-sensitive, compliance, or business-critical change should run the Check again through Apex
+or Flow at the moment it acts, because the data can change after the event is published.
 
 ## Contract versions on events
 

@@ -101,3 +101,17 @@ test("MCP reachability dispositions stay limited to the reviewed runtime", () =>
   assert.doesNotMatch(workflow, /\n {10}! grep/);
   assert.match(workflow, /__gnu_pbds/);
 });
+
+test("third-party workflow actions are pinned to full commit SHAs", () => {
+  const dir = new URL("../../.github/workflows/", import.meta.url);
+  const unpinned = [];
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".yml"))) {
+    const text = fs.readFileSync(new URL(file, dir), "utf8");
+    for (const [, action] of text.matchAll(/^\s*(?:- )?uses: (\S+)/gm)) {
+      // GitHub-owned actions/* stay on tags; a moved third-party tag runs new code in our jobs.
+      if (action.startsWith("actions/")) continue;
+      if (!/@[0-9a-f]{40}$/.test(action)) unpinned.push(`${file}: ${action}`);
+    }
+  }
+  assert.deepEqual(unpinned, []);
+});

@@ -188,7 +188,8 @@ is a separate result that means Record Health Check encountered a technical prob
 
 ### Message When Failed (`FailureMessage__c`)
 
-Optional Long Text Area(32,768), shown for `FAIL`. Explain what requirement was not met in language
+Long Text Area(32,768), shown for `FAIL`. Setup does not require it, but a Check saved without it
+returns `INVALID_CONFIG` when it runs. Explain what requirement was not met in language
 the card user understands. Do not include SOQL, formulas, or exception details.
 
 This field supports [merge tokens](../../build-checks/configure-check-sets-and-checks.md#step-13-learn-the-merge-token-options).
@@ -722,13 +723,13 @@ Optional Text(255). Enter the **Developer Name** shown in Setup, not the Check T
 active Check in the same Check Set. That Check must return `PASS` before this Check can run. It may
 have an earlier or later Evaluation Order; dependency scheduling runs it first.
 
-During a complete Check Set run, any prerequisite result other than `PASS` makes this Check
-`SKIPPED`. A missing, inactive, misspelled, or omitted prerequisite is also skipped
-with the Check Set dependency result; run Check Set validation to find the configuration error.
+Any prerequisite result other than `PASS` makes this Check `SKIPPED`. A missing, inactive, or
+misspelled prerequisite is also skipped with the Check Set dependency result; run Check Set
+validation to find the configuration error.
 
-A single-Check request evaluates only the selected Check. Lightning single-Check, Flow **Run Record
-Health Check**, Agent, and Apex `RecordHealthCheckRequest.forCheck(...)` calls therefore do not load
-or enforce this dependency. Use a Check Set request whenever prerequisite ordering is required.
+The same rule applies to a single-Check request. Lightning, Flow **Run Record Health Check**,
+Agent, MCP, and Apex `RecordHealthCheckRequest.forCheck(...)` calls run the selected Check's active
+prerequisite chain first and report only the selected Check.
 Example: `Account_Phone_Is_Present`.
 
 ## 10. Custom Apex (`APEX`)

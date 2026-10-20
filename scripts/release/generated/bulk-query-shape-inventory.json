@@ -3126,6 +3126,17 @@
   {
     "aggregate": false,
     "bareCount": false,
+    "check": "RHC_Negative_For_View",
+    "correlation": "Id = record.Id",
+    "field": "SourceQuery__c",
+    "note": "Correlation column is Id; redundant LIMIT 1 dropped",
+    "package": "integration-tests",
+    "soql": "SELECT Id FROM Account WHERE Id = {!record.Id} LIMIT 1 FOR VIEW",
+    "strategy": "SELF"
+  },
+  {
+    "aggregate": false,
+    "bareCount": false,
     "check": "RHC_Negative_Missing_Field",
     "correlation": "Id = record.Id",
     "field": "SourceQuery__c",

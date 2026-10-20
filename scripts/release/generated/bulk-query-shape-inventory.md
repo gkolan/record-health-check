@@ -7,14 +7,14 @@ execution strategy that the framework uses to run it once per scope instead of o
 per record. The grammar these strategies belong to is described in
 `docs/reference/evaluation/bulk-query-grammar.md`.
 
-**302 templates · 6 strategies · 0 unclassified**
+**303 templates · 6 strategies · 0 unclassified**
 
 ## Strategy totals
 
 | Strategy | Templates | How one scope-wide query is built |
 | --- | --- | --- |
 | `CHILD_DIRECT` | 210 | Group child rows by the lookup field that carried the token |
-| `SELF` | 39 | Query the evaluated records themselves; correlation column is Id |
+| `SELF` | 40 | Query the evaluated records themselves; correlation column is Id |
 | `CHILD_PATH` | 24 | Group child rows by the relationship path that carried the token |
 | `TOKEN_INDIRECT` | 16 | Collect distinct token values across the scope, query them once, map back |
 | `ORDERED_PICK_IN_MEMORY` | 8 | ORDER BY + LIMIT N; rank and retain up to N rows per record in Apex |
@@ -312,6 +312,7 @@ predicate to issue a single query.
 | `SELF` | integration-tests | `RHC_Diag_Query_Missing_Field` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Diag_Query_System_Mode` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_For_Update` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
+| `SELF` | integration-tests | `RHC_Negative_For_View` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_Missing_Field` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `SELF` | integration-tests | `RHC_Negative_System_Mode` | `SourceQuery__c` | `Id = record.Id` | Correlation column is Id; redundant LIMIT 1 dropped |
 | `TOKEN_INDIRECT` | force-app | `Example_Contact_RR_Owner_Active` | `SourceQuery__c` | `Id = record.OwnerId` | Reverse index on record.OwnerId values across the scope |

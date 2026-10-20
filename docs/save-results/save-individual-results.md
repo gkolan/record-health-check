@@ -93,9 +93,9 @@ diagnostic details.
 
 The event intentionally contains no Found, Expected, Pass Message, or Fix Message. Route `FAIL`,
 `UNABLE_TO_EVALUATE`, and `ERROR` separately under `ACTIONABLE`; they all need attention but not the
-same response. A `USER_INITIATED` event is client-attested: the completion endpoint does not
-re-evaluate its browser-submitted status. Rerun the Check through Apex or Flow before an
-irreversible, security-sensitive, or compliance action.
+same response. A `USER_INITIATED` event comes from a server evaluation at completion, but the data
+can change afterward. Rerun the Check through Apex or Flow at the moment of an irreversible,
+security-sensitive, or compliance action.
 
 ## Alternative: Receive results with Apex
 

@@ -85,6 +85,19 @@ private class RHCEvaluatorEdgeBehaviorTest {
   }
 
   @IsTest
+  static void viewTrackingQueryIsRejectedBeforeExecution() {
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    Record_Health_Check__mdt check = queryCheck('Q_View_Tracking');
+    // FOR VIEW would update LastViewedDate on the Account this read-only Check reads.
+    check.SourceQuery__c = 'SELECT BillingCity FROM Account WHERE Id = {!record.Id} LIMIT 1 FOR VIEW';
+    assertReason(
+      new RecordHealthCheckSoqlEvaluator()
+        .evaluate(check, accountRecord.Id, accountRecord),
+      'INVALID_SOQL_TEMPLATE'
+    );
+  }
+
+  @IsTest
   static void comparisonOperatorsCoverRemainingEdgeBranches() {
     Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     List<SObject> accountRows = new List<SObject>{ accountRecord };

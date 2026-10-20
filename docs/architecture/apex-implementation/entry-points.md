@@ -59,7 +59,7 @@ run the Checks.
 | `getCheckDefinitions(checkSetQualifiedApiName, recordId, runId)`                              | Display settings and ordered Check definitions for the card                                                                    |
 | `evaluateCheckJson(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)` | JSON transport for one card Check; preserves null cells that Aura omits from nested lists                                      |
 | `evaluateCheck(checkSetQualifiedApiName, checkQualifiedApiName, recordId, runId, source)`     | Typed evaluation used by the JSON adapter and existing Apex callers; omits evidence rows                                       |
-| `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)`                 | After a user-initiated run: filters completed card results, calculates the summary, and publishes the Set completion event     |
+| `completeRun(checkSetQualifiedApiName, runId, source, recordId, resultsJson)`                 | After a user-initiated run with publication enabled: re-evaluates the Check Set on the server and publishes its events         |
 
 **Notable behavior:**
 
@@ -69,9 +69,9 @@ run the Checks.
 - **Important:** `getCheckDefinitions` distinguishes a caught `ConfigException` (logged at `DEBUG`,
   reason code passed through as-is) from any other exception (logged at `ERROR` and returned as
   `LOAD_FAILED`). The card can therefore distinguish an invalid setup from an unexpected Apex
-  failure. `completeRun` does not run the Checks again. It accepts only the current record, one
-  result for each Check in the selected Check Set, and a `USER_INITIATED` source before calculating
-  the summary and publishing the configured events.
+  failure. `completeRun` ignores the browser's results. For a `USER_INITIATED` run whose Check Set or Checks
+  enable publication, it evaluates the Check Set again on the server and publishes that result; it
+  publishes nothing for a record the user cannot read.
 
 **See also:** [Lightning component](../../lightning-record-page/configure-the-component.md)
 

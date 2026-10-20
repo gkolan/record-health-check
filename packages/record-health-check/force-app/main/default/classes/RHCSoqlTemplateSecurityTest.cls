@@ -50,6 +50,54 @@ private class RHCSoqlTemplateSecurityTest {
   }
 
   @IsTest
+  static void forViewIsRejected() {
+    // FOR VIEW writes LastViewedDate on every returned row.
+    assertDisallowedPhraseRejected(
+      'SELECT Id FROM Contact LIMIT 5 FOR VIEW',
+      'FOR VIEW'
+    );
+  }
+
+  @IsTest
+  static void forReferenceWithLineBreakIsRejected() {
+    // FOR REFERENCE writes LastReferencedDate on every returned row.
+    assertDisallowedPhraseRejected(
+      'SELECT Id FROM Contact LIMIT 5 FOR\nREFERENCE',
+      'FOR REFERENCE'
+    );
+  }
+
+  @IsTest
+  static void prepareForExecutionRejectsViewTracking() {
+    // With a LIMIT, USER_MODE is inserted before it and the query stays valid SOQL.
+    try {
+      String prepared = RecordHealthCheckSoqlTemplate.prepareForExecution(
+        'SELECT Id FROM Contact WHERE AccountId != null LIMIT 5 FOR VIEW',
+        2000
+      );
+      Assert.fail('Expected FOR VIEW to be rejected, got: ' + prepared);
+    } catch (RecordHealthCheckSoqlTemplate.TemplateException error) {
+      Assert.areEqual(
+        'INVALID_SOQL_TEMPLATE',
+        error.reasonCode,
+        'A read-only Check must not update view tracking on the rows it reads.'
+      );
+    }
+  }
+
+  @IsTest
+  static void viewTrackingWordsInsideLiteralsAreAllowed() {
+    String prepared = RecordHealthCheckSoqlTemplate.prepareForExecution(
+      'SELECT Id FROM Account WHERE Name = \'for view\' OR Site = \'FOR REFERENCE\'',
+      2000
+    );
+    Assert.isTrue(
+      prepared.contains('WITH USER_MODE'),
+      'Literal text matching a tracking clause must not reject the query.'
+    );
+  }
+
+  @IsTest
   static void forUpdatePhraseRejected() {
     try {
       RecordHealthCheckSoqlTemplate.validateNoDisallowedKeywords(

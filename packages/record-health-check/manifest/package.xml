@@ -609,6 +609,10 @@
         <name>PermissionSet</name>
     </types>
     <types>
+        <members>Record_Health_Check_Builder</members>
+        <name>CustomTab</name>
+    </types>
+    <types>
         <members>Record_Health_Check__mdt-Record Health Check Layout</members>
         <members
     >Record_Health_Check_Set__mdt-Record Health Check Set Layout</members>

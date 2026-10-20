@@ -228,6 +228,28 @@ private class RecordHealthCheckPreviewServiceTest {
   }
 
   @IsTest
+  static void runnerWithoutAdministratorCannotPreview() {
+    RecordHealthCheckAccess.setRunPermissionForTest(true);
+    RecordHealthCheckAccess.adminPermissionOverride = false;
+    try {
+      assertPreviewDenied('administrator');
+    } finally {
+      clearAuthorization();
+    }
+  }
+
+  @IsTest
+  static void administratorWithoutRunCannotPreview() {
+    RecordHealthCheckAccess.setRunPermissionForTest(false);
+    RecordHealthCheckAccess.adminPermissionOverride = true;
+    try {
+      assertPreviewDenied('permission to run');
+    } finally {
+      clearAuthorization();
+    }
+  }
+
+  @IsTest
   static void rejectsNullBlankAndSelfDependentDrafts() {
     authorize();
     try {
@@ -418,6 +440,26 @@ private class RecordHealthCheckPreviewServiceTest {
 
   private static void clearAuthorization() {
     RecordHealthCheckAccess.setRunPermissionForTest(null);
+    RecordHealthCheckAccess.adminPermissionOverride = null;
+  }
+
+  private static void assertPreviewDenied(String expectedMessagePart) {
+    Record_Health_Check_Set__mdt checkSet = accountSet();
+    try {
+      RecordHealthCheckPreviewService.preview(
+        RecordHealthCheckPreviewRequest.forDraftCheck(
+          formulaDraft(checkSet.Id),
+          checkSet.QualifiedApiName,
+          new List<Id>()
+        )
+      );
+      Assert.fail('Preview must require both administrator and run access.');
+    } catch (RecordHealthCheckPreviewService.PreviewException expected) {
+      Assert.isTrue(
+        expected.getMessage().contains(expectedMessagePart),
+        'Denial must name the missing entitlement: ' + expected.getMessage()
+      );
+    }
   }
 
   private static Record_Health_Check_Set__mdt accountSet() {

@@ -20,6 +20,17 @@ describe("configuration", () => {
     expect(config.killSwitch).toBe(false);
   });
 
+  it("bounds the per-client request budget", () => {
+    expect(loadConfig(base).clientRequestsPerMinute).toBe(120);
+    expect(
+      loadConfig({ ...base, MCP_CLIENT_REQUESTS_PER_MINUTE: "30" })
+        .clientRequestsPerMinute
+    ).toBe(30);
+    expect(() =>
+      loadConfig({ ...base, MCP_CLIENT_REQUESTS_PER_MINUTE: "0" })
+    ).toThrow();
+  });
+
   it("rejects unauthenticated production", () => {
     expect(() => loadConfig({ ...base, NODE_ENV: "production" })).toThrow();
   });

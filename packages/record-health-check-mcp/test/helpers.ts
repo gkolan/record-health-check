@@ -12,6 +12,7 @@ export function testConfig(
     authMode: "none",
     serverUrl: new URL("https://mcp.example.test/mcp"),
     requiredScope: "rhc.run",
+    clientRequestsPerMinute: 1000,
     salesforce: {
       loginUrl: new URL("https://login.salesforce.test"),
       clientId: "test-client",

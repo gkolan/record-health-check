@@ -2885,7 +2885,7 @@ describe("c-record-health-check — Prerequisite Check enforcement", () => {
     }
   });
 
-  it("skips a Check when its Prerequisite Check is not in the Framework run", async () => {
+  it("skips a Check when its Prerequisite Check is not in the Check Set run", async () => {
     getCheckDefinitions.mockResolvedValue(
       makeDefinitions({
         checks: [
@@ -3145,7 +3145,35 @@ describe("c-record-health-check — Prerequisite Check enforcement", () => {
     expect(completeRun).toHaveBeenCalledTimes(1);
     expect(element.shadowRoot.textContent).toContain("Circular dependency");
     expect(element.shadowRoot.textContent).not.toContain(
-      "was not included in the Framework run"
+      "was not included in the Check Set run"
+    );
+  });
+
+  it("skips a Check whose prerequisite is not in the Check Set with the Apex wording", async () => {
+    getCheckDefinitions.mockResolvedValue(
+      makeDefinitions({
+        skippedDisplayMode: "Show",
+        checks: [
+          {
+            developerName: "A",
+            qualifiedApiName: "rhc__A",
+            label: "A",
+            description: "",
+            priority: 1,
+            dependsOnCheckQualifiedApiName: "rhc__Missing",
+            dependsOnCheckDeveloperName: "Missing"
+          }
+        ]
+      })
+    );
+    await appendAndLoad(element);
+
+    await clickRun(element);
+
+    expect(evaluateCheck).not.toHaveBeenCalled();
+    // Same sentence as RecordHealthCheckScopeResultSupport for DEPENDENCY_NOT_IN_RUN.
+    expect(element.shadowRoot.textContent).toContain(
+      'Skipped because Prerequisite Check "rhc__Missing" was not included in the Check Set run.'
     );
   });
 });

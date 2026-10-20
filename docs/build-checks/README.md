@@ -22,6 +22,7 @@ optional; there is no theme picker, and an AI draft never replaces human review.
 | Step | Guide                                                                           | What you finish                                                          |
 | ---: | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 |    1 | [Configure Check Sets and Checks](./configure-check-sets-and-checks.md)         | Build and test a complete review for one Salesforce record type          |
+|      | [Fields by Evaluation Type](./fields-by-evaluation-type.md)                     | Know which Check fields to fill for the type you chose                   |
 |    2 | [Configure action links](./add-fix-link.md)                                     | Pair Fix Message with a safe Action Label and URL                        |
 |    3 | [Read Record Health Check results](../reference/results/statuses-and-labels.md) | Translate card labels into Flow, Apex, and integration statuses          |
 |    4 | [Troubleshoot Record Health Check](../diagnostics/browser-console.md)           | Prove the configuration with authorized evidence                         |

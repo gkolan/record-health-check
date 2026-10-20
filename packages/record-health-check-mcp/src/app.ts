@@ -7,8 +7,11 @@ import {
 import { NodeStreamableHTTPServerTransport } from "@modelcontextprotocol/node";
 import type { Express, RequestHandler } from "express";
 
+import type { AuthInfo } from "@modelcontextprotocol/server";
+
 import { JwtTokenVerifier } from "./auth.js";
 import type { ServiceConfig } from "./config.js";
+import { ClientRateLimiter } from "./limiter.js";
 import type { OperationalLogger } from "./logger.js";
 import type { SalesforceClient } from "./salesforce-client.js";
 import { createToolServer } from "./tools.js";
@@ -59,9 +62,21 @@ export function createApp(
   app.get("/mcp", ...middleware, (_request, response) => {
     response.set("Allow", "POST").status(405).end();
   });
+  const rateLimiter = new ClientRateLimiter(config.clientRequestsPerMinute);
   app.post("/mcp", ...middleware, async (request, response) => {
     if (config.killSwitch) {
       response.status(503).json({ error: "Service is disabled." });
+      return;
+    }
+    // Without JWT auth (development only) every caller shares one budget.
+    const clientId =
+      (request as { auth?: AuthInfo }).auth?.clientId ?? "anonymous";
+    const retryAfter = rateLimiter.admit(clientId);
+    if (retryAfter > 0) {
+      response
+        .set("Retry-After", String(retryAfter))
+        .status(429)
+        .json({ error: "Rate limit exceeded." });
       return;
     }
     const server = createToolServer(client, logger);

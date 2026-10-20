@@ -25,7 +25,7 @@ The package protects six separate areas:
 
 ## Choose the correct Permission Set
 
-This checkout defines six Permission Sets; see [version availability](../install/choose-a-package-version.md#documentation-and-installed-version) for the published package. **Record Health Check Run**
+This checkout defines seven Permission Sets; see [version availability](../install/choose-a-package-version.md#documentation-and-installed-version) for the published package. **Record Health Check Run**
 (`rhc__Record_Health_Check_Run`) is a Custom Permission included in the four runner Permission Sets; it is not a Permission Set
 by itself.
 
@@ -45,6 +45,7 @@ Permission Sets.
 | **Record Health Check MCP Integration** (`rhc__Record_Health_Check_MCP_Integration`)         | Run Custom Permission, the versioned Apex REST adapter, and read access to both Custom Metadata Types; excludes UI, Flow, Agentforce, async Apex, lifecycle events, and diagnostics                                        | Dedicated least-privilege MCP integration users                                                                                                                   |
 | **Record Health Check Diagnostics Viewer** (`rhc__Record_Health_Check_Diagnostics_Viewer`)   | Diagnostics authorization only; no Run permission, Apex, metadata, object, field, or event access                                                                                                                          | Affected Card User or User assignments that need temporary diagnostic visibility without Admin access                                                             |
 | **Record Health Check Error Log Publisher** (`rhc__Record_Health_Check_Error_Log_Publisher`) | Create and Read access to the restricted Log Platform Event (Salesforce requires Read with Create)                                                                                                                         | Narrowly selected runners whose Check Sets enable error-log publication; assignees must be trusted with restricted error data                                     |
+| **Record Health Check Readiness Auditor** (`rhc__Record_Health_Check_Readiness_Auditor`)     | Read-only access to Preview readiness receipts; no Run permission, Preview, cleanup, or Check execution                                                                                                                    | Reviewers who audit which drafts were verified, without administering or running Checks                                                                           |
 
 Do not assign the Admin Permission Set merely because a person needs to run a Check. Diagnostic
 detail can include formula text, SOQL text, and specific access problems.
@@ -120,13 +121,14 @@ identity, timezone, and asynchronous transaction boundaries before changing the 
 
 Source Query, Comparison Query, and applicability count query text is inspected before it runs.
 
-| Query condition                                                                             | Package behavior                                |
-| ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Contains `WITH SYSTEM_MODE`                                                                 | Rejects the query as `INVALID_SOQL_TEMPLATE`    |
-| Contains a data-changing keyword such as `INSERT`, `UPDATE`, `DELETE`, `UPSERT`, or `MERGE` | Rejects the query as `INVALID_SOQL_TEMPLATE`    |
-| Does not contain `WITH USER_MODE`                                                           | Adds `WITH USER_MODE` in the supported location |
-| Requests an outer `LIMIT` above 2,000                                                       | Lowers that outer limit to 2,000                |
-| Uses a merge token other than `record.*`                                                    | Rejects the query                               |
+| Query condition                                                                                        | Package behavior                                |
+| ------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| Contains `WITH SYSTEM_MODE`                                                                            | Rejects the query as `INVALID_SOQL_TEMPLATE`    |
+| Contains `INSERT`, `UPDATE`, `DELETE`, or `UNDELETE` outside quoted text                               | Rejects the query as `INVALID_SOQL_TEMPLATE`    |
+| Contains `FOR UPDATE` (locks rows), `FOR VIEW` or `FOR REFERENCE` (write view tracking), or `ALL ROWS` | Rejects the query as `INVALID_SOQL_TEMPLATE`    |
+| Does not contain `WITH USER_MODE`                                                                      | Adds `WITH USER_MODE` in the supported location |
+| Requests an outer `LIMIT` above 2,000                                                                  | Lowers that outer limit to 2,000                |
+| Uses a merge token other than `record.*`                                                               | Rejects the query                               |
 
 Merge-token values are converted to the Salesforce data type required by the field and safely
 inserted into the query. A missing or invalid value returns a documented Reason Code instead of

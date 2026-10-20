@@ -202,6 +202,7 @@ public with sharing class RecordHealthCheckController {
    * without evidence rows; typed evaluation APIs keep evidence.
    * checkSetQualifiedApiName is validated server-side to confirm the Check belongs to the
    * named Check Set, preventing direct invocation of arbitrary checks.
+   * Not browser-callable: the card reaches it only through evaluateCheckJson.
    *
    * @param checkSetQualifiedApiName Exact QualifiedApiName of the parent Check Set.
    * @param checkQualifiedApiName Exact QualifiedApiName of the Check.
@@ -210,7 +211,6 @@ public with sharing class RecordHealthCheckController {
    * @param source Exact browser execution source.
    * @return One contained evaluation and display result.
    */
-  @AuraEnabled
   public static RecordHealthCheckResultItem evaluateCheck(
     String checkSetQualifiedApiName,
     String checkQualifiedApiName,
@@ -299,12 +299,15 @@ public with sharing class RecordHealthCheckController {
   }
 
   /**
-   * Publishes advisory lifecycle events after a user-initiated client run finishes.
+   * Publishes lifecycle events after a user-initiated card run finishes.
+   * The browser cannot vouch for its own results, so the published outcome comes
+   * from a fresh server evaluation of the Check Set, and only when the Check Set
+   * or one of its Checks opts in to publication.
    * @param checkSetQualifiedApiName Exact QualifiedApiName of the completed Check Set.
    * @param runId Client correlation identifier for the completed run.
    * @param source Exact browser execution source.
    * @param recordId Record evaluated by the completed run.
-   * @param resultsJson Client-returned result items, filtered to the record and resolved Checks.
+   * @param resultsJson Ignored; kept so existing cards can still call this method.
    * @throws AuraHandledException if completion cannot be performed safely.
    */
   @AuraEnabled
@@ -325,42 +328,25 @@ public with sharing class RecordHealthCheckController {
       if (
         effectiveSource !=
         RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED ||
-        recordId == null
+        recordId == null ||
+        !RecordHealthCheckLifecyclePublisher.isInteractivePublicationEnabled(
+          effectiveCheckSetName
+        )
       ) {
         return;
       }
-      String effectiveRunId = RecordHealthCheckLogger.normalizeIdentifier(
-        runId,
-        120
-      );
-      if (String.isBlank(resultsJson) || resultsJson.length() > 1000000) {
-        throw new RecordHealthCheckControllerException(
-          'Completed results are required and must be at most 1 MB.'
-        );
-      }
-      RecordHealthCheckDefinitionResponse definitions = configService.getDefinitionResponse(
+      RecordHealthCheckResponse response = completionResponse(
         effectiveCheckSetName,
+        RecordHealthCheckLogger.normalizeIdentifier(runId, 120),
         recordId
       );
-      Set<String> allowedCheckNames = new Set<String>();
-      for (RecordHealthCheckDefinition definition : definitions.checks) {
-        allowedCheckNames.add(definition.qualifiedApiName);
+      if (response != null) {
+        RecordHealthCheckLifecyclePublisher.publishInteractiveResponse(
+          response,
+          effectiveCheckSetName,
+          effectiveSource
+        );
       }
-      List<RecordHealthCheckResultItem> completedItems = (List<RecordHealthCheckResultItem>) JSON.deserialize(
-        resultsJson,
-        List<RecordHealthCheckResultItem>.class
-      );
-      RecordHealthCheckResponse response = completionResponse(
-        effectiveRunId,
-        recordId,
-        allowedCheckNames,
-        completedItems
-      );
-      RecordHealthCheckLifecyclePublisher.publishInteractiveResponse(
-        response,
-        effectiveCheckSetName,
-        effectiveSource
-      );
     } catch (Exception ex) {
       RecordHealthCheckLogger.log(
         RecordHealthCheckLogger.Level.ERROR,
@@ -381,41 +367,26 @@ public with sharing class RecordHealthCheckController {
     }
   }
 
+  /** Server outcome to publish, or null when the user cannot read the record. */
   @TestVisible
   private static RecordHealthCheckResponse completionResponse(
+    String checkSetQualifiedApiName,
     String runId,
-    Id recordId,
-    Set<String> allowedCheckNames,
-    List<RecordHealthCheckResultItem> completedItems
+    Id recordId
   ) {
-    RecordHealthCheckResponse response = new RecordHealthCheckResponse();
-    response.runId = runId;
-    response.recordIds.add(recordId);
-    Set<String> acceptedCheckNames = new Set<String>();
-    List<RecordHealthCheckResultItem> candidateItems = completedItems;
-    if (candidateItems == null) {
-      candidateItems = new List<RecordHealthCheckResultItem>();
-    }
-    Set<String> configuredCheckNames = allowedCheckNames;
-    if (configuredCheckNames == null) {
-      configuredCheckNames = new Set<String>();
-    }
-    for (RecordHealthCheckResultItem item : candidateItems) {
-      String checkName = item?.evaluation?.checkQualifiedApiName;
-      if (
-        item?.evaluation == null ||
-        item.evaluation.recordId != recordId ||
-        String.isBlank(checkName) ||
-        !configuredCheckNames.contains(checkName) ||
-        acceptedCheckNames.contains(checkName)
-      ) {
-        continue;
+    RecordHealthCheckResponse response = RecordHealthCheck.evaluate(
+      RecordHealthCheckRequest.forCheckSet(checkSetQualifiedApiName, recordId)
+        .withExecutionOrigin(RecordHealthCheckExecutionOrigin.USER_INITIATED)
+        .withEventPublication(RecordHealthCheckEventPublication.NONE)
+        .withRunId(runId)
+        .withoutEvidence()
+    );
+    for (RecordHealthCheckResultItem item : response.results) {
+      // Events must not describe records the user cannot see.
+      if (item?.evaluation?.reasonCode == 'RECORD_NOT_VISIBLE') {
+        return null;
       }
-      acceptedCheckNames.add(checkName);
-      response.results.add(item);
-      response.summary.add(item.evaluation.status);
     }
-    response.checkQualifiedApiNames.addAll(acceptedCheckNames);
     return response;
   }
 

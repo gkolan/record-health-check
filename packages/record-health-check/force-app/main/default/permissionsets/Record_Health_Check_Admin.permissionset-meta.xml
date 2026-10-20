@@ -184,4 +184,8 @@
         <object>Record_Health_Check_Result__e</object>
         <viewAllRecords>false</viewAllRecords>
     </objectPermissions>
+    <tabSettings>
+        <tab>Record_Health_Check_Builder</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
 </PermissionSet>

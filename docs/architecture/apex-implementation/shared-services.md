@@ -111,13 +111,13 @@ outer SOQL clause.
 
 **Key members:**
 
-| Member                                             | Purpose                                                                                        |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `prepareForExecution(soql, maxRows)`               | Prepare and limit SOQL written by an administrator                                             |
-| `rootObject(soql)`                                 | Resolve the outer query root without mistaking a literal or child subquery `FROM` for the root |
-| `outerSelectList(soql)`                            | Return the outer select list while preserving nested query text                                |
-| `hasConjunctiveEqualityFilter(soql, fieldApiName)` | Prove a literal equality only for a conjunctive outer predicate; `OR` and `NOT` fail closed    |
-| `TemplateException` (nested)                       | Exception carrying `reasonCode`                                                                |
+| Member                                               | Purpose                                                                                                          |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `prepareForExecution(soql, maxRows)`                 | Prepare and limit SOQL written by an administrator                                                               |
+| `rootObject(soql)`                                   | Resolve the outer query root without mistaking a literal or child subquery `FROM` for the root                   |
+| `outerSelectList(soql)`                              | Return the outer select list while preserving nested query text                                                  |
+| `equalityLiteralRequiredByWhere(soql, fieldApiName)` | Return the one literal every outer `WHERE` branch requires for the field, or null when another value is possible |
+| `TemplateException` (nested)                         | Exception carrying `reasonCode`                                                                                  |
 
 **Notable behavior:**
 

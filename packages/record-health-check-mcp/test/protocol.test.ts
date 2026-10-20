@@ -487,6 +487,41 @@ describe("MCP Streamable HTTP", () => {
     await client.close();
   });
 
+  it("rejects a client over its per-minute budget before any Salesforce call", async () => {
+    const evaluate = vi.fn();
+    const app = createApp(
+      testConfig({ clientRequestsPerMinute: 2 }),
+      { evaluate } as unknown as SalesforceClient,
+      { log: vi.fn() }
+    );
+    const baseUrl = await startServer(app);
+    const initialize = () =>
+      fetch(`${baseUrl}/mcp`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json, text/event-stream"
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-06-18",
+            capabilities: {},
+            clientInfo: { name: "rate-test", version: "1.0.0" }
+          }
+        })
+      });
+    expect((await initialize()).status).toBe(200);
+    expect((await initialize()).status).toBe(200);
+    const limited = await initialize();
+    expect(limited.status).toBe(429);
+    expect(Number(limited.headers.get("retry-after"))).toBeGreaterThan(0);
+    expect(await limited.json()).toEqual({ error: "Rate limit exceeded." });
+    expect(evaluate).not.toHaveBeenCalled();
+  });
+
   it("honors the kill switch without disclosing configuration", async () => {
     const config = testConfig({ killSwitch: true });
     const app = createApp(

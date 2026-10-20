@@ -684,7 +684,7 @@
 }
 
 /* Each admin-authored message line renders as its own block so newlines typed in
-   Setup (Message When Check Fails / Cannot Run) become visual line breaks instead of
+   Setup (Message When Failed / Message When Unable To Evaluate) become visual line breaks instead of
    collapsing to one paragraph. A single-line message is one block and looks
    exactly as before. */
 .rhc-row__message-line {

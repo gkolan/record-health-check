@@ -255,7 +255,7 @@ public with sharing class RecordHealthCheckConfigService {
       return buildUnableResult(
         check,
         RC_INVALID_CONFIG,
-        'Message When Check Fails is required on every check.'
+        'Message When Failed is required on every check.'
       );
     }
     // Unknown check type

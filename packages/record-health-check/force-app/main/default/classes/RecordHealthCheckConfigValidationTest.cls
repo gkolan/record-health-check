@@ -41,6 +41,11 @@ private class RecordHealthCheckConfigValidationTest {
       service.validateCheckForEvaluation(check),
       RecordHealthCheckConfigService.RC_INVALID_CONFIG
     );
+    Assert.isTrue(
+      service.validateCheckForEvaluation(check)
+        .detailMessage.contains('Message When Failed'),
+      'The error must name the field the way Setup labels it.'
+    );
 
     check = baseCheck('App_Formula_Missing', 'FORMULA');
     check.ApplicabilityMode__c = 'WHEN_FORMULA_TRUE';

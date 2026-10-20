@@ -110,9 +110,8 @@ the requirement does not identify them:
   RecordHealthCheckQueueable, RecordHealthCheckBatch, or RecordHealthCheckScheduled. Preview and
   configuration validation inspect a draft or saved configuration; they are not normal production
   health-check runs.
-- Selection: one Check or the complete Check Set. Require a Check Set run whenever prerequisites or
-  a complete assessment matter, because a single-Check request does not enforce sibling
-  prerequisites.
+- Selection: one Check or the complete Check Set. A single-Check request runs that Check's
+  prerequisite chain first; require a Check Set run whenever the complete assessment matters.
 - Execution principal and timing: identify the real running user or automation principal, whether
   the caller needs the answer synchronously, and the record count. Moving work to asynchronous Apex
   does not elevate sharing, object, field, or record access.
@@ -218,9 +217,8 @@ Check fields that every Evaluation Type uses (Record_Health_Check__mdt):
 - PrerequisiteCheck__c: Text(255). The Developer Name of an active Check in the same Check Set.
   The prerequisite may have a higher or lower EvaluationOrder__c: 2.0.10 resolves dependency order
   before evaluation while EvaluationOrder__c remains presentation order. Dependencies must be
-  acyclic. Any prerequisite result other than PASS makes this Check SKIPPED. Single-Check requests
-  from Lightning, Flow, Agentforce, and Apex do not enforce it, so require a Check Set run whenever
-  the dependency matters.
+  acyclic. Any prerequisite result other than PASS makes this Check SKIPPED, in a single-Check request
+  as well as a Check Set run.
 - ComparisonDisplayMode__c: AUTOMATIC (the default), FOUND_ONLY, EXPECTED_ONLY, or HIDDEN. HIDDEN
   hides the Found and Expected values on the card; it is a display choice, never a security
   control.

@@ -121,6 +121,7 @@ private class RecordHealthCheckControllerTest {
 
   @IsTest
   static void completeRunWrapsUnexpectedFailuresForAura() {
+    RecordHealthCheckLifecyclePublisher.settingsProvider = new InteractivePublicationSettingsProvider();
     Test.startTest();
     try {
       RecordHealthCheckController.completeRun(
@@ -141,24 +142,27 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void completeRunRejectsBlankResultsPayload() {
+  static void completeRunSkipsEvaluationWhenPublicationIsOff() {
+    // Packaged examples ship with every publication setting off.
+    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    Integer queriesBefore = Limits.getQueries();
     Test.startTest();
-    try {
-      RecordHealthCheckController.completeRun(
-        'Any_Set',
-        'blank-completion',
-        RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED,
-        UserInfo.getUserId(),
-        ' '
-      );
-      Assert.fail('A blank completion payload must be rejected.');
-    } catch (AuraHandledException error) {
-      Assert.isTrue(
-        error.getMessage().contains('RUN_COMPLETION_FAILED'),
-        'The public boundary must return the stable completion error.'
-      );
-    }
+    RecordHealthCheckController.completeRun(
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Account_Relationship_Risk'
+      ),
+      'publication-off',
+      RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED,
+      accountRecord.Id,
+      ' '
+    );
     Test.stopTest();
+
+    Assert.areEqual(
+      queriesBefore,
+      Limits.getQueries(),
+      'Without publication, completion must not evaluate or require browser results.'
+    );
   }
 
   @IsTest
@@ -186,60 +190,22 @@ private class RecordHealthCheckControllerTest {
   }
 
   @IsTest
-  static void completionResponseNormalizesNullCollections() {
+  static void completionResponseSkipsRecordsTheUserCannotRead() {
+    // A synthetic Id names no record this user can read.
+    Account unreadable = RecordHealthCheckTestDataFactory.healthyAccountFixture();
     Test.startTest();
     RecordHealthCheckResponse response = RecordHealthCheckController.completionResponse(
-      'null-completion',
-      UserInfo.getUserId(),
-      null,
-      null
+      RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+        'Example_Account_Relationship_Risk'
+      ),
+      'unreadable-run',
+      unreadable.Id
     );
     Test.stopTest();
 
-    Assert.isTrue(
-      response.results.isEmpty(),
-      'Null client results must produce an empty envelope.'
-    );
-    Assert.areEqual(
-      0,
-      response.summary.passed,
-      'Null collections must not inflate passed results.'
-    );
-    Assert.areEqual(
-      0,
-      response.summary.failed,
-      'Null collections must not inflate failed results.'
-    );
-  }
-
-  @IsTest
-  static void completionResponseRejectsDuplicateCheckResults() {
-    Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
-    RecordHealthCheckEvaluationResult evaluation = new RecordHealthCheckEvaluationResult();
-    evaluation.recordId = accountRecord.Id;
-    evaluation.checkQualifiedApiName = 'Check_A';
-    evaluation.status = RecordHealthCheckStatus.FAIL;
-    RecordHealthCheckResultItem item = new RecordHealthCheckResultItem();
-    item.evaluation = evaluation;
-
-    Test.startTest();
-    RecordHealthCheckResponse response = RecordHealthCheckController.completionResponse(
-      'dedupe-run',
-      accountRecord.Id,
-      new Set<String>{ 'Check_A' },
-      new List<RecordHealthCheckResultItem>{ item, item }
-    );
-    Test.stopTest();
-
-    Assert.areEqual(
-      1,
-      response.results.size(),
-      'One configured Check may contribute only one completion result.'
-    );
-    Assert.areEqual(
-      1,
-      response.summary.failed,
-      'Duplicate client results must not inflate lifecycle summaries.'
+    Assert.isNull(
+      response,
+      'Completion must not publish events about a record the user cannot read.'
     );
   }
 
@@ -424,6 +390,21 @@ private class RecordHealthCheckControllerTest {
       'The user-initiated evaluation still returns its check result.'
     );
 
+    // The synthetic Account is not readable, so completion evaluates once and
+    // publishes nothing; custom Apex construction savepoints count as DML.
+    // RecordHealthCheckControllerIT covers publication for a real record.
+    Integer evaluationStart = Limits.getDmlStatements();
+    RecordHealthCheck.evaluate(
+      RecordHealthCheckRequest.forCheckSet(
+          RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+            'Example_Account_Relationship_Risk'
+          ),
+          accountRecord.Id
+        )
+        .withEventPublication(RecordHealthCheckEventPublication.NONE)
+    );
+    Integer evaluationDml = Limits.getDmlStatements() - evaluationStart;
+    Integer completionStart = Limits.getDmlStatements();
     RecordHealthCheckController.completeRun(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Relationship_Risk'
@@ -433,13 +414,10 @@ private class RecordHealthCheckControllerTest {
       accountRecord.Id,
       JSON.serialize(new List<RecordHealthCheckResultItem>{ result })
     );
-    // Two DML statements: the Set completion event and the side-effect
-    // savepoint for the Apex Check that runs in this fixture. Missing_Check is not
-    // a returned Check identity, so the publication override emits no Check event.
     Assert.areEqual(
-      beforeDml + 1,
+      completionStart + evaluationDml,
       Limits.getDmlStatements(),
-      'An opted-in user-initiated Set must publish once at completion.'
+      'A record the user cannot read never produces completion events.'
     );
   }
 

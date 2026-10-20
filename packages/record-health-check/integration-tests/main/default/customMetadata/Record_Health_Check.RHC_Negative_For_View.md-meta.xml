@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomMetadata
+  xmlns="http://soap.sforce.com/2006/04/metadata"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+>
+    <label>Negative - FOR VIEW</label><protected>false</protected>
+    <values><field>Record_Health_Check_Set__c</field><value
+      xsi:type="xsd:string"
+    >RHC_Negative_Runtime</value></values>
+    <values><field>CheckTitle__c</field><value
+      xsi:type="xsd:string"
+    >FOR VIEW Is Rejected</value></values>
+    <values><field>EvaluationType__c</field><value
+      xsi:type="xsd:string"
+    >QUERY</value></values>
+    <values><field>SourceQuery__c</field><value
+      xsi:type="xsd:string"
+    >SELECT Id FROM Account WHERE Id = {!record.Id} LIMIT 1 FOR VIEW</value></values>
+    <values><field>SourceQueryField__c</field><value
+      xsi:type="xsd:string"
+    >Id</value></values>
+    <values><field>QueryResultHandling__c</field><value
+      xsi:type="xsd:string"
+    >ONE_RESULT</value></values>
+    <values><field>ComparisonOperator__c</field><value
+      xsi:type="xsd:string"
+    >IS_NOT_BLANK</value></values>
+    <values><field>UnableToEvaluateMessage__c</field><value
+      xsi:type="xsd:string"
+    >Expected INVALID_SOQL_TEMPLATE.</value></values>
+    <values><field>FailureSeverity__c</field><value
+      xsi:type="xsd:string"
+    >WARNING</value></values>
+    <values><field>FailureMessage__c</field><value
+      xsi:type="xsd:string"
+    >This fixture should not execute.</value></values>
+    <values><field>EvaluationOrder__c</field><value
+      xsi:type="xsd:double"
+    >45</value></values>
+    <values><field>IsActive__c</field><value
+      xsi:type="xsd:boolean"
+    >false</value></values>
+    <values>
+        <field>CheckDescription__c</field>
+        <value
+      xsi:type="xsd:string"
+    >A Query check whose SOQL asks for FOR VIEW. The framework must reject the clause rather than update LastViewedDate on the rows a read-only Check reads.</value>
+    </values>
+    <values>
+        <field>ApplicabilityMode__c</field>
+        <value xsi:type="xsd:string">ALL_RECORDS</value>
+    </values>
+    <values>
+        <field>ComparisonDisplayMode__c</field>
+        <value xsi:type="xsd:string">AUTOMATIC</value>
+    </values>
+    <values>
+        <field>DisplayValueFormat__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>EmptyValueHandling__c</field>
+        <value xsi:type="xsd:string">AS_NO_MATCH</value>
+    </values>
+    <values>
+        <field>FormulaResultType__c</field>
+        <value xsi:type="xsd:string">AUTO</value>
+    </values>
+    <values>
+        <field>MaxQueryRows__c</field>
+        <value xsi:type="xsd:double">200</value>
+    </values>
+    <values>
+        <field>PublishUserResultEvent__c</field>
+        <value xsi:type="xsd:boolean">false</value>
+    </values>
+</CustomMetadata>

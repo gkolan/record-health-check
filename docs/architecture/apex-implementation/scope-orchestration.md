@@ -26,7 +26,8 @@ The card reaches it through `evaluateCheckJson`, which delegates to `evaluateChe
 It validates the request, loads the requested Salesforce records with user
 access enforced, runs the applicable Checks in order, optionally adds display content, publishes the
 requested Platform Events, and returns `RecordHealthCheckResponse`. The Lightning card's
-`completeRun` method publishes already-completed results and does not run this class again.
+`completeRun` method runs this class once more for the whole Check Set when publication is enabled,
+and publishes that server result rather than the browser's.
 
 **Key members:**
 

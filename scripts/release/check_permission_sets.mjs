@@ -69,7 +69,7 @@ const expected = {
       }
     },
     customPermissions: ["Record_Health_Check_Run"],
-    tabs: [],
+    tabs: ["Record_Health_Check_Builder"],
     customMetadataTypes: [
       "Record_Health_Check__mdt",
       "Record_Health_Check_Set__mdt"

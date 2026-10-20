@@ -155,6 +155,14 @@ public with sharing class RecordHealthCheckLifecyclePublisher {
     return settingsProvider.isRunPublicationEnabled(checkSetQualifiedApiName);
   }
 
+  /** Whether a card Run/Rerun publishes any Set or Check event for this Check Set. */
+  public static Boolean isInteractivePublicationEnabled(
+    String checkSetQualifiedApiName
+  ) {
+    return isRunPublicationEnabled(checkSetQualifiedApiName) ||
+      !settingsProvider.publishedCheckNames(checkSetQualifiedApiName).isEmpty();
+  }
+
   /** Publishes one terminal envelope for an asynchronous adapter job. */
   public static void publishAsyncJobTerminal(
     String runId,

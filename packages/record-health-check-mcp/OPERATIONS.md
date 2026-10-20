@@ -50,8 +50,9 @@ for 30 days and aggregated metrics for 90 days unless the security owner approve
 Delete test canaries and drill data immediately after evidence approval.
 
 Alert on sustained authentication rejection, error-rate or latency increase, Salesforce `429`,
-timeouts, schema mismatch, exhausted concurrency, and kill-switch activation. Exercise every alert
-in staging before production approval and retain the alert event and acknowledgement identifier.
+timeouts, schema mismatch, exhausted concurrency, per-client `429` responses from this service, and
+kill-switch activation. Exercise every alert in staging before production approval and retain the
+alert event and acknowledgement identifier.
 
 ## Failure runbooks
 

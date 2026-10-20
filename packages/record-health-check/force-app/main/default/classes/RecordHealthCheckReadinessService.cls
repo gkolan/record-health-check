@@ -109,13 +109,7 @@ public with sharing class RecordHealthCheckReadinessService {
       true
     );
     response.hasCurrentLiveVerification =
-      RecordHealthCheckReadinessState.determine(
-        false,
-        receipts,
-        response.definitionFingerprint,
-        nowAt,
-        true
-      ) == 'LIVE_VERIFIED';
+      response.readinessState == 'LIVE_VERIFIED';
   }
 
   /** Deletes at most 200 expired rows visible to the authorized administrator. */

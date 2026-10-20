@@ -280,7 +280,7 @@ export class HealthCheckRunner {
           check,
           "SKIPPED",
           "DEPENDENCY_NOT_IN_RUN",
-          `Skipped because Prerequisite Check "${prerequisiteKey}" was not included in the Framework run.`
+          `Skipped because Prerequisite Check "${prerequisiteKey}" was not included in the Check Set run.`
         );
         this._resultBuffer.set(checkIdentity(check), skipped);
         this._drain(token);

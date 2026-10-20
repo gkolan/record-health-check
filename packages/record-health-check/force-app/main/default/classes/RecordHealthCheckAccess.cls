@@ -8,8 +8,11 @@ public with sharing class RecordHealthCheckAccess {
   @TestVisible
   // The second value confirms that users cannot see diagnostics when Salesforce
   // cannot read Permission Set assignments during a test.
+  // adminPermissionOverride takes precedence over the run override so a test
+  // can grant Run without Admin.
   private static Boolean runPermissionOverride,
-    diagnosticsQueryExceptionForTest;
+    diagnosticsQueryExceptionForTest,
+    adminPermissionOverride;
 
   private static Map<Id, Boolean> detailsByUser = new Map<Id, Boolean>();
 
@@ -59,6 +62,10 @@ public with sharing class RecordHealthCheckAccess {
 
   /** Returns whether the caller has a direct active package-administrator assignment. */
   public static Boolean canAdminister() {
+    if (adminPermissionOverride != null) {
+      return adminPermissionOverride;
+    }
+    // Existing tests grant Run and Admin together through the run override.
     if (runPermissionOverride != null) {
       return runPermissionOverride;
     }

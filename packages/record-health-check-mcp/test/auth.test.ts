@@ -46,6 +46,48 @@ describe("JWT verifier", () => {
     );
   });
 
+  it("reads scopes from the scp claim issued by Okta and Entra ID", async () => {
+    const verifier = new JwtTokenVerifier(
+      testConfig({
+        authIssuer: "https://issuer.example.test",
+        authAudience: "audience",
+        authJwksUrl: new URL("https://issuer.example.test/jwks")
+      })
+    );
+    const claims = { sub: "client", exp: 2_000_000_000 };
+
+    jwtVerify.mockResolvedValue({
+      payload: { ...claims, scp: ["rhc.run", "extra"] }
+    });
+    await expect(verifier.verifyAccessToken("array")).resolves.toMatchObject({
+      scopes: ["rhc.run", "extra"]
+    });
+
+    jwtVerify.mockResolvedValue({
+      payload: { ...claims, scp: "rhc.run extra" }
+    });
+    await expect(verifier.verifyAccessToken("string")).resolves.toMatchObject({
+      scopes: ["rhc.run", "extra"]
+    });
+
+    jwtVerify.mockResolvedValue({
+      payload: { ...claims, scope: "rhc.run", scp: ["rhc.run", "extra"] }
+    });
+    await expect(verifier.verifyAccessToken("both")).resolves.toMatchObject({
+      scopes: ["rhc.run", "extra"]
+    });
+
+    jwtVerify.mockResolvedValue({
+      payload: { ...claims, scp: [42, { scope: "rhc.run" }, ""] }
+    });
+    await expect(
+      verifyBearerToken("Bearer malformed", {
+        verifier,
+        requiredScopes: ["rhc.run"]
+      })
+    ).rejects.toMatchObject({ code: "insufficient_scope" });
+  });
+
   it("rejects incomplete, insecure, and claim-deficient configurations", async () => {
     expect(() => new JwtTokenVerifier(testConfig())).toThrow("incomplete");
     expect(

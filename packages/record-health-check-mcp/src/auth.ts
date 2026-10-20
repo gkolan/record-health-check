@@ -41,10 +41,16 @@ export class JwtTokenVerifier implements OAuthTokenVerifier {
           "The access token is invalid."
         );
       }
-      const scopes =
-        typeof payload.scope === "string"
-          ? payload.scope.split(/\s+/).filter(Boolean)
-          : [];
+      // RFC 9068 uses a "scope" string; Okta and Entra ID issue "scp" as a string or array.
+      const scopes = [
+        ...new Set(
+          [payload.scope, payload.scp]
+            .flat()
+            .filter((value): value is string => typeof value === "string")
+            .flatMap((value) => value.split(/\s+/))
+            .filter(Boolean)
+        )
+      ];
       return {
         token,
         clientId: payload.client_id?.toString() ?? payload.sub,

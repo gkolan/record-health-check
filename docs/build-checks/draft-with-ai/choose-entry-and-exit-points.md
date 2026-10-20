@@ -33,9 +33,8 @@ Check Set, mode, and record scope. It is not ordinary result history and is not 
 | `RecordHealthCheckBatch`     | One Check Set over a bounded known population, split across transactions                         | `AsyncApexJob` ID when accepted                                                       | The packaged Batch can publish events. A custom Batch can save returned results during `execute`; otherwise the outcomes are transient.                         |
 | `RecordHealthCheckScheduled` | One Check Set and a fixed record-ID population captured when scheduled; later delegates to Batch | `CronTrigger` schedule ID                                                             | Follow the later Batch job and its configured event or subscriber-owned persistence path. Newly qualifying records are not discovered automatically.            |
 
-Use a Check Set rather than a single Check whenever sibling prerequisites or the complete assessment
-matter. Single-Check Lightning, Flow, and Apex calls do not enforce the selected Check's sibling
-prerequisite.
+Use a Check Set rather than a single Check whenever the complete assessment matters. A single-Check
+Lightning, Flow, or Apex call still runs the selected Check's prerequisite chain first.
 
 The card, Flow, and Apex paths all apply the effective running user's sharing and object, field, and
 record access. Moving work to Queueable, Batch, or Scheduled Apex does not elevate access. Test with
