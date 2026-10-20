@@ -137,6 +137,24 @@ test("rejects a missing or extra baseline result", () => {
       }),
     /baseline result count/
   );
+  assert.throws(
+    () =>
+      assertUrlStoryEvidence(matrix, {
+        ...evidence,
+        baseline: [...evidence.baseline, evidence.baseline[0]]
+      }),
+    /baseline result count/
+  );
+});
+
+test("rejects a duplicated candidate result even when the count matches", () => {
+  const baseline = structuredClone(evidence.baseline);
+  baseline[1] = { ...baseline[0] };
+  assert.equal(baseline.length, evidence.baseline.length);
+  assert.throws(
+    () => assertUrlStoryEvidence(matrix, { ...evidence, baseline }),
+    /duplicate baseline result RHC Link Healthy/
+  );
 });
 
 test("rejects flattened structured groups", () => {

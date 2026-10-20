@@ -9,7 +9,8 @@ import {
   assertBrowserReport,
   browserEvidenceHtml,
   browserEvidencePaths,
-  redactBrowserEvidence
+  redactBrowserEvidence,
+  redactBrowserEvidenceDirectory
 } from "../lib/browser-evidence.mjs";
 
 const { values } = parseArgs({
@@ -120,6 +121,7 @@ for (const browser of ["chromium", "firefox"]) {
     );
     fs.mkdirSync(evidence.output, { recursive: true });
     fs.mkdirSync(evidence.html, { recursive: true });
+    redactBrowserEvidenceDirectory(evidence.output, environment);
     fs.writeFileSync(evidence.json, sanitized);
     fs.writeFileSync(
       path.join(evidence.html, "index.html"),

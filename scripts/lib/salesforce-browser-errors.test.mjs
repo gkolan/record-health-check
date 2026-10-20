@@ -52,3 +52,41 @@ test("rejects component or non-Firefox errors", () => {
     false
   );
 });
+
+test("rejects each single departure from the known shell-error shape", () => {
+  const variants = {
+    "primary alone": [primary],
+    "no errors": [],
+    "stackless primary": [{ ...primary, stack: undefined }, duplicate],
+    "primary outside _getServerData": [
+      { ...primary, stack: primary.stack.replace("_getServerData", "render") },
+      duplicate
+    ],
+    "framework asset instead of apppart shard": [
+      {
+        ...primary,
+        stack: primary.stack.replace("apppart2-4.js", "aura_prod.js")
+      },
+      duplicate
+    ],
+    "different primary message": [
+      { ...primary, message: "TypeError: x is undefined" },
+      duplicate
+    ],
+    "duplicate carrying its own stack": [
+      primary,
+      { ...duplicate, stack: `${duplicate.stack}at c/recordHealthCheck.js:1:1` }
+    ],
+    "duplicate with another error name": [
+      primary,
+      { ...duplicate, name: "TypeError" }
+    ]
+  };
+  for (const [label, errors] of Object.entries(variants)) {
+    assert.equal(
+      isKnownFirefoxBuilderShellErrors("firefox", errors),
+      false,
+      label
+    );
+  }
+});

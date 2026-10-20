@@ -22,6 +22,24 @@ async function expectAutomaticRunCompleted(page) {
   await expect(automaticCard.locator(".slds-spinner_container")).toHaveCount(0);
 }
 
+/**
+ * Counts page-load Check evaluations in one finished Aura request. Generic Aura
+ * traffic and user-initiated runs are not evidence that a save refreshed cards.
+ */
+export function refreshedCheckActionCount(request) {
+  if (request.method() !== "POST" || !request.url().includes("/aura")) return 0;
+  const message = new URLSearchParams(request.postData() ?? "").get("message");
+  if (!message) return 0;
+  return (JSON.parse(message).actions ?? []).filter((action) => {
+    const params = action.params?.params ?? action.params;
+    return (
+      (action.descriptor?.endsWith("/ACTION$evaluateCheckJson") ||
+        action.params?.method === "evaluateCheckJson") &&
+      params?.source === "RUN_ON_LOAD"
+    );
+  }).length;
+}
+
 export async function exerciseRefreshAndNavigation(page) {
   const secondAccountId = process.env.RHC_SECOND_ACCOUNT_ID;
   const secondAccountName = process.env.RHC_SECOND_ACCOUNT_NAME;
@@ -40,21 +58,7 @@ export async function exerciseRefreshAndNavigation(page) {
   };
   page.on("request", countAuraRequest);
   const countRefreshedChecks = (request) => {
-    if (request.method() !== "POST" || !request.url().includes("/aura")) return;
-    const message = new URLSearchParams(request.postData() ?? "").get(
-      "message"
-    );
-    if (!message) return;
-    for (const action of JSON.parse(message).actions ?? []) {
-      const params = action.params?.params ?? action.params;
-      if (
-        (action.descriptor?.endsWith("/ACTION$evaluateCheckJson") ||
-          action.params?.method === "evaluateCheckJson") &&
-        params?.source === "RUN_ON_LOAD"
-      ) {
-        refreshedCheckResponses += 1;
-      }
-    }
+    refreshedCheckResponses += refreshedCheckActionCount(request);
   };
   page.on("requestfinished", countRefreshedChecks);
 

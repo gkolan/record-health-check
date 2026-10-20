@@ -206,16 +206,72 @@ private class RecordHealthCheckDefinitionLoaderTest {
           expected.reasonCode,
           'Every incompatible Manual presentation must retain INVALID_CONFIG.'
         );
-        Assert.isTrue(
-          expected.getMessage()
-            .startsWith(
-              buttonDisplay == 'HIDE'
-                ? 'Run Button Display'
-                : 'Card Heading Display'
-            ),
+        Assert.areEqual(
+          buttonDisplay == 'HIDE'
+            ? 'Run Button Display cannot be Hide when checks run only after a user clicks Run. Use a visible Run Button Display or run checks when the page opens.'
+            : 'Card Heading Display cannot be Hide when checks run only after a user clicks Run. Show the heading or run checks when the page opens.',
+          expected.getMessage(),
           'The definition boundary must preserve first-failure precedence.'
         );
       }
+    }
+  }
+
+  @IsTest
+  static void acceptsEveryReachableHeadingAndRunModeAtDefinitionBoundary() {
+    Id accountId = RecordHealthCheckTestDataFactory.syntheticId(
+      Account.SObjectType,
+      1
+    );
+    List<List<String>> accepted = new List<List<String>>();
+    for (
+      String buttonDisplay : new List<String>{
+        'LABEL_AND_ICON',
+        'LABEL_ONLY',
+        'ICON_ONLY',
+        'HIDE'
+      }
+    ) {
+      accepted.add(new List<String>{ 'RUN_ON_LOAD', 'HIDE', buttonDisplay });
+    }
+    for (
+      String heading : new List<String>{ 'TITLE_AND_SUBTITLE', 'TITLE_ONLY' }
+    ) {
+      accepted.add(
+        new List<String>{ 'RUN_ON_REQUEST', heading, 'LABEL_AND_ICON' }
+      );
+    }
+
+    for (List<String> combination : accepted) {
+      Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
+        new Map<String, Object>{
+          'IsActive__c' => true,
+          'ObjectApiName__c' => 'Account',
+          'PassedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+          'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
+          'CardRunMode__c' => combination[0],
+          'CardHeadingDisplay__c' => combination[1],
+          'RunButtonDisplay__c' => combination[2],
+          'CardRevealMode__c' => 'ALL_AT_ONCE',
+          'CardTitle__c' => 'Reachable card',
+          'FoundExpectedDisplay__c' => 'ON_DEMAND'
+        }
+      );
+      String rejection;
+      try {
+        RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
+          checkSet,
+          'Reachable_Card',
+          accountId
+        );
+      } catch (RecordHealthCheckConfigService.ConfigException ex) {
+        rejection = ex.getMessage();
+      }
+      Assert.isNull(
+        rejection,
+        String.join(combination, '/') +
+        ' must stay valid; the hidden-Manual negatives differ from it in one setting.'
+      );
     }
   }
 

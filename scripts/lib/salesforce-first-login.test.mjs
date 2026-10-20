@@ -197,3 +197,41 @@ test("retries a maintenance frame that detaches during redirect", async () => {
   await completeScratchUserFirstLogin(page, credentials, options);
   assert.equal(page.clicks(), 0);
 });
+
+test("leaves pages alone when no maintenance notice is visible", async () => {
+  const page = fakePage([{ url: home, visible: false }]);
+  let acknowledged = 0;
+  page.frames = () => [
+    {
+      isDetached: () => false,
+      getByText: () => ({ isVisible: async () => false }),
+      getByRole: () => ({
+        click: async () => {
+          acknowledged++;
+        }
+      })
+    }
+  ];
+  await completeScratchUserFirstLogin(page, credentials, options);
+  assert.equal(acknowledged, 0);
+  assert.equal(page.clicks(), 0);
+});
+
+test("a frame error other than a redirect detach still fails setup", async () => {
+  const page = fakePage([{ url: home, visible: false }]);
+  page.frames = () => [
+    {
+      isDetached: () => false,
+      getByText: () => ({
+        isVisible: async () => {
+          throw new Error("Target page crashed");
+        }
+      })
+    }
+  ];
+  await assert.rejects(
+    completeScratchUserFirstLogin(page, credentials, options),
+    /Target page crashed/
+  );
+  assert.equal(page.clicks(), 0);
+});

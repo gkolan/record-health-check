@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
@@ -120,4 +121,14 @@ test("the exhaustive Check Set launcher covers the complete integration inventor
     /FROM Record_Health_Check_Set__mdt\s+ORDER BY DeveloperName\s+LIMIT 50\s+OFFSET :batchOffset/,
     "the Check Set harness must query the complete unfiltered metadata inventory"
   );
+});
+
+test("verdict capture indexes one smoke row per Check and rejects duplicates", () => {
+  const run = spawnSync(
+    "python3",
+    ["-I", "scripts/release/capture_query_verdicts.py", "--self-test"],
+    { cwd: root, encoding: "utf8" }
+  );
+  assert.equal(run.status, 0, run.stderr || run.stdout);
+  assert.match(run.stdout, /self-test passed/);
 });

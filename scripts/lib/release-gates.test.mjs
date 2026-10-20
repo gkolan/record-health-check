@@ -74,3 +74,11 @@ test("CI gate mode is propagated to child commands", () => {
     PATH: "/tools"
   });
 });
+
+test("CI runs the single gate declaration, not a second remembered list", () => {
+  const workflow = fs.readFileSync(".github/workflows/ci.yml", "utf8");
+  const npmRuns = [...workflow.matchAll(/npm run (\S+)/g)].map(
+    (match) => match[1]
+  );
+  assert.deepEqual(npmRuns, ["ci:gates"]);
+});

@@ -637,7 +637,12 @@ describe("c-record-health-check — load and error states", () => {
         .querySelector(".rhc-body")
         .classList.contains("rhc-body--bare-top")
     ).toBe(true);
-    expect(evaluateCheck).toHaveBeenCalled();
+    // Recovery runs each corrected Check exactly once.
+    expect(
+      evaluateCheck.mock.calls
+        .map(([request]) => request.checkQualifiedApiName)
+        .sort()
+    ).toEqual(["Check_A", "Check_B"]);
   });
 
   it("does not add bare-top spacing above a setup error heading", async () => {
@@ -6653,6 +6658,47 @@ describe("c-record-health-check — defensive UI permutations", () => {
         .textContent
     ).toContain("invalid health-check definition response");
   });
+
+  it.each([
+    ["malformed", true, true],
+    ["malformed", false, false],
+    ["malformed", undefined, false],
+    ["malformed", "true", false],
+    ["over-limit", true, true],
+    ["over-limit", false, false],
+    ["over-limit", undefined, false],
+    ["over-limit", "true", false]
+  ])(
+    "shows client-rejected %s definition detail only when entitlement is exactly %p",
+    async (shape, canViewDetails, showsDetail) => {
+      const response =
+        shape === "malformed"
+          ? { canViewDetails }
+          : makeDefinitions({
+              canViewDetails,
+              checksOmittedByLimit: true,
+              totalAvailableCheckCount: 40
+            });
+      getCheckDefinitions.mockResolvedValue(response);
+      await appendAndLoad(element);
+
+      const technical = element.shadowRoot.querySelector(
+        ".rhc-error-banner__technical"
+      );
+      expect(
+        element.shadowRoot.querySelector(".rhc-error-banner")
+      ).not.toBeNull();
+      expect(Boolean(technical)).toBe(showsDetail);
+      expect(
+        element.shadowRoot.textContent.includes(
+          shape === "malformed"
+            ? "invalid health-check definition response"
+            : "FRAMEWORK_MAX_CHECKS_EXCEEDED"
+        )
+      ).toBe(showsDetail);
+      expect(evaluateCheck).not.toHaveBeenCalled();
+    }
+  );
 
   it("shows a retriable system error when Check Set availability lookup fails", async () => {
     element.checkSetName = "";

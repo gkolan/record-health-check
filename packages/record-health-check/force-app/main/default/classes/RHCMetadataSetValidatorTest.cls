@@ -287,6 +287,34 @@ private class RHCMetadataSetValidatorTest {
     );
   }
 
+  @IsTest
+  static void doesNotWarnWhenUserRunPublicationIsReachable() {
+    Record_Health_Check_Set__mdt manual = validCheckSet();
+    manual.PublishUserRunEvent__c = true;
+    Record_Health_Check_Set__mdt automaticWithVisibleAction = validCheckSet();
+    automaticWithVisibleAction.CardRunMode__c = 'RUN_ON_LOAD';
+    automaticWithVisibleAction.PublishUserRunEvent__c = true;
+    Record_Health_Check_Set__mdt hiddenWithoutPublication = validCheckSet();
+    hiddenWithoutPublication.CardRunMode__c = 'RUN_ON_LOAD';
+    hiddenWithoutPublication.CardHeadingDisplay__c = 'HIDE';
+    hiddenWithoutPublication.RunButtonDisplay__c = 'HIDE';
+    hiddenWithoutPublication.PublishUserRunEvent__c = false;
+
+    for (
+      Record_Health_Check_Set__mdt checkSet : new List<Record_Health_Check_Set__mdt>{
+        manual,
+        automaticWithVisibleAction,
+        hiddenWithoutPublication
+      }
+    ) {
+      Assert.areEqual(
+        0,
+        RecordHealthCheckMetadataSetValidator.validate(checkSet).size(),
+        'Only a hidden in-card action with publication enabled is unreachable.'
+      );
+    }
+  }
+
   private static Record_Health_Check_Set__mdt validCheckSet() {
     return RecordHealthCheckTestDataFactory.checkSet(
       new Map<String, Object>{

@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 
 // Browser login URLs and generated scratch-user passwords must never enter
@@ -30,6 +31,18 @@ export function redactBrowserEvidence(text, environment) {
   for (const secret of secrets)
     redacted = redacted.split(secret).join("[REDACTED]");
   return redacted.replace(/([?&](?:sid|lm)=)[^&\s"'<>\\]+/gi, "$1[REDACTED]");
+}
+
+/** Redacts Playwright failure-context Markdown retained under `directory`. */
+export function redactBrowserEvidenceDirectory(directory, environment) {
+  for (const file of fs.readdirSync(directory, { recursive: true })) {
+    if (!file.endsWith(".md")) continue;
+    const context = path.join(directory, file);
+    fs.writeFileSync(
+      context,
+      redactBrowserEvidence(fs.readFileSync(context, "utf8"), environment)
+    );
+  }
 }
 
 export function browserEvidenceHtml(redactedJson) {

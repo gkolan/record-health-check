@@ -308,6 +308,11 @@ named guard, evidence required to verify it, and any limitation. Update the owni
 when the rule belongs there, and link it here. Do not substitute a new paragraph for a missing
 behavioral regression test.
 
+Register each lesson's positive guard (correct behavior passes) and negative guard (the recurrence
+fails) in `scripts/lib/agent-lessons-coverage.test.mjs`. `test:scripts` fails when a lesson lacks
+either polarity or a named guard is renamed, removed or left out of the commit. Apex entries pin
+presence only; executing them still requires an authorized org.
+
 ## Related
 
 - [Regression testing standard](./regression-testing-standard.md)

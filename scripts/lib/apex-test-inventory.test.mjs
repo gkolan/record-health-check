@@ -243,3 +243,74 @@ test("rejects Salesforce CLI transport failures and every nonzero exit", () => {
     /failed with status 1/
   );
 });
+
+test("fails when the org runs a test class that source no longer contains", () => {
+  assert.throws(
+    () =>
+      verifyApexTestResult([{ className: "OneTest", file: "OneTest.cls" }], {
+        summary: { outcome: "Passed", failing: 0, testsRan: 2 },
+        tests: [
+          { Outcome: "Pass", ApexClass: { Name: "OneTest" } },
+          { Outcome: "Pass", ApexClass: { Name: "RemovedFromSourceTest" } }
+        ]
+      }),
+    /Unexpected test classes: RemovedFromSourceTest/
+  );
+});
+
+test("each failure signal rejects the run on its own", () => {
+  const inventory = [{ className: "OneTest", file: "OneTest.cls" }];
+  const pass = { Outcome: "Pass", ApexClass: { Name: "OneTest" } };
+  const passing = { outcome: "Passed", failing: 0, testsRan: 1 };
+  for (const [label, result] of [
+    [
+      "summary outcome",
+      { summary: { ...passing, outcome: "Failed" }, tests: [pass] }
+    ],
+    [
+      "summary failing count",
+      { summary: { ...passing, failing: 1 }, tests: [pass] }
+    ],
+    [
+      "compile failure row",
+      { summary: passing, tests: [{ ...pass, Outcome: "CompileFail" }] }
+    ]
+  ]) {
+    assert.throws(
+      () => verifyApexTestResult(inventory, result),
+      /did not pass/,
+      label
+    );
+  }
+  assert.throws(
+    () => verifyApexTestResult(inventory, { tests: [pass] }),
+    /missing summary or tests/
+  );
+});
+
+test("a declared TestSetup method missing from Salesforce's count fails", () => {
+  assert.throws(
+    () =>
+      verifyApexTestResult(
+        [
+          { className: "OneTest", file: "OneTest.cls", testSetupMethodCount: 1 }
+        ],
+        {
+          summary: { outcome: "Passed", failing: 0, testsRan: 1 },
+          tests: [{ Outcome: "Pass", ApexClass: { Name: "OneTest" } }]
+        }
+      ),
+    /reports 1 methods but contains 1 test results and the inventory declares 1 TestSetup/
+  );
+});
+
+test("accepts a clean zero exit and returns the verified result unchanged", () => {
+  const verified = { outcome: "Passed", executedClassCount: 1 };
+  assert.equal(
+    verifyApexCommandExecution(
+      { status: 0, error: undefined, signal: null },
+      verified
+    ),
+    verified
+  );
+});

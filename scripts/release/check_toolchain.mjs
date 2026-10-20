@@ -3,6 +3,7 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { toolchainWorkflowErrors } from "../lib/toolchain-policy.mjs";
 
 const root = resolve(import.meta.dirname, "../..");
 const policy = JSON.parse(
@@ -16,35 +17,23 @@ function fail(message) {
   process.exitCode = 1;
 }
 
-for (const workflow of [
+const workflowPaths = [
   ".github/workflows/ci.yml",
   ".github/workflows/salesforce-validate.yml",
   ".github/workflows/subscriber-validate.yml"
-]) {
-  const source = readFileSync(resolve(root, workflow), "utf8");
-  const expected = `@salesforce/cli@${policy.salesforceCli}`;
-  if (!source.includes(expected)) {
-    fail(`${workflow} must install ${expected}.`);
-  }
-  if (!source.includes(`node-version: ${policy.nodeMajor}`)) {
-    fail(`${workflow} must use Node.js ${policy.nodeMajor}.`);
-  }
+];
+const workflows = Object.fromEntries(
+  workflowPaths.map((workflow) => [
+    workflow,
+    readFileSync(resolve(root, workflow), "utf8")
+  ])
+);
+for (const error of toolchainWorkflowErrors(policy, workflows)) {
+  fail(error);
 }
 
-const releaseWorkflow = readFileSync(
-  resolve(root, ".github/workflows/salesforce-validate.yml"),
-  "utf8"
-);
-const subscriberWorkflow = readFileSync(
-  resolve(root, ".github/workflows/subscriber-validate.yml"),
-  "utf8"
-);
-if (!releaseWorkflow.includes(`code-analyzer@${policy.codeAnalyzerPlugin}`)) {
-  fail(
-    `.github/workflows/salesforce-validate.yml must install code-analyzer@${policy.codeAnalyzerPlugin}.`
-  );
-}
-
+const subscriberWorkflow =
+  workflows[".github/workflows/subscriber-validate.yml"];
 if (
   !subscriberWorkflow.includes("required: true") ||
   !subscriberWorkflow.includes("config/release-runtime-matrix.json")

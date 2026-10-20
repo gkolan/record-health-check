@@ -140,6 +140,55 @@ def query_smoke_results(target_org: str, namespace: str) -> list[dict[str, objec
     return response["result"]["records"]
 
 
+def index_smoke_rows(
+    rows: list[dict[str, object]], namespace: str
+) -> dict[str, dict[str, object]]:
+    """Index smoke rows by unprefixed Check name, rejecting any repeated name."""
+    prefix = f"{namespace}__" if namespace else ""
+    smoke_by_check: dict[str, dict[str, object]] = {}
+    for row in rows:
+        check_name = str(row[f"{prefix}CheckName__c"]).split("__", 1)[-1]
+        if check_name in smoke_by_check:
+            raise SystemExit(
+                f"Duplicate exhaustive-smoke results for Check {check_name}; "
+                "a verdict must come from exactly one row."
+            )
+        payload: dict[str, object] = {"name": check_name}
+        for key, field in (
+            ("status", "Status__c"),
+            ("reasonCode", "ReasonCode__c"),
+            ("threw", "Threw__c"),
+            ("exceptionType", "ExceptionType__c"),
+        ):
+            payload[key] = row.get(f"{prefix}{field}")
+        smoke_by_check[check_name] = payload
+    return smoke_by_check
+
+
+def self_test() -> int:
+    def row(name: str, status: str) -> dict[str, object]:
+        return {"rhc__CheckName__c": name, "rhc__Status__c": status}
+
+    indexed = index_smoke_rows(
+        [row("rhc__Alpha", "PASS"), row("rhc__Beta", "FAIL")], "rhc"
+    )
+    assert indexed["Alpha"]["status"] == "PASS", indexed
+    assert indexed["Beta"]["status"] == "FAIL", indexed
+
+    for label, rows in (
+        ("exact duplicate", [row("rhc__Alpha", "PASS"), row("rhc__Alpha", "FAIL")]),
+        ("prefix collision", [row("rhc__Alpha", "PASS"), row("Alpha", "FAIL")]),
+    ):
+        try:
+            index_smoke_rows(rows, "rhc")
+        except SystemExit as error:
+            assert "Alpha" in str(error), (label, error)
+        else:
+            raise AssertionError(f"{label}: duplicate smoke result was accepted")
+    print("capture_query_verdicts self-test passed")
+    return 0
+
+
 def normalized_result(payload: dict[str, object]) -> dict[str, object]:
     result: dict[str, object] = {"check": payload["name"]}
     for key in ("status", "reasonCode", "threw", "exceptionType"):
@@ -149,6 +198,8 @@ def normalized_result(payload: dict[str, object]) -> dict[str, object]:
 
 
 def main() -> int:
+    if sys.argv[1:] == ["--self-test"]:
+        return self_test()
     args = parse_args()
     if args.refresh_results:
         refresh_smoke_results(args.target_org)
@@ -164,20 +215,9 @@ def main() -> int:
     for item in inventory:
         fields_by_check.setdefault(item["check"], set()).add(item["field"])
 
-    smoke_by_check: dict[str, dict[str, object]] = {}
-    prefix = f"{args.namespace}__" if args.namespace else ""
-    smoke_rows = query_smoke_results(args.target_org, args.namespace)
-    for row in smoke_rows:
-        check_name = str(row[f"{prefix}CheckName__c"]).split("__", 1)[-1]
-        payload: dict[str, object] = {"name": check_name}
-        for key, field in (
-            ("status", "Status__c"),
-            ("reasonCode", "ReasonCode__c"),
-            ("threw", "Threw__c"),
-            ("exceptionType", "ExceptionType__c"),
-        ):
-            payload[key] = row.get(f"{prefix}{field}")
-        smoke_by_check[check_name] = payload
+    smoke_by_check = index_smoke_rows(
+        query_smoke_results(args.target_org, args.namespace), args.namespace
+    )
 
     expected_checks = set(fields_by_check)
     missing = sorted(expected_checks - set(smoke_by_check))

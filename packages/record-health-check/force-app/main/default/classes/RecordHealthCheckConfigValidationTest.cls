@@ -26,7 +26,8 @@ private class RecordHealthCheckConfigValidationTest {
       service,
       invalidObject,
       accountRecord.Id,
-      RecordHealthCheckConfigService.RC_INVALID_CONFIG
+      RecordHealthCheckConfigService.RC_INVALID_CONFIG,
+      'Record Object API Name "Missing__c" on Check Set "Invalid_Object" is not valid.'
     );
 
     Record_Health_Check__mdt check = baseCheck('Missing_Basics', 'FORMULA');
@@ -200,9 +201,45 @@ private class RecordHealthCheckConfigValidationTest {
     Test.stopTest();
   }
   @IsTest
+  static void checkSetValidationAcceptsTheUnchangedBaseline() {
+    Account record = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+
+    String rejection;
+    Test.startTest();
+    try {
+      RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
+        validSet('Baseline', true),
+        'Baseline',
+        record.Id
+      );
+    } catch (RecordHealthCheckConfigService.ConfigException ex) {
+      rejection = ex.getMessage();
+    }
+    Test.stopTest();
+
+    Assert.isNull(
+      rejection,
+      'Every invalid-setting case changes only one field of this accepted baseline.'
+    );
+  }
+
+  @IsTest
   static void checkSetValidationRejectsEveryInvalidSetting() {
     RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
     Account record = RecordHealthCheckTestDataFactory.healthyAccountFixture();
+    Map<String, String> expectedMessages = new Map<String, String>{
+      'Inactive' => 'Check Set "Inactive" is inactive.',
+      'Blank_Object' => 'Check Set "Blank_Object" is missing its Record Object API Name.',
+      'Passed_Display' => 'Passed Checks Display "INVALID" is not recognized.',
+      'Skipped_Display' => 'Skipped Checks Display "INVALID" is not recognized.',
+      'Run_Mode' => 'When Checks Run "INVALID" is not recognized.',
+      'Reveal_Mode' => 'Reveal Mode "INVALID" is not recognized.',
+      'Run_Button_Display' => 'Run Button Display "INVALID" is not recognized.',
+      'Manual_Hide' => 'Run Button Display cannot be Hide when checks run only after a user clicks Run.',
+      'Manual_Hidden_Heading' => 'Card Heading Display cannot be Hide when checks run only after a user clicks Run.',
+      'Blank_Title' => 'Card Title is required on Check Set "Blank_Title".',
+      'Blank_Found_Expected' => 'Found/Expected Display "null" is not recognized.'
+    };
     List<Record_Health_Check_Set__mdt> invalidSets = new List<Record_Health_Check_Set__mdt>{
       validSet('Inactive', false),
       validSet('Blank_Object', true),
@@ -212,7 +249,9 @@ private class RecordHealthCheckConfigValidationTest {
       validSet('Reveal_Mode', true),
       validSet('Run_Button_Display', true),
       validSet('Manual_Hide', true),
-      validSet('Manual_Hidden_Heading', true)
+      validSet('Manual_Hidden_Heading', true),
+      validSet('Blank_Title', true),
+      validSet('Blank_Found_Expected', true)
     };
     invalidSets[1].ObjectApiName__c = null;
     invalidSets[2].PassedChecksDisplay__c = 'INVALID';
@@ -222,6 +261,8 @@ private class RecordHealthCheckConfigValidationTest {
     invalidSets[6].RunButtonDisplay__c = 'INVALID';
     invalidSets[7].RunButtonDisplay__c = 'HIDE';
     invalidSets[8].CardHeadingDisplay__c = 'HIDE';
+    invalidSets[9].CardTitle__c = null;
+    invalidSets[10].FoundExpectedDisplay__c = null;
 
     Test.startTest();
     for (Record_Health_Check_Set__mdt checkSet : invalidSets) {
@@ -231,10 +272,34 @@ private class RecordHealthCheckConfigValidationTest {
         record.Id,
         checkSet.DeveloperName == 'Inactive'
           ? RecordHealthCheckConfigService.RC_CONFIG_INACTIVE
-          : RecordHealthCheckConfigService.RC_INVALID_CONFIG
+          : RecordHealthCheckConfigService.RC_INVALID_CONFIG,
+        expectedMessages.get(checkSet.DeveloperName)
       );
     }
     Test.stopTest();
+  }
+
+  @IsTest
+  static void checkValidationAcceptsEachUnchangedBaselineCheck() {
+    RecordHealthCheckConfigService service = new RecordHealthCheckConfigService();
+
+    Test.startTest();
+    RecordHealthCheckInternalResult formula = service.validateCheckForEvaluation(
+      baseCheck('Formula_Baseline', 'FORMULA')
+    );
+    RecordHealthCheckInternalResult query = service.validateCheckForEvaluation(
+      queryCheck('Query_Baseline')
+    );
+    Test.stopTest();
+
+    Assert.isNull(
+      formula,
+      'The Formula baseline must be valid so each derived negative proves one setting.'
+    );
+    Assert.isNull(
+      query,
+      'The Query baseline must be valid so each derived negative proves one setting.'
+    );
   }
 
   @IsTest
@@ -291,7 +356,8 @@ private class RecordHealthCheckConfigValidationTest {
         'SkippedChecksDisplay__c' => 'SHOW_EACH_CHECK',
         'CardRunMode__c' => 'RUN_ON_REQUEST',
         'CardRevealMode__c' => 'ALL_AT_ONCE',
-        'CardTitle__c' => developerName
+        'CardTitle__c' => developerName,
+        'FoundExpectedDisplay__c' => 'ON_DEMAND'
       }
     );
   }
@@ -300,7 +366,8 @@ private class RecordHealthCheckConfigValidationTest {
     RecordHealthCheckConfigService service,
     Record_Health_Check_Set__mdt checkSet,
     Id recordId,
-    String reasonCode
+    String reasonCode,
+    String expectedMessagePrefix
   ) {
     try {
       RecordHealthCheckDefinitionLoader.validateCheckSetForDefinition(
@@ -308,12 +375,18 @@ private class RecordHealthCheckConfigValidationTest {
         checkSet.DeveloperName,
         recordId
       );
-      Assert.isTrue(false, 'Expected a config exception.');
+      Assert.fail('Expected a config exception for ' + checkSet.DeveloperName);
     } catch (RecordHealthCheckConfigService.ConfigException ex) {
       Assert.areEqual(
         reasonCode,
         ex.reasonCode,
         'Definition loading must retain the expected Check Set configuration reason.'
+      );
+      Assert.isTrue(
+        ex.getMessage().startsWith(expectedMessagePrefix),
+        checkSet.DeveloperName +
+          ' must be rejected for its own setting; got: ' +
+          ex.getMessage()
       );
     }
   }
