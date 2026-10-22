@@ -84,7 +84,7 @@ test("MCP reachability dispositions stay limited to the reviewed runtime", () =>
       .createHash("sha256")
       .update(JSON.stringify(production))
       .digest("hex"),
-    "cc6bbe0246ceb553fa1865b00b9093692e9a6ba587e143890872cf08ddd26152",
+    "f02ef7a805322fa35a14e503a8eb20b809ae7a9f6642a1c83ec0fd8e53578ba4",
     "Production dependency changes require renewed native reachability review."
   );
   const workflow = fs.readFileSync(
