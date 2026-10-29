@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "generatedFrom": "packages/record-health-check/force-app/main/default/classes/*Test.cls",
   "summary": {
-    "classes": 130,
+    "classes": 131,
     "persistedCallSites": 0,
     "userCallSites": 0,
-    "safeClasses": 130
+    "safeClasses": 131
   },
   "classes": [
     {
@@ -906,6 +906,14 @@
     },
     {
       "className": "RecordHealthCheckRowSafetyTest",
+      "classification": "safe",
+      "targetSteps": [],
+      "hasTestSetup": false,
+      "persistedCalls": [],
+      "userCalls": []
+    },
+    {
+      "className": "RecordHealthCheckRunAndReasonTokenTest",
       "classification": "safe",
       "targetSteps": [],
       "hasTestSetup": false,

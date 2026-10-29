@@ -111,8 +111,20 @@ was interrupted or selectively scoped, redeploy the complete bundle before runni
   Between them they use every `rhcCheck` and `rhcResult` merge token and every inline
   `format="…"` modifier, giving each one a card an administrator can read instead of only an Apex
   assertion
+- `Account_Row_Tokens_Positive`: `Account_Rows_SetAndRunTokens` fails on purpose so its message
+  names its Check Set and its run. On an Account with one Contact, the message must read
+  `completed <UTC time> in <n> ms`; `(not recorded)` there means the run was not completed before
+  the message was written
+- `RHC_Public_Reason_Code`: one Check that counts the Account's opportunities. Run the card as a
+  user who can read Account but not Opportunity. The Check reports Unable to evaluate and its
+  message must end with `(reason CANNOT_EVALUATE).`; with **Show Diagnostics** on, only a
+  Record Health Check Admin or Diagnostics Viewer sees `RECORD_NOT_ACCESSIBLE`, in the diagnostics.
+  A user who can read Opportunity passes
 - `RHC_No_Active_Checks`: an active Check Set whose two Checks are both inactive, so the card must
   report that it has no active Checks and name how many are inactive
+- `RHC_Inactive_Publication`: run publication is off and the only Check with
+  `PublishUserResultEvent__c=true` is inactive. Rerun must show one passing Check, publish nothing,
+  and skip the completion evaluation; `RecordHealthCheckControllerIT` asserts no extra queries
 - `RHC_Conformance_Record__c`, a product-neutral fixture for hierarchy, signed decimal, currency,
   null, snapshot/current, timestamp, and mixed-bulk evaluator conformance
 - `foreign-namespace/`: a separately deployed, CPQ-dependent gate that proves full `SBQQ__` field

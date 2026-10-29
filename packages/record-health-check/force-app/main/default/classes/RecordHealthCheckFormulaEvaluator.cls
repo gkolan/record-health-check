@@ -47,6 +47,21 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   }
 
   /**
+   * The run display text reads, completed first: rhcRun.completedAt and
+   * durationMs mean the Check's evaluation finished. Text resolves only after
+   * the verdict, so the first resolution stamps completion and later surfaces,
+   * on every record of the scope, read the same values.
+   */
+  public RecordHealthCheckRunContext completedRun() {
+    runContext?.complete();
+    return runContext;
+  }
+
+  private RecordHealthCheckMergeContext mergeContext() {
+    return new RecordHealthCheckMergeContext().withRun(completedRun());
+  }
+
+  /**
    * Evaluates a Formula check (EvaluationType__c = Formula).
    * Also used internally by the SOQL evaluator for:
    * - ApplicabilityFormula__c evaluation;
@@ -395,7 +410,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   public String resolveMergeFields(String template, SObject record) {
     return RecordHealthCheckTemplateService.resolveDisplay(
       template,
-      new RecordHealthCheckMergeContext().withRecord(record).withRun(runContext)
+      mergeContext().withRecord(record)
     );
   }
 
@@ -408,12 +423,11 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   ) {
     return RecordHealthCheckTemplateService.resolveDisplay(
       template,
-      new RecordHealthCheckMergeContext()
+      mergeContext()
         .withRecord(record)
         .withCheck(check)
         .withResult(result, resultFinalized)
         .withQueryRows(result?.querySourceRows, result?.queryComparisonRows)
-        .withRun(runContext)
     );
   }
 
@@ -428,12 +442,11 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
     return RecordHealthCheckDisplayComposer.compose(
       template,
       surface,
-      new RecordHealthCheckMergeContext()
+      mergeContext()
         .withRecord(record)
         .withCheck(check)
         .withResult(result, true)
         .withQueryRows(result?.querySourceRows, result?.queryComparisonRows)
-        .withRun(runContext)
     );
   }
 
@@ -446,7 +459,7 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   public String resolveUrlMergeFields(String template, SObject record) {
     return RecordHealthCheckTemplateService.resolveUrl(
       template,
-      new RecordHealthCheckMergeContext().withRecord(record).withRun(runContext)
+      mergeContext().withRecord(record)
     );
   }
 
@@ -458,12 +471,11 @@ public with sharing class RecordHealthCheckFormulaEvaluator {
   ) {
     return RecordHealthCheckTemplateService.resolveUrl(
       template,
-      new RecordHealthCheckMergeContext()
+      mergeContext()
         .withRecord(record)
         .withCheck(check)
         .withResult(result, true)
         .withQueryRows(result?.querySourceRows, result?.queryComparisonRows)
-        .withRun(runContext)
     );
   }
 

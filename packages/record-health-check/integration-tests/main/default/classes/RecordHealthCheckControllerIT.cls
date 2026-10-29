@@ -167,8 +167,9 @@ private class RecordHealthCheckControllerIT {
   static void completeRunSkipsEvaluationWhenPublicationIsOff() {
     // Packaged examples ship with every publication setting off.
     Account accountRecord = RHCIntegrationTestDataFactory.getHealthyAccount();
-    Integer queriesBefore = Limits.getQueries();
     Test.startTest();
+    // Measure here: after stopTest, Limits reports the outer context.
+    Integer queriesBefore = Limits.getQueries();
     RecordHealthCheckController.completeRun(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Relationship_Risk'
@@ -178,12 +179,59 @@ private class RecordHealthCheckControllerIT {
       accountRecord.Id,
       ' '
     );
-    Test.stopTest();
-
     Assert.areEqual(
       queriesBefore,
       Limits.getQueries(),
       'Without publication, completion must not evaluate or require browser results.'
+    );
+    Test.stopTest();
+  }
+
+  // An inactive Check never runs, so a publication flag left on it must not
+  // make every card Rerun evaluate the whole Check Set again.
+  @IsTest
+  static void inactivePublishingCheckDoesNotTriggerCompletionEvaluation() {
+    Assert.areEqual(
+      1,
+      [
+        SELECT COUNT()
+        FROM Record_Health_Check__mdt
+        WHERE
+          Record_Health_Check_Set__r.DeveloperName = 'RHC_Inactive_Publication'
+          AND PublishUserResultEvent__c = TRUE
+          AND IsActive__c = FALSE
+      ],
+      'Without an inactive publishing Check this test cannot detect the defect.'
+    );
+    String checkSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'RHC_Inactive_Publication'
+    );
+    Account accountRecord = RHCIntegrationTestDataFactory.getHealthyAccount();
+
+    Test.startTest();
+    // Custom Metadata SOQL does not count, so only an evaluation adds queries.
+    Integer queriesBefore = Limits.getQueries();
+    Boolean publicationEnabled = RecordHealthCheckLifecyclePublisher.isInteractivePublicationEnabled(
+      checkSetName
+    );
+    RecordHealthCheckController.completeRun(
+      checkSetName,
+      'inactive-publication',
+      RecordHealthCheckLifecyclePublisher.SOURCE_USER_INITIATED,
+      accountRecord.Id,
+      ' '
+    );
+    Integer completionQueries = Limits.getQueries() - queriesBefore;
+    Test.stopTest();
+
+    Assert.isFalse(
+      publicationEnabled,
+      'An inactive Check cannot enable card publication.'
+    );
+    Assert.areEqual(
+      0,
+      completionQueries,
+      'An inactive publishing Check must not trigger a completion evaluation.'
     );
   }
 

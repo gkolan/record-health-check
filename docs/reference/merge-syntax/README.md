@@ -151,6 +151,18 @@ remain text; Record Health Check never reparses them as new link markup.
 `foundValuePluralSuffix` exists so a multi-row summary can render "1 Contact" versus "2 Contacts"
 without a separate conditional.
 
+`reasonCode` is the public reason code, the same one the result reports. The diagnostics-only codes
+`FIELD_NOT_ACCESSIBLE` and `RECORD_NOT_ACCESSIBLE` therefore read `CANNOT_EVALUATE`; the specific
+code appears only in authorized diagnostics. See
+[public versus diagnostics-only codes](../results/reason-codes.md).
+
+`rhcRun` describes the Check's run. `startedAt` is when the Check started in this request.
+`completedAt` and `durationMs` record when its evaluation finished, before any text is written, so
+the messages, Fix Message, Action Label, Action URL, and Display Found and Expected Text of one
+result all read the same values. When one request evaluates several records, they share one run per
+Check, completed when the Check's first result is ready. Without a `format`, times use UTC, such as
+`2026-07-14T12:00:00.000Z`, and `durationMs` is whole milliseconds.
+
 ## Query row values
 
 A Query or Compare Two Queries Check can read the rows its own query returned:

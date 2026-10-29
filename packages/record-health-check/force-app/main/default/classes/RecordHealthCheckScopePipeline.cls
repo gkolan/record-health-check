@@ -305,11 +305,13 @@ public with sharing class RecordHealthCheckScopePipeline {
     scopeRuntime = scopeRuntime == null
       ? new RecordHealthCheckScopeRuntime(null)
       : scopeRuntime;
+    // One run per Check: evaluator text and card text read the same clock.
     RecordHealthCheckRunContext runContext = new RecordHealthCheckRunContext(
       runId,
       context.executionOrigin
     );
     resultSupport.withRunContext(runContext);
+    context.activeRunContext = runContext;
     List<Id> applicableIds = new List<Id>();
     Map<Id, RecordHealthCheckInternalResult> internalByRecordId = new Map<Id, RecordHealthCheckInternalResult>();
     Map<Id, RecordHealthCheckExecutionTrace> traces = scopeRuntime.traces(
@@ -521,6 +523,7 @@ public with sharing class RecordHealthCheckScopePipeline {
     public Boolean omitEvidence = false;
     public RecordHealthCheckResultMode resultMode;
     public Map<Id, RecordHealthCheckExecutionTrace> activeExecutionTraces;
+    public RecordHealthCheckRunContext activeRunContext;
     public List<Record_Health_Check__mdt> checks = new List<Record_Health_Check__mdt>();
     /** Null reports every Check; a single-Check request reports only that Check. */
     public Set<String> reportedCheckNames;

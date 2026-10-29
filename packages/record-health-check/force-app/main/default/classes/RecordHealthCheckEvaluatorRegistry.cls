@@ -118,13 +118,15 @@ public with sharing class RecordHealthCheckEvaluatorRegistry {
     }
   }
 
+  /** The pipeline's run for this Check, so evaluator and card text agree. */
   private static RecordHealthCheckRunContext runContext(
     String runId,
     RecordHealthCheckScopePipeline.SelectionContext context
   ) {
-    return new RecordHealthCheckRunContext(
-      runId,
-      context == null ? null : context.executionOrigin
-    );
+    return context?.activeRunContext ??
+      new RecordHealthCheckRunContext(
+        runId,
+        context == null ? null : context.executionOrigin
+      );
   }
 }

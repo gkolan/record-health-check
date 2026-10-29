@@ -127,10 +127,10 @@ in an org that installs Record Health Check cannot call it through the `rhc` nam
   enabled and `WARNING`/`USER_RESULT_PUBLICATION_UNREACHABLE` for each Check whose publication is
   enabled. Apex and Flow can still publish, so these findings are warnings rather than errors. The
   audit reads Custom Metadata and cannot detect a **Hide** override stored on a Lightning page.
-- Card publication evaluates the whole Check Set again for one record in one transaction. When any
-  Check Set or Check publication setting is on and the active Checks plan more FormulaEval calls
-  than `RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET` (95), the audit returns
-  `WARNING`/`USER_PUBLICATION_OVER_BUDGET`. At runtime `completeRun` logs
+- Card publication evaluates the whole Check Set again for one record in one transaction. When the
+  Check Set's or an active Check's publication setting is on and the active Checks plan more
+  FormulaEval calls than `RecordHealthCheckFormulaEvaluator.FORMULA_CALL_BUDGET` (95), the audit
+  returns `WARNING`/`USER_PUBLICATION_OVER_BUDGET`. At runtime `completeRun` logs
   `TRANSACTION_BUDGET_EXCEEDED` and publishes nothing; the card's results are unaffected.
 
 ### `RecordHealthCheckConfigValidator`

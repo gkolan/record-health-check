@@ -87,11 +87,6 @@ public with sharing class RecordHealthCheckCompareQuerySupport {
         comparisonDisplayFormat
       );
     }
-    RecordHealthCheckTemplateService.applyFoundExpectedText(
-      check,
-      record,
-      result
-    );
   }
 
   private static void setSingleComparisonValues(

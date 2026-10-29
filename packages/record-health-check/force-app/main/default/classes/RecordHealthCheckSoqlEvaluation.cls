@@ -229,7 +229,8 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
         record,
         result,
         failingRows,
-        totalRows
+        totalRows,
+        evaluator.formulaEvaluatorForEvaluation().completedRun()
       );
     } else {
       String rawActualValue = primaryList != null
@@ -265,7 +266,10 @@ public with sharing class RecordHealthCheckSoqlEvaluation {
       RecordHealthCheckTemplateService.applyFoundExpectedText(
         check,
         record,
-        result
+        result,
+        null,
+        null,
+        evaluator.formulaEvaluatorForEvaluation().completedRun()
       );
     }
   }

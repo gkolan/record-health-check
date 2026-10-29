@@ -151,8 +151,9 @@ private class RecordHealthCheckControllerTest {
   static void completeRunSkipsEvaluationWhenPublicationIsOff() {
     // Packaged examples ship with every publication setting off.
     Account accountRecord = RecordHealthCheckTestDataFactory.healthyAccountFixture();
-    Integer queriesBefore = Limits.getQueries();
     Test.startTest();
+    // Measure here: after stopTest, Limits reports the outer context.
+    Integer queriesBefore = Limits.getQueries();
     RecordHealthCheckController.completeRun(
       RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
         'Example_Account_Relationship_Risk'
@@ -162,13 +163,12 @@ private class RecordHealthCheckControllerTest {
       accountRecord.Id,
       ' '
     );
-    Test.stopTest();
-
     Assert.areEqual(
       queriesBefore,
       Limits.getQueries(),
       'Without publication, completion must not evaluate or require browser results.'
     );
+    Test.stopTest();
   }
 
   @IsTest

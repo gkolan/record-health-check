@@ -301,6 +301,73 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
     }
   }
 
+  /**
+   * A runtime access failure shows the public reason in the message.
+   *
+   * The user can read the Account but not Opportunity, so the Check's count
+   * query fails when it runs, after planning succeeded. Before this was fixed
+   * the Unable message resolved {!rhcResult.reasonCode} before diagnostics
+   * replaced the code, so this user read RECORD_NOT_ACCESSIBLE on the card.
+   */
+  @IsTest
+  static void shouldShowPublicReasonAfterRuntimeObjectDenial() {
+    ReasonFixture fixture = createReasonFixture('rhcpubr', false);
+
+    System.runAs(fixture.userRecord) {
+      RecordHealthCheckDescribeCache.clearForTest();
+      Test.startTest();
+      RecordHealthCheckResponse response = evaluateReasonSet(fixture);
+      Test.stopTest();
+
+      RecordHealthCheckResultItem item = onlyReasonItem(response);
+      Assert.areEqual(
+        'Opportunities could not be counted (reason CANNOT_EVALUATE).',
+        item.display.renderedMessage,
+        'The message must read the public reason code.'
+      );
+      Assert.isNull(
+        item.display.adminDetail,
+        'The User persona must not receive diagnostics.'
+      );
+      Assert.isFalse(
+        JSON.serialize(response).contains('RECORD_NOT_ACCESSIBLE'),
+        'The restricted code must not appear anywhere in the response.'
+      );
+    }
+  }
+
+  /**
+   * An authorized viewer reads the specific code in diagnostics only; the
+   * message stays the public text every viewer receives.
+   */
+  @IsTest
+  static void shouldKeepRuntimeObjectDenialInAuthorizedDiagnostics() {
+    ReasonFixture fixture = createReasonFixture('rhcpubd', true);
+
+    System.runAs(fixture.userRecord) {
+      RecordHealthCheckDescribeCache.clearForTest();
+      Test.startTest();
+      RecordHealthCheckResponse response = evaluateReasonSet(fixture);
+      Test.stopTest();
+
+      RecordHealthCheckResultItem item = onlyReasonItem(response);
+      Assert.areEqual(
+        'Opportunities could not be counted (reason CANNOT_EVALUATE).',
+        item.display.renderedMessage,
+        'The message is public text, even for an authorized viewer.'
+      );
+      Assert.isNotNull(
+        item.display.adminDetail,
+        'The Diagnostics Viewer may receive opted-in diagnostics.'
+      );
+      Assert.areEqual(
+        RecordHealthCheckReasonCodes.RECORD_NOT_ACCESSIBLE,
+        item.display.adminDetail.reasonCode,
+        'Diagnostics keep the specific access code.'
+      );
+    }
+  }
+
   @IsTest
   static void shouldKeepMcpPersonaOutsideLifecycleEventChannels() {
     User integrationUser = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
@@ -416,5 +483,81 @@ private with sharing class RecordHealthCheckRestrictedPersonaTest {
     private User userRecord;
     private RHC_Persona_Record__c visibleRecord;
     private RHC_Persona_Record__c hiddenRecord;
+  }
+
+  /** A runner who owns one readable Account and cannot read Opportunity. */
+  private static ReasonFixture createReasonFixture(
+    String alias,
+    Boolean assignDiagnostics
+  ) {
+    ReasonFixture fixture = new ReasonFixture();
+    fixture.userRecord = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
+      alias
+    );
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      fixture.userRecord,
+      'Record_Health_Check_User'
+    );
+    // Account read only; nothing in these sets grants Opportunity.
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      fixture.userRecord,
+      'RHC_SP_Formula_Access'
+    );
+    if (assignDiagnostics) {
+      RecordHealthCheckTestDataFactory.assignPermissionSet(
+        fixture.userRecord,
+        'Record_Health_Check_Diagnostics_Viewer'
+      );
+    }
+    // Ownership makes the Account visible whatever the org's sharing default.
+    fixture.accountRecord = RHCIntegrationTestDataFactory.createAccount(
+      RecordHealthCheckTestDataFactory.account(
+        new Map<String, Object>{
+          'Name' => 'RHC Public Reason ' + alias,
+          'OwnerId' => fixture.userRecord.Id
+        }
+      )
+    );
+    fixture.qualifiedSetName = RecordHealthCheckTestDataFactory.qualifiedCheckSetName(
+      'RHC_Public_Reason_Code'
+    );
+    return fixture;
+  }
+
+  private static RecordHealthCheckResponse evaluateReasonSet(
+    ReasonFixture fixture
+  ) {
+    return RecordHealthCheck.evaluate(
+      RecordHealthCheckRequest.forCheckSet(
+          fixture.qualifiedSetName,
+          fixture.accountRecord.Id
+        )
+        .withResultMode(RecordHealthCheckResultMode.EVALUATION_WITH_DISPLAY)
+    );
+  }
+
+  private static RecordHealthCheckResultItem onlyReasonItem(
+    RecordHealthCheckResponse response
+  ) {
+    Assert.areEqual(1, response.results.size(), 'The Check Set has one Check.');
+    RecordHealthCheckResultItem item = response.results[0];
+    Assert.areEqual(
+      RecordHealthCheckStatus.UNABLE_TO_EVALUATE,
+      item.evaluation.status,
+      'Without Opportunity read the count cannot run: ' +
+      JSON.serialize(item.evaluation)
+    );
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.CANNOT_EVALUATE,
+      item.evaluation.reasonCode,
+      'The public result code stays neutral.'
+    );
+    return item;
+  }
+
+  private class ReasonFixture {
+    private User userRecord;
+    private Account accountRecord;
+    private String qualifiedSetName;
   }
 }

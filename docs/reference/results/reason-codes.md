@@ -31,8 +31,8 @@ use the code, never editable display text.
 
 > [!IMPORTANT]
 > **Public versus diagnostics-only:** `FIELD_NOT_ACCESSIBLE` and `RECORD_NOT_ACCESSIBLE` never appear
-> as the public `reasonCode` on a result. Record Health Check replaces them with `CANNOT_EVALUATE`.
-> When **Show Diagnostics** is on and the user is assigned **Record Health Check Admin** or
+> as the public `reasonCode` on a result. Record Health Check replaces them with `CANNOT_EVALUATE`,
+> and the `{!rhcResult.reasonCode}` merge token reads `CANNOT_EVALUATE` too. When **Show Diagnostics** is on and the user is assigned **Record Health Check Admin** or
 > **Record Health Check Diagnostics Viewer**, the specific code is available in
 > `adminDetail.reasonCode`.
 
@@ -100,7 +100,7 @@ a custom Apex Check.
 | `TOKEN_ROW_INDEX_INVALID`             | validation                                  | A row number that is not a whole number starting at 0, or one the Check can never reach: beyond the query's own `LIMIT`, beyond Max Query Rows, or beyond the single row One Result and ungrouped aggregates return.                                                                                                                                                   |
 | `USER_RUN_PUBLICATION_UNREACHABLE`    | validation warning                          | An automatic card hides Run and Rerun through either the run-button or complete-heading setting while Check Set publication is enabled. Users cannot publish from the card, but Apex and Flow remain available.                                                                                                                                                        |
 | `USER_RESULT_PUBLICATION_UNREACHABLE` | validation warning                          | An automatic card hides Run and Rerun through either the run-button or complete-heading setting while publication is enabled for one of its Checks. Users cannot publish from the card, but Apex and Flow remain available.                                                                                                                                            |
-| `USER_PUBLICATION_OVER_BUDGET`        | validation warning                          | Card Run or Rerun publication is enabled for the Check Set or one of its Checks, but evaluating all its active Checks for one record plans more FormulaEval calls than one transaction allows. The card still shows results; completion logs `TRANSACTION_BUDGET_EXCEEDED` and publishes no events. Remove Formula Checks or display formulas, or split the Check Set. |
+| `USER_PUBLICATION_OVER_BUDGET`        | validation warning                          | Card Run or Rerun publication is enabled for the Check Set or an active Check in it, but evaluating its active Checks for one record plans more FormulaEval calls than one transaction allows. The card still shows results; completion logs `TRANSACTION_BUDGET_EXCEEDED` and publishes no events. Remove Formula Checks or display formulas, or split the Check Set. |
 | `INVALID_DEPENDENCY`                  | validation                                  | Prerequisite metadata is invalid.                                                                                                                                                                                                                                                                                                                                      |
 | `INVALID_OBJECT_API_NAME`             | thrown request error                        | The selected Check Set has a blank or unknown Salesforce object API name.                                                                                                                                                                                                                                                                                              |
 

@@ -315,13 +315,13 @@ waits for Run; automatic mode waits for browser idle.
 When execution begins, the component calls `getCheckDefinitions` once, then `evaluateCheckJson` once per
 Check, at most eight calls in flight across the page, so each Check is its own Apex transaction.
 
-On a `USER_INITIATED` run, `completeRun` checks whether the Check Set or any of its Checks enables
-publication. If none does, it returns without further work. Otherwise it evaluates the whole Check
-Set again on the server in one transaction and publishes the Check Result and Check Set Run events
-enabled in Custom Metadata from that server result. The browser's own results are ignored, so a user
-cannot publish an outcome the server did not produce. Nothing is published for a record the user
-cannot read. Data can change between the card's per-Check calls and completion; the event reports the
-completion-time result.
+On a `USER_INITIATED` run, `completeRun` checks whether the Check Set or any of its active Checks
+enables publication. If none does, it returns without further work; a publication flag left on an
+inactive Check does not count. Otherwise it evaluates the whole Check Set again on the server in one
+transaction and publishes the Check Result and Check Set Run events enabled in Custom Metadata from
+that server result. The browser's own results are ignored, so a user cannot publish an outcome the
+server did not produce. Nothing is published for a record the user cannot read. Data can change
+between the card's per-Check calls and completion; the event reports the completion-time result.
 
 **Apex and Flow:** each direct request checks no more than 200 records in one transaction and
 publishes only according to its explicit `NONE`, `ACTIONABLE`, or `ALL` choice. It does not use the

@@ -69,7 +69,7 @@ run the Checks.
 - **Important:** `getCheckDefinitions` distinguishes a caught `ConfigException` (logged at `DEBUG`,
   reason code passed through as-is) from any other exception (logged at `ERROR` and returned as
   `LOAD_FAILED`). The card can therefore distinguish an invalid setup from an unexpected Apex
-  failure. `completeRun` ignores the browser's results. For a `USER_INITIATED` run whose Check Set or Checks
+  failure. `completeRun` ignores the browser's results. For a `USER_INITIATED` run whose Check Set or active Checks
   enable publication, it evaluates the Check Set again on the server and publishes that result; it
   publishes nothing for a record the user cannot read.
 
@@ -324,14 +324,17 @@ deduplication remains safe.
 
 **Type:** Data holder · `public` (no sharing keyword)
 
-Holds `runId`, `source`, `startedAt`, `completedAt`, and `durationMs`. Created at the start of an
-evaluation path; `complete()` stamps end time. Exposed to merge tokens (`rhcRun.*`) and used when
-building lifecycle events.
+Holds `runId`, `source`, `startedAt`, `completedAt`, and `durationMs`. `RecordHealthCheckScopePipeline`
+creates one per Check and shares it with the evaluator through `SelectionContext.activeRunContext`.
+`RecordHealthCheckFormulaEvaluator.completedRun()` calls `complete()` before any display text
+resolves, so `completedAt` and `durationMs` mark the end of the Check's evaluation. Exposed to
+merge tokens (`rhcRun.*`).
 
 **Notable behavior:**
 
 - **Important:** `complete()` is safe to call more than once. It sets `completedAt` and `durationMs`
-  only the first time, so a later call cannot replace the original completion time.
+  only the first time, so a later call cannot replace the original completion time. Every display
+  surface of a Check, on every record in the scope, reads that first completion.
 
 ### `RecordHealthCheckSetPicklist`
 

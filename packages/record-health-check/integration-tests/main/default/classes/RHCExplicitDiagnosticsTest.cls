@@ -66,6 +66,66 @@ private class RHCExplicitDiagnosticsTest {
     }
   }
 
+  /**
+   * An authorized viewer reads the specific access code in diagnostics, and
+   * the message still shows the public code.
+   *
+   * The message is the same text every viewer receives. Before this was fixed
+   * the message resolved {!rhcResult.reasonCode} before diagnostics replaced
+   * the code, so even this viewer's message carried FIELD_NOT_ACCESSIBLE.
+   */
+  @IsTest
+  static void explicitViewerReadsRestrictedReasonOnlyInDiagnostics() {
+    User viewer = RecordHealthCheckTestDataFactory.createMinimumAccessUser(
+      'diagcode'
+    );
+    RecordHealthCheckTestDataFactory.assignPermissionSet(
+      viewer,
+      'Record_Health_Check_Diagnostics_Viewer'
+    );
+    RecordHealthCheckInternalResult result = new RecordHealthCheckInternalResult();
+    result.status = RecordHealthCheckStatus.UNABLE_TO_EVALUATE;
+    result.reasonCode = RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE;
+    result.message = 'Reason {!rhcResult.reasonCode}';
+    Record_Health_Check__mdt check = RecordHealthCheckTestDataFactory.check(
+      new Map<String, Object>{ 'EvaluationType__c' => 'FORMULA' }
+    );
+    System.runAs(viewer) {
+      Test.startTest();
+      new RecordHealthCheckScopeResultSupport()
+        .finalizeDisplay(
+          check,
+          RecordHealthCheckTestDataFactory.account(
+            new Map<String, Object>{ 'Name' => 'Diagnostics reason' }
+          ),
+          result,
+          true
+        );
+      Test.stopTest();
+    }
+
+    Assert.isNotNull(result.adminDetail, 'The viewer receives diagnostics.');
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.FIELD_NOT_ACCESSIBLE,
+      result.adminDetail.reasonCode,
+      'Authorized diagnostics keep the specific access code.'
+    );
+    Assert.isTrue(
+      result.adminDetail.containsRestrictedDetail,
+      'Diagnostics mark the code as restricted detail.'
+    );
+    Assert.areEqual(
+      'Reason CANNOT_EVALUATE',
+      result.message,
+      'The message is public text, even for an authorized viewer.'
+    );
+    Assert.areEqual(
+      RecordHealthCheckReasonCodes.CANNOT_EVALUATE,
+      result.reasonCode,
+      'The public result code stays neutral.'
+    );
+  }
+
   @IsTest
   static void adminProfileAloneCannotViewDetails() {
     User admin = RecordHealthCheckPersonaTestDataFactory.createProfileOnlyAdmin();

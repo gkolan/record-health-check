@@ -205,7 +205,14 @@ public class RecordHealthCheckTemplateValueResolver {
       return context.totalRecordCount;
     }
     if (property == 'reasonCode') {
-      return context.result.reasonCode;
+      // Display text reaches every viewer, and it can resolve before display
+      // finalization replaces a diagnostics-only code. Read the public code
+      // here; authorized diagnostics keep the specific one in adminDetail.
+      return RecordHealthCheckReasonCodes.isDiagnosticsOnly(
+          context.result.reasonCode
+        )
+        ? RecordHealthCheckReasonCodes.CANNOT_EVALUATE
+        : context.result.reasonCode;
     }
     return null;
   }

@@ -154,3 +154,43 @@ test("allows blank example categories and subscriber-owned categories", (t) => {
   writeCheck(directory, "Example_Absent", { IsActive__c: "false" });
   assert.deepEqual(demoOutcomeCoverageGaps(directory, {}), []);
 });
+
+test("rejects an example Action URL that uses the record path to create", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "rhc-action-url-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  for (const [name, url] of [
+    [
+      "Example_Query",
+      "/lightning/r/Task/new?defaultFieldValues=WhatId={!record.Id}"
+    ],
+    ["Example_Bare", "/lightning/r/Case/new"]
+  ]) {
+    writeCheck(directory, name, { IsActive__c: "false", ActionUrl__c: url });
+  }
+  assert.deepEqual(demoOutcomeCoverageGaps(directory, {}), [
+    "Example_Bare Action URL must open a create page with /lightning/o/<Object>/new, not /lightning/r/<Object>/new.",
+    "Example_Query Action URL must open a create page with /lightning/o/<Object>/new, not /lightning/r/<Object>/new."
+  ]);
+});
+
+test("allows create, record and list Action URLs and subscriber Checks", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "rhc-action-url-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  for (const [name, url] of [
+    [
+      "Example_Create",
+      "/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}"
+    ],
+    ["Example_Record", "/lightning/r/Account/{!record.Id}/view"],
+    [
+      "Example_NewsRelated",
+      "/lightning/r/Account/{!record.Id}/related/News/view"
+    ],
+    ["Example_List", "/lightning/o/Contact/list"],
+    ["Subscriber_Own", "/lightning/r/Task/new"]
+  ]) {
+    writeCheck(directory, name, { IsActive__c: "false", ActionUrl__c: url });
+  }
+  writeCheck(directory, "Example_NoUrl", { IsActive__c: "false" });
+  assert.deepEqual(demoOutcomeCoverageGaps(directory, {}), []);
+});

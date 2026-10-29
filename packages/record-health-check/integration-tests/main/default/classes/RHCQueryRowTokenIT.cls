@@ -558,7 +558,10 @@ private with sharing class RHCQueryRowTokenIT {
    *
    * rhcSet and rhcRun are the two namespaces no fixture exercised, so nothing
    * proved they still resolve against deployed configuration and a live run
-   * rather than only against a hand-built context in a unit test.
+   * rather than only against a hand-built context in a unit test. The run is
+   * complete by the time the message is written: completedAt and durationMs
+   * describe the Check's finished evaluation. Before that was fixed both fell
+   * back to their "(not recorded)" text on every run.
    */
   @IsTest
   static void namesItsCheckSetAndItsRunBesideItsRows() {
@@ -603,9 +606,19 @@ private with sharing class RHCQueryRowTokenIT {
     );
     Assert.isFalse(
       message.contains('null'),
-      'A run value that is not available yet uses its fallback rather than ' +
-        'printing null: ' +
-        message
+      'No run value prints null: ' + message
+    );
+    Assert.isTrue(
+      Pattern.compile(
+          'completed \\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z in \\d+ ms'
+        )
+        .matcher(message)
+        .find(),
+      'The run states when the Check finished and how long it took: ' + message
+    );
+    Assert.isFalse(
+      message.contains('(not recorded)'),
+      'Neither completion token may fall back: ' + message
     );
   }
 

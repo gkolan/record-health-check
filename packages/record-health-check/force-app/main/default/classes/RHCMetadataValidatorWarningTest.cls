@@ -191,23 +191,28 @@ private class RHCMetadataValidatorWarningTest {
   static void warnsWhenCardPublicationCannotFitOneTransaction() {
     Assert.areEqual(
       new List<String>{ 'PublishUserRunEvent__c' },
-      publicationBudgetWarnings(6, true, false),
+      publicationBudgetWarnings(6, true, false, false),
       'Six such Checks cannot fit the completion evaluation of a publishing Check Set.'
     );
     Assert.areEqual(
       new List<String>{ 'PublishUserResultEvent__c' },
-      publicationBudgetWarnings(6, false, true),
+      publicationBudgetWarnings(6, false, true, false),
       'Check-level publication triggers the same whole-Set evaluation.'
     );
     Assert.areEqual(
       new List<String>(),
-      publicationBudgetWarnings(5, true, true),
+      publicationBudgetWarnings(5, true, true, true),
       'Five active Checks fit; the inactive sixth is never evaluated.'
     );
     Assert.areEqual(
       new List<String>(),
-      publicationBudgetWarnings(6, false, false),
+      publicationBudgetWarnings(6, false, false, false),
       'Without card publication there is no completion evaluation to warn about.'
+    );
+    Assert.areEqual(
+      new List<String>(),
+      publicationBudgetWarnings(6, false, false, true),
+      'An inactive Check never runs, so its publication flag triggers no completion evaluation.'
     );
   }
 
@@ -215,7 +220,8 @@ private class RHCMetadataValidatorWarningTest {
   private static List<String> publicationBudgetWarnings(
     Integer activeChecks,
     Boolean setPublishes,
-    Boolean checksPublish
+    Boolean activeChecksPublish,
+    Boolean inactiveCheckPublishes
   ) {
     Id setId = Id.valueOf('m00' + '000000000011');
     Record_Health_Check_Set__mdt checkSet = RecordHealthCheckTestDataFactory.checkSet(
@@ -250,7 +256,9 @@ private class RHCMetadataValidatorWarningTest {
             'ApplicabilityMode__c' => 'ALL_RECORDS',
             'NoRowsResult__c' => 'FAIL',
             'EmptyValueHandling__c' => 'SKIP_RECORD',
-            'PublishUserResultEvent__c' => checksPublish,
+            'PublishUserResultEvent__c' => index < activeChecks
+              ? activeChecksPublish
+              : inactiveCheckPublishes,
             'Record_Health_Check_Set__c' => setId
           }
         )

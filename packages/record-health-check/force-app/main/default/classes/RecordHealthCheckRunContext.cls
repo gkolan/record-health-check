@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/** Run timing and source values exposed to lifecycle events and merge tokens. */
+/** Run timing and source values for one Check, exposed to `{!rhcRun...}` merge tokens. */
 public class RecordHealthCheckRunContext {
   public String runId;
   public String source;
@@ -17,6 +17,11 @@ public class RecordHealthCheckRunContext {
     this.startedAt = System.now();
   }
 
+  /**
+   * Stamps the end of the Check's evaluation; the first call wins. Display
+   * text completes the run before it resolves, so completedAt and durationMs
+   * exclude the time spent writing that text.
+   */
   public void complete() {
     if (completedAt == null) {
       completedAt = System.now();

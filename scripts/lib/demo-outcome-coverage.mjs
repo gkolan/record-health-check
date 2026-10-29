@@ -32,6 +32,32 @@ export function exampleCategoryGaps(metadataDirectory) {
     );
 }
 
+/**
+ * Salesforce opens a create page at /lightning/o/<Object>/new. The /lightning/r/
+ * path addresses an existing record, so /lightning/r/<Object>/new is not a
+ * create page and the example's Fix button would not open one.
+ */
+export function exampleActionUrlGaps(metadataDirectory) {
+  return fs
+    .readdirSync(metadataDirectory)
+    .filter(
+      (name) =>
+        name.startsWith("Record_Health_Check.Example_") &&
+        name.endsWith(".md-meta.xml")
+    )
+    .filter((name) =>
+      /^\/lightning\/r\/[^/?#]+\/new(?=$|[/?#])/i.test(
+        metadataValues(
+          fs.readFileSync(path.join(metadataDirectory, name), "utf8")
+        ).get("ActionUrl__c") ?? ""
+      )
+    )
+    .map(
+      (name) =>
+        `${name.replace("Record_Health_Check.", "").replace(".md-meta.xml", "")} Action URL must open a create page with /lightning/o/<Object>/new, not /lightning/r/<Object>/new.`
+    );
+}
+
 /** Return gaps between packaged example Checks and executable demo outcomes. */
 export function demoOutcomeCoverageGaps(metadataDirectory, matrix) {
   const allowedStatuses = new Set([
@@ -41,7 +67,10 @@ export function demoOutcomeCoverageGaps(metadataDirectory, matrix) {
     "UNABLE_TO_EVALUATE",
     "SYSTEM_ERROR"
   ]);
-  const gaps = exampleCategoryGaps(metadataDirectory);
+  const gaps = [
+    ...exampleCategoryGaps(metadataDirectory),
+    ...exampleActionUrlGaps(metadataDirectory)
+  ];
   const checksBySet = new Map();
   const requirementsByCheck = new Map();
   for (const fileName of fs

@@ -256,6 +256,15 @@ public with sharing class RecordHealthCheckCompareQueriesEvaluator {
       primaryIsZeroCount,
       comparisonIsZeroCount
     );
+    // Display text reads the Check's completed run, which this evaluator owns.
+    RecordHealthCheckTemplateService.applyFoundExpectedText(
+      check,
+      record,
+      result,
+      null,
+      null,
+      soqlEvaluator.formulaEvaluatorForEvaluation().completedRun()
+    );
 
     if (passed) {
       result.status = 'PASS';

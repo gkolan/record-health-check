@@ -30,7 +30,8 @@ private class RHCOrgSafeCoverageTest {
       record,
       result,
       1,
-      2
+      2,
+      null
     );
 
     Assert.areEqual(

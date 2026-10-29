@@ -61,7 +61,7 @@
     >Log deal activity</value></values>
   <values><field>ActionUrl__c</field><value
       xsi:type="xsd:string"
-    >/lightning/r/Task/new?defaultFieldValues=WhatId={!record.Id}</value></values>
+    >/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}</value></values>
   <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Recent deal activity could not be evaluated. Verify Task access for this Opportunity and retry.</value></values>

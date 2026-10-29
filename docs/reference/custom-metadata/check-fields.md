@@ -217,6 +217,10 @@ We could not confirm the requirement for {!record.Name} ({!rhcResult.reasonCode}
 Try again later. If the problem continues, give support run {!rhcRun.runId}, started at {!rhcRun.startedAt}.
 ```
 
+`{!rhcResult.reasonCode}` shows the public reason code. The diagnostics-only codes
+`FIELD_NOT_ACCESSIBLE` and `RECORD_NOT_ACCESSIBLE` read `CANNOT_EVALUATE` here, as they do on the
+result.
+
 ### Fix Message (`FixMessage__c`)
 
 Optional Long Text Area(32,768), shown in failed-Check details. Tell the user exactly what to review
@@ -762,7 +766,8 @@ card.
 
 Select this field only when a Platform Event-triggered Flow, Apex trigger, or integration must
 receive this individual Check result after a person clicks **Run** or **Rerun** on the Lightning
-card. An automatic page-load check does not publish it.
+card. An automatic page-load check does not publish it. An inactive Check publishes nothing, and its
+selected flag does not make the card evaluate the Check Set again when a run completes.
 
 This checkbox does not control Flow, Apex, Batch, Queueable, Future, Scheduled Apex, or agent runs.
 Those callers choose `NONE`, `ACTIONABLE`, or `ALL` when they start the health check. For example,

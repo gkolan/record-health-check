@@ -147,16 +147,17 @@ and finally list overlap, containment, and exact matching (220–240).
 |   160 | Every proposal has a Primary Campaign Source<br>`Example_Guide_Open_Deals_Have_Contacts`   | 0                                                                                          | to equal 1                                                                    | Fail (Critical)    |
 |   170 | Open Opportunity Close Dates are in range<br>`Example_Distinct_Cities_Vs_Contacts`         | 1                                                                                          | to equal 2                                                                    | Fail (Info)        |
 |   180 | Every open Opportunity has a Contact Role<br>`Example_Oldest_Contact_City_Matches`         | 1                                                                                          | to equal 2                                                                    | Fail (Critical)    |
-|   190 | Every won Opportunity has a primary Contact<br>`Example_Earliest_Vs_Latest_Close`          | Not produced                                                                               | Not produced                                                                  | Fail (Warning)     |
+|   190 | Every won Opportunity has a primary Contact<br>`Example_Earliest_Vs_Latest_Close`          | 0                                                                                          | to equal 1                                                                    | Fail (Warning)     |
 |   200 | New pipeline value covers recently lost value<br>`Example_Open_Pipeline_Covers_Revenue`    | $600,000.00                                                                                | at least $760,000.00                                                          | Fail (Critical)    |
 |   210 | Total proposal Amount matches total Product value<br>`Example_Average_Deal_Vs_Largest`     | Not produced                                                                               | Not produced                                                                  | Unable to Evaluate |
 |   220 | Sales and service share a Contact name<br>`Example_Contact_Cities_Overlap_Parent`          | [Jae Kim, Irene Kowalski, Mei Choi, Marcus Reed, Owen Murphy, Lucas Baker]                 | to overlap with [Thomas Gallagher, Sarah Bennett, Elena Ramirez, Gavin Scott] | Fail (Warning)     |
 |   230 | Sales Contact names cover priority Case Contacts<br>`Example_Parent_Covers_Contact_Cities` | [Thomas Gallagher, Sarah Bennett, Elena Ramirez, Gavin Scott]                              | to contain all of [Jae Kim, Irene Kowalski, Mei Choi]                         | Fail (Warning)     |
 |   240 | Open Opportunity names match those with Products<br>`Example_Contact_Cities_Exact_Parent`  | [Acme Corporation Plant Modernization Expansion, Acme Corporation Managed Services Add-On] | to exactly match (none)                                                       | Fail (Warning)     |
 
-“Not produced” means this run did not produce a display value. Check 190 fails under its configured no-row
-behavior before producing Found and Expected. Check 210 returns Unable to Evaluate because no
-Opportunity Product total is available. Neither result implies that the missing value is zero.
+“Not produced” means this run did not produce a display value. Check 190 counts won deals with a
+primary Contact Role with `COUNT_DISTINCT`, so a won deal without one counts as 0 rather than
+taking the no-row behavior. Check 210 returns Unable to Evaluate because no Opportunity Product
+total is available; that does not imply the missing value is zero.
 
 The final three examples compare **names**, so duplicate names can hide differences between records.
 Use record IDs when identity matters. Check 210 compares Account-wide totals: offsetting differences

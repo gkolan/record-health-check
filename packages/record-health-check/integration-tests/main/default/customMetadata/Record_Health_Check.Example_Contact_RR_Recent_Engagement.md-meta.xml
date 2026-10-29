@@ -62,7 +62,7 @@
     >Log activity for {!record.Name fallback="contact"}</value></values>
   <values><field>ActionUrl__c</field><value
       xsi:type="xsd:string"
-    >/lightning/r/Task/new?defaultFieldValues=WhoId={!record.Id}</value></values>
+    >/lightning/o/Task/new?defaultFieldValues=WhoId={!record.Id}</value></values>
   <values><field>UnableToEvaluateMessage__c</field><value
       xsi:type="xsd:string"
     >Recent engagement could not be evaluated. Verify Task access for this Contact and retry.</value></values>

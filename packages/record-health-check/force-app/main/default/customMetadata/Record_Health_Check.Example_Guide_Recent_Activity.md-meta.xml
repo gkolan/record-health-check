@@ -83,7 +83,7 @@
         <field>ActionUrl__c</field>
         <value
       xsi:type="xsd:string"
-    >/lightning/r/Task/new?defaultFieldValues=WhatId={!record.Id}</value>
+    >/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}</value>
     </values>
     <values>
         <field>ApplicabilityMode__c</field>

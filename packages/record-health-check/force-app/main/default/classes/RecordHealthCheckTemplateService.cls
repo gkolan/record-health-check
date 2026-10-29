@@ -60,16 +60,22 @@ public class RecordHealthCheckTemplateService {
     SObject record,
     RecordHealthCheckInternalResult result
   ) {
-    applyFoundExpectedText(check, record, result, null, null);
+    applyFoundExpectedText(check, record, result, null, null, null);
   }
 
-  /** Applies Found/Expected prose with optional multi-row summary counts. */
+  /**
+   * Applies Found/Expected prose with optional multi-row summary counts.
+   *
+   * @param run The Check's completed run, for `{!rhcRun...}` tokens; null when
+   *   the caller has no run.
+   */
   public static void applyFoundExpectedText(
     Record_Health_Check__mdt check,
     SObject record,
     RecordHealthCheckInternalResult result,
     Integer failedRecordCount,
-    Integer totalRecordCount
+    Integer totalRecordCount,
+    RecordHealthCheckRunContext run
   ) {
     if (
       check == null ||
@@ -86,7 +92,8 @@ public class RecordHealthCheckTemplateService {
     RecordHealthCheckMergeContext context = new RecordHealthCheckMergeContext()
       .withRecord(record)
       .withResult(frameworkValues, true)
-      .withQueryRows(result.querySourceRows, result.queryComparisonRows);
+      .withQueryRows(result.querySourceRows, result.queryComparisonRows)
+      .withRun(run);
     context.failedRecordCount = failedRecordCount;
     context.totalRecordCount = totalRecordCount;
 

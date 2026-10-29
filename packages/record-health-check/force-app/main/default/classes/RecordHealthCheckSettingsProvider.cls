@@ -31,7 +31,7 @@ public virtual with sharing class RecordHealthCheckSettingsProvider {
     return !settings.isEmpty() && settings[0].PublishUserRunEvent__c == true;
   }
 
-  /** Returns Checks enabled for interactive result-event publication. */
+  /** Returns active Checks enabled for interactive result-event publication. */
   public virtual Set<String> publishedCheckNames(
     String checkSetQualifiedApiName
   ) {
@@ -57,6 +57,7 @@ public virtual with sharing class RecordHealthCheckSettingsProvider {
       WHERE
         Record_Health_Check_Set__r.QualifiedApiName = :checkSetQualifiedApiName
         AND PublishUserResultEvent__c = TRUE
+        AND IsActive__c = TRUE
     ];
   }
 }

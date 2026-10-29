@@ -38,7 +38,10 @@ public with sharing class RecordHealthCheckFormulaDisplay {
     RecordHealthCheckTemplateService.applyFoundExpectedText(
       check,
       record,
-      result
+      result,
+      null,
+      null,
+      evaluator.completedRun()
     );
   }
 

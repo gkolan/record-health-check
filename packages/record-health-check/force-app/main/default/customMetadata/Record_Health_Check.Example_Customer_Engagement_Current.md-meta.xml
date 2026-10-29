@@ -63,7 +63,7 @@
     >Log activity for {!record.Name fallback="account"}</value></values>
     <values><field>ActionUrl__c</field><value
       xsi:type="xsd:string"
-    >/lightning/r/Task/new?defaultFieldValues=WhatId={!record.Id}</value></values>
+    >/lightning/o/Task/new?defaultFieldValues=WhatId={!record.Id}</value></values>
     <values>
         <field>ApplicabilityMode__c</field>
         <value xsi:type="xsd:string">ALL_RECORDS</value>

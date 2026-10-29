@@ -511,6 +511,7 @@
         <members>RecordHealthCheckResultItem</members>
         <members>RecordHealthCheckRowSafetyTest</members>
         <members>RecordHealthCheckResultMode</members>
+        <members>RecordHealthCheckRunAndReasonTokenTest</members>
         <members>RecordHealthCheckRunCheckAgentAction</members>
         <members>RecordHealthCheckRunCheckFlowAction</members>
         <members>RecordHealthCheckRunContext</members>

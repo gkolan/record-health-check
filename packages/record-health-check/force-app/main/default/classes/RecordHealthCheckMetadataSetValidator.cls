@@ -36,14 +36,15 @@ public with sharing class RecordHealthCheckMetadataSetValidator {
     List<Record_Health_Check__mdt> setChecks,
     Boolean setPublishes
   ) {
-    // Mirrors completeRun: any Check flagged for publication triggers the
+    // Mirrors completeRun: an active Check flagged for publication triggers the
     // evaluation, which plans only the active Checks.
     List<Record_Health_Check__mdt> activeChecks = new List<Record_Health_Check__mdt>();
     Boolean checksPublish = false;
     for (Record_Health_Check__mdt check : setChecks) {
-      checksPublish = checksPublish || check.PublishUserResultEvent__c == true;
       if (check.IsActive__c == true) {
         activeChecks.add(check);
+        checksPublish =
+          checksPublish || check.PublishUserResultEvent__c == true;
       }
     }
     Integer plannedCalls = RecordHealthCheckResourcePlan.formulaCalls(

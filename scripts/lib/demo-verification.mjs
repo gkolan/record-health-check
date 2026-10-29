@@ -91,14 +91,15 @@ for(RecordHealthCheckResultItem item:response.results) {
   if(item.display.evidence.rows!=null) for(List<Object> row:item.display.evidence.rows) if(row!=null) for(Object cell:row) renderedStrings.add(String.valueOf(cell));
  }
  for(String rendered:renderedStrings) System.assert(rendered==null || !rendered.contains('{!'),'Unresolved display token: '+checkName);
- Boolean emptyRoleQuery=name=='RHC Demo Review Account' && checkName.endsWith('Example_Open_Deals_Have_Contacts');
- Boolean emptyWonRoleQuery=item.evaluation.status=='FAIL' && checkName.endsWith('Example_Earliest_Vs_Latest_Close');
  Boolean unableWithoutDisplay=item.evaluation.status=='UNABLE_TO_EVALUATE';
- if(emptyRoleQuery || emptyWonRoleQuery) {
-  System.assertEquals(null,item.display.foundDisplayValue,'No-row failure has no numeric evidence');
-  System.assertEquals(null,item.display.expectedDisplayValue);
+ // COUNT_DISTINCT over no Contact Roles compares 0; it must not fall to No Rows Result.
+ if(name=='RHC Demo Review Account' && checkName.endsWith('Example_Open_Deals_Have_Contacts')) {
+  System.assertEquals('Open deals with a customer contact: 0',item.display.foundDisplayValue,'Counted zero must be shown');
  }
- if(item.evaluation.status!='SKIPPED' && !unableWithoutDisplay && !emptyRoleQuery && !emptyWonRoleQuery) {
+ if(item.evaluation.status=='FAIL' && checkName.endsWith('Example_Earliest_Vs_Latest_Close')) {
+  System.assertEquals('0',item.display.foundDisplayValue,'Counted zero must be shown');
+ }
+ if(item.evaluation.status!='SKIPPED' && !unableWithoutDisplay) {
   System.assert(!String.isBlank(item.display.foundDisplayValue),'Missing Found: '+name+' / '+checkName);
   System.assert(!String.isBlank(item.display.expectedDisplayValue),'Missing Expected: '+name+' / '+checkName);
  }

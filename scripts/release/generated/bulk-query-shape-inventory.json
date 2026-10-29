@@ -2191,6 +2191,17 @@
   {
     "aggregate": true,
     "bareCount": true,
+    "check": "RHC_Public_Reason_Object_Denied",
+    "correlation": "AccountId = record.Id",
+    "field": "SourceQuery__c",
+    "note": "GROUP BY AccountId",
+    "package": "integration-tests",
+    "soql": "SELECT COUNT() FROM Opportunity WHERE AccountId = {!record.Id}",
+    "strategy": "CHILD_DIRECT"
+  },
+  {
+    "aggregate": true,
+    "bareCount": true,
     "check": "RHC_Zero_Distinct_Equals_Count",
     "correlation": "AccountId = record.Id",
     "field": "ComparisonQuery__c",

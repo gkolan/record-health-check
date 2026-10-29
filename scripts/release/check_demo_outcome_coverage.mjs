@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   demoOutcomeCoverageGaps,
+  exampleActionUrlGaps,
   exampleCategoryGaps
 } from "../lib/demo-outcome-coverage.mjs";
 import { paths } from "../lib/paths.mjs";
@@ -20,6 +21,9 @@ const gaps = [
     matrix
   ),
   ...exampleCategoryGaps(
+    path.join(paths.integrationTests, "main/default/customMetadata")
+  ),
+  ...exampleActionUrlGaps(
     path.join(paths.integrationTests, "main/default/customMetadata")
   )
 ];
