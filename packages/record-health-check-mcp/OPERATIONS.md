@@ -127,6 +127,13 @@ packages, and none of them has an install script, `binding.gyp` or `.node` binar
 digest and `--no-addons` are unchanged, so the dispositions below still apply. The artifact
 workflow's image scan has not yet run against this inventory.
 
+Re-reviewed on 2026-10-28 for the npm advisory update to `@modelcontextprotocol/server`, `core` and
+`client` 2.4.0, `node` 2.1.2 with `@hono/node-server` 2.1.5, `body-parser` 2.4.0, `qs` 6.17.1 and
+`zod` 4.6.7. The production inventory keeps the same 77 packages, and none of them has an install
+script, `binding.gyp` or `.node` binary. The runtime digest and `--no-addons` are unchanged, so the
+dispositions below still apply. The artifact workflow's image scan has not yet run against this
+inventory.
+
 | Finding           | Runtime package/version                                            | Reachability decision                                                                                                                                                                                                                                                                                                                       |
 | ----------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CVE-2026-5435`   | `libc6` / `2.41-12+deb13u4`                                        | The service does not call deprecated resolver packet-printing functions.                                                                                                                                                                                                                                                                    |

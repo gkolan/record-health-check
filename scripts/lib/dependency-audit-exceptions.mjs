@@ -15,6 +15,13 @@ export const DEVELOPMENT_AUDIT_EXCEPTIONS = [
     expires: "2026-11-06",
     reason:
       "sprintf-js 1.1.3 is the latest release; reached only through Istanbul coverage (argparse)."
+  },
+  {
+    id: "GHSA-gcqx-w48m-w2h4",
+    package: "deepmerge",
+    expires: "2026-11-27",
+    reason:
+      "deepmerge 4.3.1 is the latest release; reached only through Jest (sfdx-lwc-jest > jest-config)."
   }
 ];
 

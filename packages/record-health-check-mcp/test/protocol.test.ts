@@ -5,6 +5,7 @@ import {
   Client,
   StreamableHTTPClientTransport
 } from "@modelcontextprotocol/client";
+import { AjvJsonSchemaValidator } from "@modelcontextprotocol/client/validators/ajv";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
@@ -404,8 +405,12 @@ describe("MCP Streamable HTTP", () => {
       );
     }
     for (const tool of tools.tools) {
-      const schema = z.fromJSONSchema(
-        tool.outputSchema as Parameters<typeof z.fromJSONSchema>[0]
+      // Validate the advertised JSON Schema as MCP clients do. zod's
+      // fromJSONSchema loosens a typed root that also has anyOf.
+      const validate = new AjvJsonSchemaValidator().getValidator(
+        tool.outputSchema as Parameters<
+          AjvJsonSchemaValidator["getValidator"]
+        >[0]
       );
       const base = { contractVersion: "1.0", correlationId: "schema-test" };
       for (const invalid of [
@@ -427,9 +432,13 @@ describe("MCP Streamable HTTP", () => {
           status: "PASS"
         }
       ]) {
-        expect(schema.safeParse(invalid).success, JSON.stringify(invalid)).toBe(
-          false
-        );
+        expect(validate(invalid).valid, JSON.stringify(invalid)).toBe(false);
+        // The advertised output schema closes every object, so strictness of
+        // the runtime contract needs its own assertion.
+        expect(
+          agentToolResponseSchema.safeParse(invalid).success,
+          JSON.stringify(invalid)
+        ).toBe(false);
       }
       for (const valid of [
         { ...base, success: true, operation: "RUN_CHECK", status: "FAIL" },
@@ -451,9 +460,7 @@ describe("MCP Streamable HTTP", () => {
           errorMessage: "safe"
         }
       ]) {
-        expect(schema.safeParse(valid).success, JSON.stringify(valid)).toBe(
-          true
-        );
+        expect(validate(valid).valid, JSON.stringify(valid)).toBe(true);
       }
     }
     const result = await client.callTool({
