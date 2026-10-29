@@ -17,7 +17,7 @@ For the promoted artifact and immutable installation links, see the
 > [!IMPORTANT]
 > This page records the promoted 2.0.10.1 behavior. The unreleased 2.0.11 source tightens hidden
 > headings to page-open runs and rejects hidden-heading manual cards; see the repository
-> [release notes](../../CHANGELOG.md#unreleased). That day-one 2.0.11 contract does not rewrite what
+> [release notes](../../CHANGELOG.md#version-2011). That day-one 2.0.11 contract does not rewrite what
 > the 2.0.10.1 artifact did.
 
 ## What changed

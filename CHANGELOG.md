@@ -69,9 +69,66 @@ For installation and verification, start with
 [Apex API](./docs/developer-guides/run-from-apex.md), [Flow actions](./docs/flow-guides/action-inputs-and-outputs.md), and
 [Apex Check plugin reference](./docs/developer-guides/write-an-apex-check.md).
 
-## Unreleased
+## Version 2.0.12
 
-This work is targeted for **2.0.11**, a corrective patch to the 2.0.10 card-heading controls. The
+Not released. These changes are in source on branch `2.0.12`; no package version contains them yet.
+
+### Changed
+
+- Card completion events are evaluated on the server. When a Check Set publishes user result
+  events, Rerun no longer sends browser results; `completeRun` evaluates the Check Set again and
+  publishes that result, or nothing for a record the user cannot read. This costs one extra Check
+  Set evaluation per Run while publication is on. If that evaluation cannot fit one transaction,
+  nothing is published, an ERROR `TRANSACTION_BUDGET_EXCEEDED` is logged, and the user sees no
+  error. Metadata validation warns `USER_PUBLICATION_OVER_BUDGET` for such Check Sets.
+- Inactive Checks no longer count as publishing Checks. Before, an inactive Check with Publish User
+  Result Event selected made every Rerun evaluate the whole Check Set again.
+- `FOR VIEW` and `FOR REFERENCE` in a SOQL template are rejected as `INVALID_SOQL_TEMPLATE`, because
+  they update view tracking. Review any subscriber Check that uses them.
+- A single-Check request (Apex, Flow, REST or MCP) runs the Check's active prerequisite chain, as a
+  Check Set run does, and reports only the requested Check.
+- `COUNT(field)` and `COUNT_DISTINCT(field)` compare `0` for a record with nothing to count, as
+  `COUNT()` already did, instead of using No Rows Result. `SUM`, `AVG`, `MIN` and `MAX` are unchanged.
+  Two packaged examples now show Found `0` where they showed no value: `Example_Open_Deals_Have_Contacts`
+  and `Example_Earliest_Vs_Latest_Close` on an Account without the counted Contact Roles. Their
+  verdicts do not change.
+- An explicit Display: Value Format keeps an Apex plugin's Found and Expected links when there is no
+  operand to format.
+- The record-page card no longer reports a false evidence-omission warning to administrators.
+- New **Record Health Check Builder** tab, visible with the Admin permission set, hosts the Check
+  preview.
+- Validation messages name the Message When Failed field by its real label.
+
+### Fixed
+
+- `{!rhcRun.completedAt}` and `{!rhcRun.durationMs}` now hold values. Each Check has one run, which
+  is marked complete when its evaluation finishes and before any text is written. Messages, Fix
+  Message, Action Label, Action URL, and Display Found and Expected Text of one result read the same
+  values. Before, both tokens were always blank, an Action URL that used one without a fallback
+  lost its Fix button, and any `rhcRun` token in Display: Found Text or Display: Expected Text
+  replaced the Check's verdict with Unable to Evaluate or an error.
+- `{!rhcResult.reasonCode}` shows the public reason code everywhere it is used. After a runtime
+  access failure it reads `CANNOT_EVALUATE`, not `FIELD_NOT_ACCESSIBLE` or `RECORD_NOT_ACCESSIBLE`.
+  Authorized diagnostics still show the specific code.
+- Four packaged example Checks (`Example_Contact_RR_Recent_Engagement`,
+  `Example_Customer_Engagement_Current`, `Example_Guide_Recent_Activity`, and
+  `Example_Opportunity_DR_Recent_Activity`) now open the Task create page with
+  `/lightning/o/Task/new`. They used `/lightning/r/Task/new`, which is not a create page. The demo
+  outcome gate rejects that path on any example Check.
+
+### Security and dependencies
+
+- Administrator-authored SOQL always runs with `AccessLevel.USER_MODE`; a source gate rejects any
+  dynamic query without an explicit access level.
+- The unused typed `evaluateCheck` method is no longer `@AuraEnabled`.
+- The MCP server enforces a per-client request budget (`MCP_CLIENT_REQUESTS_PER_MINUTE`, HTTP 429
+  with `Retry-After`), bounds the limiter to 10,000 clients, and reads JWT scopes from `scp` too.
+- MCP dependencies are updated to clear current advisories (`@modelcontextprotocol/*` 2.4.0,
+  `@hono/node-server` 2.1.5, `body-parser` 2.4.0, `qs` 6.17.1, `zod` 4.6.7).
+
+## Version 2.0.11
+
+Released package version: **2.0.11.4** (`04tak000000nGjZAAU`). It is a corrective patch to the 2.0.10 card-heading controls. The
 patch closes an unreachable-action configuration without restoring a duplicate body-level Run
 action. Administrators upgrading from 2.0.10.1 must run the
 [2.0.11 compatibility audit](./docs/reference/release-2.0.11.md#upgrade-action-from-20101) and
